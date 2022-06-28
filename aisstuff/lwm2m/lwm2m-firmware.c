@@ -222,10 +222,6 @@ lwm2m_callback(lwm2m_object_instance_t *object,
         }
       }
       return lwm2m_dlfw((const char *)&ctx->inbuf->buffer[i]);
-}
-
-#else
-#endif
     }
   } else if(ctx->operation == LWM2M_OP_EXECUTE && ctx->resource_id == UPDATE_UPDATE) {
     /* Perform the update operation */

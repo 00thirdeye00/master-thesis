@@ -30,7 +30,9 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
-#define LOG_CONF_LEVEL_LWM2M                       NONE
+#define HTTP_DOWNLOADER 1
+
+#define LOG_CONF_LEVEL_LWM2M                       0
 
 #ifdef BOARD_STRING
 #define LWM2M_DEVICE_MODEL_NUMBER BOARD_STRING
@@ -47,7 +49,7 @@
 /* Increase rpl-border-router IP-buffer when using more than 64. */
 #define COAP_MAX_CHUNK_SIZE            64
 
-/* Multiplies with chunk size, be aware of memory constraints. */
+/* Multiplies with chunk size, be aware of memodery constraints. */
 #define COAP_MAX_OPEN_TRANSACTIONS     4
 
 /* Filtering .well-known/core per query can be disabled to save space. */

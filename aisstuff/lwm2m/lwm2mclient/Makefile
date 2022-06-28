@@ -4,7 +4,7 @@ PLATFORMS_EXCLUDE = sky z1
 
 all: $(CONTIKI_PROJECT)
 
-CONTIKI=../../contiki-ng
+CONTIKI=../../../contiki-ng
 
 MAKE_MAC ?= MAKE_MAC_TSCH
 
