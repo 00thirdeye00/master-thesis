@@ -35,6 +35,7 @@
  * Code for firmware object of lwm2m
  *
  */
+#include "contiki.h"
 #include "contiki-net.h"
 
 #include "lwm2m-engine.h"
@@ -50,7 +51,7 @@
 
 #ifdef COAP_DOWNLOADER
 #include "coap-engine.h"
-#include "coap-blocking-api.h"
+#include "coap-callback-api.h"
 #define DL_URI_SCHEME "coap://"
 #endif
 
@@ -101,7 +102,7 @@ static int bytes_received = 0;
   static struct http_socket s;
   /*---------------------------------------------------------------------------*/
   static void
-  callback(struct http_socket *s, void *ptr,
+  http_callback(struct http_socket *s, void *ptr,
            http_socket_event_t e,
            const uint8_t *data, uint16_t datalen)
   {
@@ -137,25 +138,70 @@ static int bytes_received = 0;
   }
 #endif
 
+#ifdef COAP_DOWNLOADER
+  static coap_message_t request;
+  static coap_endpoint_t server_ep;
+  static coap_callback_request_state_t request_state;
+
+  static void
+  coap_callback(coap_callback_request_state_t *callback_state) {
+    coap_request_state_t *cb_state = &callback_state->state;
+    const uint8_t *chunk = NULL;
+    int datalen=0;
+
+    printf("Registration callback. Status: %d, Response: %d\n", cb_state->status, cb_state->response != NULL);
+    if (cb_state->response != NULL) {
+      datalen = coap_get_payload(cb_state->response, &chunk);
+      bytes_received += datalen;
+    }
+
+    if(cb_state->status == COAP_REQUEST_STATUS_TIMEOUT) {
+      state = STATE_IDLE;
+      printf("Request timed out\n");
+    } else if(cb_state->status == COAP_REQUEST_STATUS_RESPONSE) {
+      printf("COAP response content size %d\n", bytes_received);
+      state = STATE_DOWNLOADED;
+    } else if(cb_state->status == COAP_REQUEST_STATUS_FINISHED) {
+      printf("COAP - last chunk, content size %d\n", bytes_received);
+      state = STATE_DOWNLOADED;
+    } else if(cb_state->status == COAP_REQUEST_STATUS_MORE) {
+      printf("COAP - chunk size: %d\n", datalen);
+      state = STATE_DOWNLOADING;
+    } else if(cb_state->status == COAP_REQUEST_STATUS_BLOCK_ERROR) {
+      printf("COAP - block error\n");
+      state = STATE_IDLE;
+    } else {
+      printf("COAP - unkown callback status\n");
+    }
+
+    lwm2m_notify_object_observers(&reg_object, UPDATE_STATE);
+    lwm2m_notify_object_observers(&reg_object, UPDATE_RESULT);
+  }
+#endif
+
 /*---------------------------------------------------------------------------*/
 
   static lwm2m_status_t
   lwm2m_dlfw(const char *dl_uri)
   {
-    printf("HTTP socket init download\n");
     result = 0;
     state = STATE_DOWNLOADING;
     bytes_received = 0;
 #ifdef HTTP_DOWNLOADER
-    printf("HTTP socket init download\n");
+    printf("HTTP init download: %s\n", dl_uri);
     http_socket_init(&s);
-    http_socket_get(&s, dl_uri, 0, 0,callback, NULL);
+    http_socket_get(&s, dl_uri, 0, 0, http_callback, NULL);
     printf("HTTP socket downloading\n");
 #endif
 #ifdef COAP_DOWNLOADER
-    printf("COAP init download\n");
-
-    printf("COAP socket downloading\n");
+    coap_endpoint_parse(dl_uri, strlen(dl_uri), &server_ep);
+    coap_init_message(&request, COAP_TYPE_CON, COAP_GET, 0);
+    coap_set_header_uri_path(&request, "/");
+    printf("COAP - init download: %s\n", dl_uri);
+    LOG_INFO_COAP_EP(&server_ep);
+    LOG_INFO_("\n");
+    coap_send_request(&request_state, &server_ep, &request, coap_callback);
+    printf("COAP - downloading\n");
 #endif
 
     return LWM2M_STATUS_OK;
