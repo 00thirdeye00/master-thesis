@@ -55,12 +55,29 @@
 
 #define MCAST_SINK_UDP_PORT 3001 /* Host byte order */
 
+#define LOG_MODULE "App"
+#define LOG_LEVEL LOG_LEVEL_INFO
+
+#define WITH_SERVER_REPLY  1
+#define UDP_CLIENT_PORT 8765
+#define UDP_SERVER_PORT 5678
+
+static struct simple_udp_connection udp_conn;
+
 static struct uip_udp_conn *sink_conn;
 static uint16_t count;
 
 static bool recv_cnt[1024];  // static bool recv_count[1024] = {};
 static uint8_t prev_packet;
 
+
+typedef enum {
+  DATA_RSTFLAG = 0,
+  DATA_RECEIVED,
+  DATA_MISSING
+} missing_data_t;
+
+missing_data_t uni_req_flag;
 
 #if !NETSTACK_CONF_WITH_IPV6 || !UIP_CONF_ROUTER || !UIP_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
 #error "This example can not work with the current contiki configuration"
@@ -71,34 +88,74 @@ PROCESS(mcast_sink_process, "Multicast Sink");
 AUTOSTART_PROCESSES(&mcast_sink_process);
 /*---------------------------------------------------------------------------*/
 
-/*  
-  funtion: unicast reception
+
+/*
+  funtion: to send unicast request for missing packets
 
 */
 
+static void
+uni_pckt_req(uin8_t* pack_to_req)
+{
+  uni_req_flag = DATA_FRST;
 
+  PRINTF("missing packet request to send from here");
 
+  // if (uni_req_flag != DATA_RECEIVED) {
+  //   uip_udp_packet_sendto(&sink_conn, pack_to_req, strlen(pack_to_req),
+  //                         &sink_conn->ripaddr, UIP_HTONS(sink_conn->rport));
 
+  // PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 
+  // if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
+  //   /* Send to DAG root */
+  //   LOG_INFO("Sending request %u to ", count);
+  //   LOG_INFO_6ADDR(&dest_ipaddr);
+  //   LOG_INFO_("\n");
+  //   snprintf(str, sizeof(str), "hello %d", count);
+  //   simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
+  //   count++;
+  // } else {
+  //   LOG_INFO("Not reachable yet\n");
+  // }
 
-
-
-/*---------------------------------------------------------------------------*/
-/*  
-  funtion: to send unicast request for missing data
-  
-*/
-
-// static void
-// uni_pckt_req(uin8_t pck_num)
-// {
+}
 
 // }
 
 
 /*---------------------------------------------------------------------------*/
 
+/*
+  funtion: unicast reception
 
+*/
+
+
+//   //settimer for (no_of_packets * packet_delay)
+
+
+// static void
+// udp_rx_callback(struct simple_udp_connection *c,
+//                 const uip_ipaddr_t *sender_addr,
+//                 uint16_t sender_port,
+//                 const uip_ipaddr_t *receiver_addr,
+//                 uint16_t receiver_port,
+//                 const uint8_t *data,
+//                 uint16_t datalen)
+// {
+
+//   LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
+//   LOG_INFO_6ADDR(sender_addr);
+// #if LLSEC802154_CONF_ENABLED
+//   LOG_INFO_(" LLSEC LV:%d", uipbuf_get_attr(UIPBUF_ATTR_LLSEC_LEVEL));
+// #endif
+//   LOG_INFO_("\n");
+
+// }
+
+
+/*---------------------------------------------------------------------------*/
 
 /*
 
@@ -111,23 +168,31 @@ static void
 recv_data_check(uint8_t chnks)
 {
 
+  static uint8_t miss_pckt[1024];
+  static uint8_t cnt;
   // if(recv_cnt[chnks] == true){
-    PRINTF("Missing Packet:");
+  PRINTF("Missing Packet:");
 
-    for(int i = 0; i < chnks; i++){
-      // PRINTF("Missing Packet:");
-      if(recv_cnt[i] != true){
-        // uni_pckt_req(i);
-        PRINTF(" %u", i);
-      }
-
+  for (int i = 0; i < chnks; i++) {
+    // PRINTF("Missing Packet:");
+    if (recv_cnt[i] != true) {
+      miss_pckt[cnt++] = i;
+      uni_req_flag = DATA_MISSING;  //data missing flag is set
+      // uni_pckt_req(i);
+      PRINTF(" %u", i);
     }
-    PRINTF("\n");
-    #if (UIP_MAX_ROUTES != 0)
-      PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
-    #endif
+  }
+  miss_pckt[cnt] = '\0';
+  PRINTF("\n");
+  // #if (UIP_MAX_ROUTES != 0)
+  //   PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
+  // #endif
 
   // }
+
+  if (uni_req_flag == DATA_MISSING) { //if the data missing flag is set
+    uni_pckt_req(&miss_pckt);
+  }
 
   return;
 
@@ -143,7 +208,7 @@ static void
 tcpip_handler(void)
 {
 
-  if(uip_newdata()) {
+  if (uip_newdata()) {
 
     packet_data *packet_data_recv = (packet_data *)uip_appdata;
 
@@ -155,9 +220,9 @@ tcpip_handler(void)
 
     packet_data_recv->buf[MAX_PAYLOAD_LEN] = '\0';
 
-    if(recv_cnt[packet_data_recv->seq_num]){
-      PRINTF("seq num %u is set to %u\n", packet_data_recv->seq_num, 
-        recv_cnt[packet_data_recv->seq_num]);
+    if (recv_cnt[packet_data_recv->seq_num]) {
+      PRINTF("seq num %u is set to %u\n", packet_data_recv->seq_num,
+             recv_cnt[packet_data_recv->seq_num]);
     }
 
 
@@ -199,10 +264,10 @@ join_mcast_group(void)
    * IPHC will use stateless multicast compression for this destination
    * (M=1, DAC=0), with 32 inline bits (1E 89 AB CD)
    */
-  uip_ip6addr(&addr, 0xFF1E,0,0,0,0,0,0x89,0xABCD);
+  uip_ip6addr(&addr, 0xFF1E, 0, 0, 0, 0, 0, 0x89, 0xABCD);
   rv = uip_ds6_maddr_add(&addr);
 
-  if(rv) {
+  if (rv) {
     PRINTF("Joined multicast group ");
     PRINT6ADDR(&uip_ds6_maddr_lookup(&addr)->ipaddr);
     PRINTF("\n");
@@ -213,12 +278,24 @@ join_mcast_group(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(mcast_sink_process, ev, data)
 {
+
+  /* unicast connection */
+  // static struct etimer periodic_timer;
+  // static unsigned count;
+  // static char str[32];
+  // uip_ipaddr_t dest_ipaddr;
+  /* unicast connection */
+
   PROCESS_BEGIN();
 
+  // /* Initialize UDP connection for unicast */
+  // simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
+  //                     UDP_SERVER_PORT, udp_rx_callback);
 
-  for(int i = 0; i < 1024; i++){
-    recv_cnt[i] = false;
-  }
+
+  // for (int i = 0; i < 1024; i++) {
+  //   recv_cnt[i] = false;
+  // }
 
   PRINTF("Multicast Engine: '%s'\n", UIP_MCAST6.name);
 
@@ -227,7 +304,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
    *  well-known address, so this isn't needed.
    */
 #if UIP_MCAST6_CONF_ENGINE != UIP_MCAST6_ENGINE_MPL
-  if(join_mcast_group() == NULL) {
+  if (join_mcast_group() == NULL) {
     PRINTF("Failed to join multicast group\n");
     PROCESS_EXIT();
   }
@@ -241,11 +318,32 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   PRINTF("Listening: ");
   PRINT6ADDR(&sink_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
-        UIP_HTONS(sink_conn->lport), UIP_HTONS(sink_conn->rport));
+         UIP_HTONS(sink_conn->lport), UIP_HTONS(sink_conn->rport));
 
-  while(1) {
+  // etimer_set(&periodic_timer, 180 * SEND_INTERVAL);
+
+  while (1) {
+    // if (uni_req_flag = DATA_MISSING && PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer))) {
+
+    //   if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
+    //     /* Send to DAG root */
+    //     LOG_INFO("Sending request %u to ", count);
+    //     LOG_INFO_6ADDR(&dest_ipaddr);
+    //     LOG_INFO_("\n");
+    //     snprintf(str, sizeof(str), "hello %d", count);
+    //     simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
+    //     count++;
+    //   } else {
+    //     LOG_INFO("Not reachable yet\n");
+    //   }
+
+    //   /* Add some jitter */
+    //   etimer_set(&periodic_timer, SEND_INTERVAL
+    //              - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
+    // }
+
     PROCESS_YIELD();
-    if(ev == tcpip_event) {
+    if (ev == tcpip_event) {
       tcpip_handler();
     }
   }
