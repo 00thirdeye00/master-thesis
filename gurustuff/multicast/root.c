@@ -71,7 +71,7 @@
 
 /* Start sending messages START_DELAY secs after we start so that routing can
  * converge */
-#define START_DELAY_MIN 30
+#define START_DELAY_MIN 10
 #define START_DELAY (60 * START_DELAY_MIN)
 
 #define LOG_MODULE "App"
@@ -102,39 +102,39 @@ const char *seq_idd = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRR
                       "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5112"
                       "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu113"
                       "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0114"
-                      "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN115" /* 1024 bytes */
-                      "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj200"
-                      "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou201"
-                      "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g202"
-                      "3hSAFpT2dLgVxoo2ZCHhNSE0rm2I5OBVhdklMnzBgDDW5gdpOm7389BaNgqdA203"
-                      "47oUilXORLjy7kDu86GHSNLzAJjXUxxEc7PeJfPLyC0khgSy4aYUhlFsenbK4204"
-                      "5DSZ5YS33eoOeiTze2onUl7PfPz8No6W7AHYW7S34vUADHDOcABcEkDlpxQho205"
-                      "6pM1ksIrfHSbpfCJhoqqh9w9kjITgdDrqbp9aHTzjZOScTCtzpMFACJalZNRz206"
-                      "7AY301mZjr2KD8pVrhkNfNxQyg1nmm7QJSXN4lDj0dIawEflfSVXLGShl0vxc207"
-                      "8sxK5w6msIvzeRDgaYAJ5zmMWg42S4Ap7WA1eHYepIrlwmn1TdwSEPPcMx6Tj208"
-                      "9Ilj3gU7JfgoItY5FqNQJgYy6Vw0NPdwwPcnfPmtLhH5nl55eJFwwpB6UgZan209"
-                      "10dgiEiFy8GoGIaOjXC387ihvfvaiGA2sBgh3k87i7Eb7QTNrthpZSdlIk8PE210"
-                      "11qwCORP6psr9r8BBTnJqYpuayMhQD8vuxp9aBXaMLWmBAYo2EAtB45YeXEGU211"
-                      "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5212"
-                      "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu213"
-                      "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0214"
-                      "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN215" /* 2048 bytes */
-                      "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj300"
-                      "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou301"
-                      "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g302"
-                      "3hSAFpT2dLgVxoo2ZCHhNSE0rm2I5OBVhdklMnzBgDDW5gdpOm7389BaNgqdA303"
-                      "47oUilXORLjy7kDu86GHSNLzAJjXUxxEc7PeJfPLyC0khgSy4aYUhlFsenbK4304"
-                      "5DSZ5YS33eoOeiTze2onUl7PfPz8No6W7AHYW7S34vUADHDOcABcEkDlpxQho305"
-                      "6pM1ksIrfHSbpfCJhoqqh9w9kjITgdDrqbp9aHTzjZOScTCtzpMFACJalZNRz306"
-                      "7AY301mZjr2KD8pVrhkNfNxQyg1nmm7QJSXN4lDj0dIawEflfSVXLGShl0vxc307"
-                      "8sxK5w6msIvzeRDgaYAJ5zmMWg42S4Ap7WA1eHYepIrlwmn1TdwSEPPcMx6Tj308"
-                      "9Ilj3gU7JfgoItY5FqNQJgYy6Vw0NPdwwPcnfPmtLhH5nl55eJFwwpB6UgZan309"
-                      "10dgiEiFy8GoGIaOjXC387ihvfvaiGA2sBgh3k87i7Eb7QTNrthpZSdlIk8PE310"
-                      "11qwCORP6psr9r8BBTnJqYpuayMhQD8vuxp9aBXaMLWmBAYo2EAtB45YeXEGU311"
-                      "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5312"
-                      "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu313"
-                      "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0314"
-                      "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN315"; /* 3072 bytes */
+                      "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN115"; /* 1024 bytes */
+                      // "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj200"
+                      // "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou201"
+                      // "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g202"
+                      // "3hSAFpT2dLgVxoo2ZCHhNSE0rm2I5OBVhdklMnzBgDDW5gdpOm7389BaNgqdA203"
+                      // "47oUilXORLjy7kDu86GHSNLzAJjXUxxEc7PeJfPLyC0khgSy4aYUhlFsenbK4204"
+                      // "5DSZ5YS33eoOeiTze2onUl7PfPz8No6W7AHYW7S34vUADHDOcABcEkDlpxQho205"
+                      // "6pM1ksIrfHSbpfCJhoqqh9w9kjITgdDrqbp9aHTzjZOScTCtzpMFACJalZNRz206"
+                      // "7AY301mZjr2KD8pVrhkNfNxQyg1nmm7QJSXN4lDj0dIawEflfSVXLGShl0vxc207"
+                      // "8sxK5w6msIvzeRDgaYAJ5zmMWg42S4Ap7WA1eHYepIrlwmn1TdwSEPPcMx6Tj208"
+                      // "9Ilj3gU7JfgoItY5FqNQJgYy6Vw0NPdwwPcnfPmtLhH5nl55eJFwwpB6UgZan209"
+                      // "10dgiEiFy8GoGIaOjXC387ihvfvaiGA2sBgh3k87i7Eb7QTNrthpZSdlIk8PE210"
+                      // "11qwCORP6psr9r8BBTnJqYpuayMhQD8vuxp9aBXaMLWmBAYo2EAtB45YeXEGU211"
+                      // "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5212"
+                      // "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu213"
+                      // "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0214"
+                      // "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN215" /* 2048 bytes */
+                      // "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj300"
+                      // "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou301"
+                      // "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g302"
+                      // "3hSAFpT2dLgVxoo2ZCHhNSE0rm2I5OBVhdklMnzBgDDW5gdpOm7389BaNgqdA303"
+                      // "47oUilXORLjy7kDu86GHSNLzAJjXUxxEc7PeJfPLyC0khgSy4aYUhlFsenbK4304"
+                      // "5DSZ5YS33eoOeiTze2onUl7PfPz8No6W7AHYW7S34vUADHDOcABcEkDlpxQho305"
+                      // "6pM1ksIrfHSbpfCJhoqqh9w9kjITgdDrqbp9aHTzjZOScTCtzpMFACJalZNRz306"
+                      // "7AY301mZjr2KD8pVrhkNfNxQyg1nmm7QJSXN4lDj0dIawEflfSVXLGShl0vxc307"
+                      // "8sxK5w6msIvzeRDgaYAJ5zmMWg42S4Ap7WA1eHYepIrlwmn1TdwSEPPcMx6Tj308"
+                      // "9Ilj3gU7JfgoItY5FqNQJgYy6Vw0NPdwwPcnfPmtLhH5nl55eJFwwpB6UgZan309"
+                      // "10dgiEiFy8GoGIaOjXC387ihvfvaiGA2sBgh3k87i7Eb7QTNrthpZSdlIk8PE310"
+                      // "11qwCORP6psr9r8BBTnJqYpuayMhQD8vuxp9aBXaMLWmBAYo2EAtB45YeXEGU311"
+                      // "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5312"
+                      // "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu313"
+                      // "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0314"
+                      // "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN315"; /* 3072 bytes */
 // "163lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOajC16";
 
 
@@ -159,13 +159,15 @@ brief: prepare missing packet data using sequence/packet num
 
 */
 
-static void
-prepare_ucast(uint8_t pckt_num) {
+// static void
+// prepare_ucast(uint8_t pckt_num) {
 
 
-  //start_byte = seq_idd[MAX_PAYLOAD_LEN * pckt_num]
-  //end_byte = seq_idd[MAX_PAYLOAD_LEN * pckt_num] + MAX_PAYLOAD_LEN
-}
+//   PRINTF("function to prepare ucast reception and response");
+
+//   //start_byte = seq_idd[MAX_PAYLOAD_LEN * pckt_num]
+//   //end_byte = seq_idd[MAX_PAYLOAD_LEN * pckt_num] + MAX_PAYLOAD_LEN
+// }
 
 
 
@@ -182,24 +184,35 @@ function: unicast request receive and response
 
 */
 
-// static void
-// udp_rx_callback(struct simple_udp_connection *c,
-//                 const uip_ipaddr_t *sender_addr,
-//                 uint16_t sender_port,
-//                 const uip_ipaddr_t *receiver_addr,
-//                 uint16_t receiver_port,
-//                 const uint8_t *data,
-//                 uint16_t datalen)
-// {
-//   LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
-//   LOG_INFO_6ADDR(sender_addr);
-//   LOG_INFO_("\n");
-// #if WITH_SERVER_REPLY
-//   /* send back the same string to the client as an echo reply */
-//   LOG_INFO("Sending response.\n");
-//   simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
-// #endif /* WITH_SERVER_REPLY */
-// }
+static void
+udp_rx_callback(struct simple_udp_connection *c,
+                const uip_ipaddr_t *sender_addr,
+                uint16_t sender_port,
+                const uip_ipaddr_t *receiver_addr,
+                uint16_t receiver_port,
+                const uint8_t *data,
+                uint16_t datalen)
+{
+  PRINTF("unicast request at root received: \n");
+  PRINTF("date len received at root: %u \n", datalen);
+
+  // LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
+  PRINTF("missing packets received: ");
+  for(int i = 0; data[i] != '\0'; i++){
+    PRINTF("%u", data[i]);
+  }
+  // PRINTF("%s", (char *)data);
+
+  PRINTF(" from ");
+
+  LOG_INFO_6ADDR(sender_addr);
+  LOG_INFO_("\n");
+#if WITH_SERVER_REPLY
+  /* send back the same string to the client as an echo reply */
+  // LOG_INFO("Sending response.\n");
+  // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
+#endif /* WITH_SERVER_REPLY */
+}
 
 
 /*---------------------------------------------------------------------------*/
@@ -297,8 +310,8 @@ PROCESS_THREAD(rpl_root_process, ev, data)
   prepare_mcast();
 
   /* Initialize UDP connection */
-  // simple_udp_register(&udp_conn, UDP_SERVER_PORT, NULL,
-  //                     UDP_CLIENT_PORT, udp_rx_callback);
+  simple_udp_register(&udp_conn, UDP_SERVER_PORT, NULL,
+                       UDP_CLIENT_PORT, udp_rx_callback);
 
 
   etimer_set(&et, START_DELAY * CLOCK_SECOND);
