@@ -78,7 +78,14 @@ typedef enum {
   DATA_MISSING
 } missing_data_t;
 
+typedef enum{
+  TIME_RSET = 0,
+  TIME_SET,
+  TIME_EXPD
+} mult_recvtim_t;
+
 missing_data_t uni_req_flag;
+mult_recvtim_t mult_recv_flag;
 
 #if !NETSTACK_CONF_WITH_IPV6 || !UIP_CONF_ROUTER || !UIP_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
 #error "This example can not work with the current contiki configuration"
@@ -171,8 +178,19 @@ udp_rx_callback(struct simple_udp_connection *c,
 {
 
   PRINTF("received response for unicast request: \n");
-  LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
+  // LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
+
+  PRINTF("received response for missing packets requested: ");
+
+  for(int i = 0; data[i] != '\0'; i++){
+    PRINTF("%u", data[i]);
+  }
+
+  PRINTF(" from ");
+
   LOG_INFO_6ADDR(sender_addr);
+  LOG_INFO_("\n");
+
 #if LLSEC802154_CONF_ENABLED
   LOG_INFO_(" LLSEC LV:%d", uipbuf_get_attr(UIPBUF_ATTR_LLSEC_LEVEL));
 #endif
@@ -235,7 +253,8 @@ recv_data_check(uint8_t chnks)
 
   // if(timer_expired(&periodic_timer)){
     // PRINTF("recv timer expired \n");
-    if (uni_req_flag == DATA_MISSING) { //if the data missing flag is set
+    if (uni_req_flag == DATA_MISSING && mult_recv_flag == TIME_EXPD) { //if the data missing flag is set
+      mult_recv_flag = TIME_RSET;
       PRINTF("data missing flag checked \n");
       uni_pckt_req(cnt);
       // timer_reset(&periodic_timer);
@@ -350,7 +369,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
 {
 
   /* unicast connection */
-  // static struct etimer periodic_timer;
+  static struct etimer periodic_timer;
   // static struct stimer periodic_timer;
   // static unsigned count;
   // static char str[32];
@@ -391,13 +410,17 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   PRINTF(" local/remote port %u/%u\n",
          UIP_HTONS(sink_conn->lport), UIP_HTONS(sink_conn->rport));
 
-  // etimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
+  etimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
+  mult_recv_flag = TIME_RSET;
 
   while (1) {
 
-    // if(etimer_expired(&periodic_timer)){
+    if(etimer_expired(&periodic_timer)){
 
+      mult_recv_flag = TIME_EXPD;
+      etimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
 
+      
     //   etimer_reset(&periodic_timer);
     // } 
 
@@ -424,7 +447,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
       // etimer_set(&periodic_timer, SEND_INTERVAL
       //            - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
       // etimer_set(&periodic_timer, 60 * SEND_INTERVAL);
-    // }
+    }
 
     PROCESS_YIELD();
     if (ev == tcpip_event) {
