@@ -85,10 +85,14 @@
 
 // Enable Fragementation
 #define SICSLOWPAN_CONF_FRAG 1
+/**
+ * Timeout for packet reassembly at the 6lowpan layer
+ * (should be < 60s)
+ */
+#define SICSLOWPAN_CONF_MAXAGE 60
 
 // Size of send queue, default is 8
 #define QUEUEBUF_CONF_NUM 64
-
 
 
 /* Code/RAM footprint savings so that things will fit on our device */
