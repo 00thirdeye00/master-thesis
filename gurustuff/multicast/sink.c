@@ -66,10 +66,13 @@ static struct simple_udp_connection udp_conn;
 
 static struct uip_udp_conn *sink_conn;
 static uint16_t count;
+static uint16_t count_u;
 
 static bool recv_cnt[1024];  // static bool recv_count[1024] = {};
 static uint8_t miss_pckt[1024]; //static int for missing packet reqst
+// static uint8_t *miss_pckt; //static int for missing packet reqst
 static uint8_t prev_packet;
+static uint8_t total_chunks;
 
 
 typedef enum {
@@ -91,6 +94,9 @@ mult_recvtim_t mult_recv_flag;
 #error "This example can not work with the current contiki configuration"
 #error "Check the values of: NETSTACK_CONF_WITH_IPV6, UIP_CONF_ROUTER, UIP_CONF_IPV6_RPL"
 #endif
+
+static void recv_data_check(uint8_t chnks);
+
 /*---------------------------------------------------------------------------*/
 PROCESS(mcast_sink_process, "Multicast Sink");
 AUTOSTART_PROCESSES(&mcast_sink_process);
@@ -105,7 +111,7 @@ AUTOSTART_PROCESSES(&mcast_sink_process);
 static void
 uni_pckt_req(uint8_t mcnt)
 {
-  // uni_req_flag = DATA_FRST;
+  uni_req_flag = DATA_RSTFLAG;
   uip_ipaddr_t dest_ipaddr;
 
   PRINTF("missing packet request to send from here\n");
@@ -116,21 +122,26 @@ uni_pckt_req(uint8_t mcnt)
 
   // PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
   // uint8_t mpckt[mcnt];
-  uint8_t mpckt[1024];
+  // uint8_t mpckt[1024];
+  uint8_t *mpckt;
   // char *mpckt;
 
+  mpckt = (uint8_t *)heapmem_alloc(mcnt * sizeof(uint8_t));
 
-  memset(&mpckt, 0, sizeof(uint8_t)*1024);
+  // memset(&mpckt, 0, sizeof(uint8_t)*1024);
+  memset(mpckt, 0, sizeof(uint8_t)*mcnt);
 
   PRINTF("missing packets from sink: ");
 
-  int i = 0;
-  for(; i < mcnt; i++){
+  // uint8_t i = 0;
+  for(int i = 0; i < mcnt; i++){
     // PRINTF("%u", miss_pckt[i]);
     mpckt[i] = miss_pckt[i];
-    PRINTF("%u", mpckt[i]);
+    // PRINTF("from miss_pckt: %u", miss_pckt[i]);
+    // PRINTF("from mpckt: %u", mpckt[i]);
+    PRINTF(" %u", mpckt[i]);
   }
-  mpckt[i] = '\0';
+  // mpckt[i] = '\0';
   
   PRINTF("\n");
   PRINTF("missing packets in sink packed\n");
@@ -141,13 +152,13 @@ uni_pckt_req(uint8_t mcnt)
 
   if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
     /* Send to DAG root */
-    LOG_INFO("Sending request %u to ", count);
+    LOG_INFO("Sending request %u to ", count_u);
     LOG_INFO_6ADDR(&dest_ipaddr);
     LOG_INFO_("\n");
     // snprintf(str, sizeof(str), "hello %d", count);
     PRINTF("sending missing packets to root \n");    
-    simple_udp_sendto(&udp_conn, mpckt, sizeof(mpckt), &dest_ipaddr);
-    count++;
+    simple_udp_sendto(&udp_conn, mpckt, mcnt, &dest_ipaddr);
+    count_u++;
   } else {
     LOG_INFO("Not reachable yet\n");
   }
@@ -182,19 +193,45 @@ udp_rx_callback(struct simple_udp_connection *c,
 
   PRINTF("received response for missing packets requested: ");
 
-  for(int i = 0; data[i] != '\0'; i++){
-    PRINTF("%u", data[i]);
+  packet_data *this;
+
+  this = (packet_data *)data;
+
+
+  PRINTF("seq_num received from unic: %u \n", this->seq_num);
+  PRINTF("datalen received from unic: %u \n", datalen);
+
+
+  // PRINTF("data ptr check s %u \n", *data);
+  // PRINTF("data ptr check s %u \n", *(data+1));
+  // PRINTF("data ptr check s %u \n", *(data+2));
+  // PRINTF("data ptr check s %u \n", *(data+3));
+  // PRINTF("data ptr check s %u \n", *(data+4));
+  // PRINTF("data ptr check s %u \n", *(data+5));
+  // PRINTF("data ptr check s %u \n", *(data+6));
+  // PRINTF("data ptr check s %u \n", *(data+7));
+  // PRINTF("data ptr check s %u \n", *(data+8));
+
+  for(int i = 0; i < datalen; i++){
+    // PRINTF("inside unicast sink for\n");
+    if(recv_cnt[data[i]] != true){ //-|
+      // PRINTF("unicast response received for %u packet \n", data[i]);
+      recv_cnt[data[i]] = true;    //-|- uncomment when data sent from root
+    }                              //-|
+    PRINTF(" %u", data[i]);
   }
 
   PRINTF(" from ");
 
   LOG_INFO_6ADDR(sender_addr);
-  LOG_INFO_("\n");
+  // LOG_INFO_("\n");
 
 #if LLSEC802154_CONF_ENABLED
   LOG_INFO_(" LLSEC LV:%d", uipbuf_get_attr(UIPBUF_ATTR_LLSEC_LEVEL));
 #endif
   LOG_INFO_("\n");
+
+  recv_data_check(total_chunks);
 
 }
 
@@ -217,7 +254,10 @@ recv_data_check(uint8_t chnks)
 
   // timer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
 
-  memset(miss_pckt, 0, sizeof(uint8_t)*1024);
+  // miss_pckt = heapmem_alloc(chnks);
+  memset(miss_pckt, 0, sizeof(uint8_t)*chnks);
+  
+  // memset(miss_pckt, 0, sizeof(uint8_t)*1024);
   // memset(&mpckt, 0, sizeof(uint8_t)*1024);
 
 
@@ -240,10 +280,12 @@ recv_data_check(uint8_t chnks)
 
   PRINTF("missing packets from miss_packt ");
   for(int i = 0; miss_pckt[i] != '\0'; i++){
-    PRINTF("%u", miss_pckt[i]);
+    PRINTF(" %u", miss_pckt[i]);
   }
   PRINTF("\n");
 
+
+  PRINTF(" --> cnt: %u\n", cnt);
 
   // #if (UIP_MAX_ROUTES != 0)
   //   PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
@@ -253,14 +295,14 @@ recv_data_check(uint8_t chnks)
 
   // if(timer_expired(&periodic_timer)){
     // PRINTF("recv timer expired \n");
-    if (uni_req_flag == DATA_MISSING && mult_recv_flag == TIME_EXPD) { //if the data missing flag is set
+    if (uni_req_flag == DATA_MISSING && mult_recv_flag == TIME_EXPD && cnt > 0) { //if the data missing flag is set
       mult_recv_flag = TIME_RSET;
       PRINTF("data missing flag checked \n");
       uni_pckt_req(cnt);
       // timer_reset(&periodic_timer);
+      // heapmem_free(miss_pckt);
     }
   // }
-
 
   return;
 
@@ -279,7 +321,7 @@ tcpip_handler(void)
   // static struct stimer periodic_timer;
 
   // stimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
-
+  // static uint8_t total_chunks;
 
   if (uip_newdata()) {
 
@@ -298,7 +340,7 @@ tcpip_handler(void)
              recv_cnt[packet_data_recv->seq_num]);
       }
     } else {
-      PRINTF("duplicate %u packet received \n", recv_cnt[packet_data_recv->seq_num]);
+      PRINTF("duplicate %u packet received \n", packet_data_recv->seq_num);
       // return;
     }
 
@@ -322,16 +364,21 @@ tcpip_handler(void)
     PRINTF("%lu bytes\n", (unsigned long)sizeof(packet_data));
 
     PRINTF("seq num: %u\n", packet_data_recv->seq_num);
+    total_chunks = packet_data_recv->tot_chnks;
     PRINTF("total chunks: %u\n", packet_data_recv->tot_chnks);
     PRINTF("In: %s, total %u\n", packet_data_recv->buf, count);
 
+  }
+
 
     // if(stimer_expired(&periodic_timer)){
-    recv_data_check(packet_data_recv->tot_chnks);
-    //   stimer_reset(&periodic_timer);
+    // if(mult_recv_flag == TIME_EXPD){
+    //   recv_data_check(total_chunks);
+    // //   stimer_reset(&periodic_timer);
+    // // }
     // }
 
-  }
+  // }
 
   return;
 }
@@ -418,35 +465,10 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
     if(etimer_expired(&periodic_timer)){
 
       mult_recv_flag = TIME_EXPD;
-      etimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
+      PRINTF("10 mins timer expired\n");
+      recv_data_check(total_chunks);
+      etimer_set(&periodic_timer, 10 * 60 * SEND_INTERVAL);
 
-      
-    //   etimer_reset(&periodic_timer);
-    // } 
-
-
-
-
-    // if (uni_req_flag = DATA_MISSING && PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer))) {
-
-      // PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-      
-      // if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
-      //   /* Send to DAG root */
-      //   LOG_INFO("Sending request %u to ", count);
-      //   LOG_INFO_6ADDR(&dest_ipaddr);
-      //   LOG_INFO_("\n");
-      //   snprintf(str, sizeof(str), "hello %d", count);
-      //   simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
-      //   count++;
-      // } else {
-      //   LOG_INFO("Not reachable yet\n");
-      // }
-
-      /* Add some jitter */
-      // etimer_set(&periodic_timer, SEND_INTERVAL
-      //            - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
-      // etimer_set(&periodic_timer, 60 * SEND_INTERVAL);
     }
 
     PROCESS_YIELD();

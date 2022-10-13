@@ -104,4 +104,8 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 32
 #endif
 
+
+#define HEAPMEM_CONF_ARENA_SIZE 2048
+
+
 #endif /* PROJECT_CONF_H_ */

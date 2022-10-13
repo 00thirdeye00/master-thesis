@@ -8,6 +8,8 @@
 #include "net/ipv6/simple-udp.h"
 #include "sys/log.h"
 #include "net/routing/routing.h"
+#include "heapmem.h"
+
 
 #define MAX_PAYLOAD_LEN 64
 #define SEND_INTERVAL CLOCK_SECOND /* clock ticks */
