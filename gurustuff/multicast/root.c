@@ -251,10 +251,83 @@ queue_check_deq(void){
 
 
 
+/*---------------------------------------------------------------------------*/
+
+
+/*
+
+function: create data packet
+
+*/
+
+
+static packet_data*
+create_datapckt(uint8_t chnk){
+
+  static packet_data packet_data_send;
+
+  packet_data_send.seq_num = chnk;
+  packet_data_send.tot_chnks = DATA_CHNKS;
+
+
+  // memset(buf, 0, MAX_PAYLOAD_LEN);
+
+  memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+
+
+  // for(int i = 0; i < DATA_CHNKS; i++){
+  // for (int i = 0, k = chnk; seq_idd[k] != '\0' && k < (chnk+MAX_PAYLOAD_LEN); i++, k++) {
+  //   packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
+  // }
+
+  for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {
+    packet_data_send.buf[i] = seq_idd[k];
+  }  
+
+  // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
+  PRINTF(" (msg= %s)", packet_data_send.buf);
+
+  PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
+  PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send));
+  PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
+
+  return (&packet_data_send);
+
+}
+
+
+/*---------------------------------------------------------------------------*/
+
+
 
 
 static void
-queue_deq(){
+unicast_send(uint8_t chnk, uip_ipaddr_t send_addr){
+  
+  static packet_data *packet_data_send_u;
+
+  packet_data_send_u = (void *)create_datapckt(chnk);
+
+
+#if WITH_SERVER_REPLY
+  /* send back the same string to the client as an echo reply */
+  LOG_INFO("Sending response to sink.\n");
+  // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
+  simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data_send_u), &send_addr);
+#endif /* WITH_SERVER_REPLY */
+
+}
+
+
+
+
+
+
+
+
+
+static void
+uni_queue_deq(){
 
   PRINTF("deque in progress\n");
 
@@ -273,6 +346,7 @@ queue_deq(){
       PRINTF("dequeue data: ");
       for(int i = 0; i < dq->datalen; i++){
         PRINTF(" %u", dq->data[i]);
+        unicast_send(dq->data[i], dq->send_addr);
         // PRINTF("")
       }
 
@@ -290,7 +364,7 @@ queue_deq(){
 
 
 static void
-queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data){
+uni_queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data){
   PRINTF("enqueue in progress\n");
 
   // ureq_mpckts_t *ureq_q;
@@ -328,7 +402,7 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data){
 
   PRINTF("enqueue in complete\n");
 
-  // queue_deq();
+  // uni_queue_deq();
 
 }
 
@@ -345,42 +419,41 @@ function: create data packet
 
 */
 
-/*
-static packet_data*
-create_datapckt(uint8_t chnk){
 
-  static packet_data packet_data_send;
+// static packet_data*
+// create_datapckt(uint8_t chnk){
 
-  packet_data_send.seq_num = chnk;
-  packet_data_send.tot_chnks = DATA_CHNKS;
+//   static packet_data packet_data_send;
 
-
-  // memset(buf, 0, MAX_PAYLOAD_LEN);
-
-  memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+//   packet_data_send.seq_num = chnk;
+//   packet_data_send.tot_chnks = DATA_CHNKS;
 
 
-  // for(int i = 0; i < DATA_CHNKS; i++){
-  // for (int i = 0, k = chnk; seq_idd[k] != '\0' && k < (chnk+MAX_PAYLOAD_LEN); i++, k++) {
-  //   packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
-  // }
+//   // memset(buf, 0, MAX_PAYLOAD_LEN);
 
-  for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {
-    packet_data_send.buf[i] = seq_idd[k];
-  }  
+//   memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 
-  // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
-  PRINTF(" (msg= %s)", packet_data_send.buf);
 
-  PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
-  PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send));
-  PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
+//   // for(int i = 0; i < DATA_CHNKS; i++){
+//   // for (int i = 0, k = chnk; seq_idd[k] != '\0' && k < (chnk+MAX_PAYLOAD_LEN); i++, k++) {
+//   //   packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
+//   // }
 
-  return (&packet_data_send);
+//   for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {
+//     packet_data_send.buf[i] = seq_idd[k];
+//   }  
 
-}
+//   // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
+//   PRINTF(" (msg= %s)", packet_data_send.buf);
 
-*/
+//   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
+//   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send));
+//   PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
+
+//   return (&packet_data_send);
+
+// }
+
 
 
 
@@ -404,12 +477,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 {
   
   static uint8_t i;
-  static packet_data *packet_data_send_u;
-
-  // ureq_mpckts_t *ureq_q;
-
-
-  // static ureq_mpckts_t *ureq_q_t;
+  // static packet_data *packet_data_send_u;
   
 
 // typedef struct ureq_mpckts_s{
@@ -420,7 +488,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 //   uint16_t datalen
 // }ureq_mpckts_t;
 
-  queue_enq(sender_addr, datalen, data);
+  uni_queue_enq(sender_addr, datalen, data);
 
 
   // ureq_q = (ureq_mpckts_t *)heapmem_alloc(sizeof(ureq_mpckts_t));
@@ -454,7 +522,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 
   // printf("queue peek datalen: %u\n", ((ureq_mpckts_t *)queue_peek(ureq_queue))->datalen);
 
-  // queue_deq();
+  // uni_queue_deq();
 
 
   PRINTF("unicast request at root received: \n");
@@ -477,15 +545,15 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 
 
-  // packet_data_send_u = (void *)create_datapckt(ureq_q->data[0]);
+//   packet_data_send_u = (void *)create_datapckt(ureq_q->data[0]);
 
 
-#if WITH_SERVER_REPLY
-  /* send back the same string to the client as an echo reply */
-  LOG_INFO("Sending response to sink.\n");
-  // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
-  simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data_send_u), sender_addr);
-#endif /* WITH_SERVER_REPLY */
+// #if WITH_SERVER_REPLY
+//   /* send back the same string to the client as an echo reply */
+//   LOG_INFO("Sending response to sink.\n");
+//   // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
+//   simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data_send_u), sender_addr);
+// #endif /* WITH_SERVER_REPLY */
 
 
 
@@ -609,7 +677,7 @@ PROCESS_THREAD(rpl_root_process, ev, data)
 
 
     PRINTF("in while \n");
-    queue_deq();
+    uni_queue_deq();
 
     queue_check_enq();
     queue_check_deq();

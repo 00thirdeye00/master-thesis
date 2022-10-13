@@ -200,6 +200,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 
   PRINTF("seq_num received from unic: %u \n", this->seq_num);
   PRINTF("datalen received from unic: %u \n", datalen);
+  PRINTF(" (msg= %s)", this->buf);
 
 
   // PRINTF("data ptr check s %u \n", *data);
@@ -214,11 +215,11 @@ udp_rx_callback(struct simple_udp_connection *c,
 
   for(int i = 0; i < datalen; i++){
     // PRINTF("inside unicast sink for\n");
-    if(recv_cnt[data[i]] != true){ //-|
+    if(recv_cnt[this->seq_num] != true){ //-|
       // PRINTF("unicast response received for %u packet \n", data[i]);
-      recv_cnt[data[i]] = true;    //-|- uncomment when data sent from root
+      recv_cnt[this->seq_num] = true;    //-|- uncomment when data sent from root
     }                              //-|
-    PRINTF(" %u", data[i]);
+    PRINTF(" %u", this->seq_num);
   }
 
   PRINTF(" from ");
@@ -370,18 +371,11 @@ tcpip_handler(void)
 
   }
 
-
-    // if(stimer_expired(&periodic_timer)){
-    // if(mult_recv_flag == TIME_EXPD){
-    //   recv_data_check(total_chunks);
-    // //   stimer_reset(&periodic_timer);
-    // // }
-    // }
-
-  // }
-
   return;
 }
+
+
+
 /*---------------------------------------------------------------------------*/
 #if UIP_MCAST6_CONF_ENGINE != UIP_MCAST6_ENGINE_MPL
 static uip_ds6_maddr_t *
