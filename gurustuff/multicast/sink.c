@@ -46,6 +46,8 @@
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "net/ipv6/uip-ds6-route.h"
 
+#include "sys/node-id.h"
+
 #include "dependencies.h"
 
 #include <string.h>
@@ -114,7 +116,7 @@ uni_pckt_req(uint8_t mcnt)
   uni_req_flag = DATA_RSTFLAG;
   uip_ipaddr_t dest_ipaddr;
 
-  PRINTF("missing packet request to send from here\n");
+  // PRINTF("SINK: Unicast Request\n");
 
   // if (uni_req_flag != DATA_RECEIVED) {
   //   uip_udp_packet_sendto(&sink_conn, pack_to_req, strlen(pack_to_req),
@@ -131,7 +133,7 @@ uni_pckt_req(uint8_t mcnt)
   // memset(&mpckt, 0, sizeof(uint8_t)*1024);
   memset(mpckt, 0, sizeof(uint8_t)*mcnt);
 
-  PRINTF("missing packets from sink: ");
+  PRINTF("Missing Packets: ");
 
   // uint8_t i = 0;
   for(int i = 0; i < mcnt; i++){
@@ -144,7 +146,7 @@ uni_pckt_req(uint8_t mcnt)
   // mpckt[i] = '\0';
   
   PRINTF("\n");
-  PRINTF("missing packets in sink packed\n");
+  // PRINTF("MISSING PACKETS IN SINK PACKED\n");
 
 
   // mpckt = "hello";
@@ -156,11 +158,11 @@ uni_pckt_req(uint8_t mcnt)
     LOG_INFO_6ADDR(&dest_ipaddr);
     LOG_INFO_("\n");
     // snprintf(str, sizeof(str), "hello %d", count);
-    PRINTF("sending missing packets to root \n");    
+    PRINTF("Sending Missing Packets to Root\n");    
     simple_udp_sendto(&udp_conn, mpckt, mcnt, &dest_ipaddr);
     count_u++;
   } else {
-    LOG_INFO("Not reachable yet\n");
+    LOG_INFO("Root not reachable yet\n");
   }
 
 // }
@@ -188,19 +190,19 @@ udp_rx_callback(struct simple_udp_connection *c,
                 uint16_t datalen)
 {
 
-  PRINTF("received response for unicast request: \n");
+  // PRINTF("received response for unicast request:\n");
   // LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
 
-  PRINTF("received response for missing packets requested: ");
+  PRINTF("Received Response for Missing Packets Requested: ");
 
   packet_data *this;
 
   this = (packet_data *)data;
 
 
-  PRINTF("seq_num received from unic: %u \n", this->seq_num);
-  PRINTF("datalen received from unic: %u \n", datalen);
-  PRINTF(" (msg= %s)", this->buf);
+  PRINTF("seq_num Received from Root: %u\n", this->seq_num);
+  PRINTF("datalen Received from Root: %u\n", datalen);
+  PRINTF(" (msg= %s\n)", this->buf);
 
 
   // PRINTF("data ptr check s %u \n", *data);
@@ -212,6 +214,8 @@ udp_rx_callback(struct simple_udp_connection *c,
   // PRINTF("data ptr check s %u \n", *(data+6));
   // PRINTF("data ptr check s %u \n", *(data+7));
   // PRINTF("data ptr check s %u \n", *(data+8));
+
+  PRINTF("seq_num: ");
 
   for(int i = 0; i < datalen; i++){
     // PRINTF("inside unicast sink for\n");
@@ -279,14 +283,14 @@ recv_data_check(uint8_t chnks)
   miss_pckt[cnt] = '\0';
   PRINTF("\n");
 
-  PRINTF("missing packets from miss_packt ");
+  PRINTF("Missing Packets from miss_packt:");
   for(int i = 0; miss_pckt[i] != '\0'; i++){
     PRINTF(" %u", miss_pckt[i]);
   }
   PRINTF("\n");
-
-
-  PRINTF(" --> cnt: %u\n", cnt);
+  
+  (cnt > 0) ? (PRINTF(" --> cnt: %u\n", cnt)) : PRINTF("All Packets Received\n");
+    // PRINTF(" --> cnt: %u\n", cnt);
 
   // #if (UIP_MAX_ROUTES != 0)
   //   PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
@@ -298,7 +302,7 @@ recv_data_check(uint8_t chnks)
     // PRINTF("recv timer expired \n");
     if (uni_req_flag == DATA_MISSING && mult_recv_flag == TIME_EXPD && cnt > 0) { //if the data missing flag is set
       mult_recv_flag = TIME_RSET;
-      PRINTF("data missing flag checked \n");
+      PRINTF("Data Missing Flag Checked \n");
       uni_pckt_req(cnt);
       // timer_reset(&periodic_timer);
       // heapmem_free(miss_pckt);
@@ -451,7 +455,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   PRINTF(" local/remote port %u/%u\n",
          UIP_HTONS(sink_conn->lport), UIP_HTONS(sink_conn->rport));
 
-  etimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
+  etimer_set(&periodic_timer, UNI_REQ_START_SEND_INTERVAL + (((random_rand() % node_id) + 1) * CLOCK_SECOND)); //30 to 15
   mult_recv_flag = TIME_RSET;
 
   while (1) {
@@ -459,9 +463,10 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
     if(etimer_expired(&periodic_timer)){
 
       mult_recv_flag = TIME_EXPD;
-      PRINTF("10 mins timer expired\n");
+      PRINTF("SINK: Node ID: %d\n", node_id);
+      PRINTF("SINK: 10 mins unicast request timer expired\n");
       recv_data_check(total_chunks);
-      etimer_set(&periodic_timer, 10 * 60 * SEND_INTERVAL);
+      etimer_set(&periodic_timer, ((random_rand() % node_id) + (random_rand() % NUM_OF_NODES)) * CLOCK_SECOND); //UNI_REQ_SEND_INTERVAL or (random_rand() % 256)
 
     }
 

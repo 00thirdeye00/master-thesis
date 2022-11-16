@@ -45,6 +45,7 @@
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/queue.h"
 #include "net/ipv6/uip.h"
+#include "net/ipv6/uip-ds6-route.h"
 
 #include "dependencies.h"
 
@@ -74,8 +75,9 @@
 
 /* Start sending messages START_DELAY secs after we start so that routing can
  * converge */
-#define START_DELAY_MIN 10
-#define START_DELAY (60 * START_DELAY_MIN)
+#define START_DELAY_MINS  10
+#define START_DELAY       (MIN_ONE * START_DELAY_MINS * CLOCK_SECOND)
+#define CHECK_INTERVAL    (MIN_ONE * CLOCK_SECOND)
 
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
@@ -87,6 +89,14 @@
 static struct simple_udp_connection udp_conn;
 
 static struct uip_udp_conn * mcast_conn;
+
+
+typedef enum{
+  TIME_RSET = 0,
+  TIME_SET,
+} mult_sendtim_t;
+
+mult_sendtim_t mult_send_flag;
 
 
 typedef struct ureq_mpckts_s{
@@ -111,6 +121,8 @@ typedef struct demo_struct_s {
 // static demo_struct_t elements[DATA_STRUCTURE_DEMO_ELEMENT_COUNT];
 // static demo_struct_t *elements;
 
+
+//"063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100fsffdasfas"
 
 
 
@@ -169,6 +181,7 @@ const char *seq_idd = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRR
 
 // static uint32_t seq_id;
 static uint8_t seq_id;
+static uint8_t q_elem;
 
 
 
@@ -178,7 +191,11 @@ static uint8_t seq_id;
 #endif
 /*---------------------------------------------------------------------------*/
 PROCESS(rpl_root_process, "RPL ROOT, Multicast Sender");
-AUTOSTART_PROCESSES(&rpl_root_process);
+PROCESS(queue_proc, "queue process");
+
+AUTOSTART_PROCESSES(&rpl_root_process, &queue_proc);
+
+// AUTOSTART_PROCESSES(&queue_proc);
 /*---------------------------------------------------------------------------*/
 
 QUEUE(ureq_queue);
@@ -204,6 +221,7 @@ brief: prepare missing packet data using sequence/packet num
 
 /*---------------------------------------------------------------------------*/
 
+/*
 static void
 queue_check_enq(void){
 
@@ -249,7 +267,7 @@ queue_check_deq(void){
          queue_is_empty(demo_queue) ? "" : " not");
 }
 
-
+*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -311,7 +329,7 @@ unicast_send(uint8_t chnk, uip_ipaddr_t send_addr){
 
 #if WITH_SERVER_REPLY
   /* send back the same string to the client as an echo reply */
-  LOG_INFO("Sending response to sink.\n");
+  LOG_INFO("Sending Response to Sink\n");
   // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
   simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data_send_u), &send_addr);
 #endif /* WITH_SERVER_REPLY */
@@ -320,16 +338,10 @@ unicast_send(uint8_t chnk, uip_ipaddr_t send_addr){
 
 
 
-
-
-
-
-
-
 static void
 uni_queue_deq(){
 
-  PRINTF("deque in progress\n");
+  PRINTF("Deque in Progress\n");
 
   ureq_mpckts_t *dq;
 
@@ -337,13 +349,15 @@ uni_queue_deq(){
 
 
   if(!queue_is_empty(ureq_queue)){
-    PRINTF("queue is not empty\n");
+    PRINTF("Queue is not Empty\n");
     dq = queue_dequeue(ureq_queue);
+    // if(q_elem > 0) q_elem--;
     if(dq == NULL){
-      PRINTF("queue underflow \n");
+      PRINTF("Queue Underflow \n");
     } else {
-      PRINTF("dequeued datalen: %u\n", dq->datalen);
-      PRINTF("dequeue data: ");
+      q_elem--;
+      PRINTF("Dequeued datalen: %u\n", dq->datalen);
+      PRINTF("Dequeue data: ");
       for(int i = 0; i < dq->datalen; i++){
         PRINTF(" %u", dq->data[i]);
         unicast_send(dq->data[i], dq->send_addr);
@@ -357,7 +371,7 @@ uni_queue_deq(){
 
     }
   }
-  PRINTF("deque in complete\n");
+  PRINTF("Deque is Complete\n");
 }
 
 
@@ -365,14 +379,14 @@ uni_queue_deq(){
 
 static void
 uni_queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data){
-  PRINTF("enqueue in progress\n");
+  PRINTF("Enqueue in Progress\n");
 
   // ureq_mpckts_t *ureq_q;
 
   ureq_q = (ureq_mpckts_t *)heapmem_alloc(sizeof(ureq_mpckts_t));
 
   if(ureq_q == NULL){
-    PRINTF("failed to allocate memory\n");
+    PRINTF("Failed to Allocate Memory\n");
     // return 0;
   }
 
@@ -386,26 +400,32 @@ uni_queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *dat
 
   ureq_q->datalen = dlen;
 
-  PRINTF("printing from queue created: \n");
+  PRINTF("Printing from Queue Created: \n");
   for(int i = 0; i < ureq_q->datalen; i++){
     PRINTF(" %u", ureq_q->data[i]);
   }
+  PRINTF("\nPrinting from Queue Created Complete \n");
 
-  PRINTF("\nprinting from queue created complete \n");
-
-  queue_enqueue(ureq_queue, ureq_q);
-  printf("Queue is%s empty\n",
+  if(q_elem >= QUEUE_SIZE /*|| !queue_is_empty()*/){
+    PRINTF(">>>>>>>> Queue is Full >>>>>>>>\n");
+    // uni_queue_deq();
+    return;
+  } else if(q_elem >= 0 && q_elem < QUEUE_SIZE) {
+    queue_enqueue(ureq_queue, ureq_q);
+    q_elem++;
+  }
+  printf("Queue is%s Empty\n",
          queue_is_empty(ureq_queue) ? "" : " not");
 
 
-  printf("queue peek datalen: %u\n", ((ureq_mpckts_t *)queue_peek(ureq_queue))->datalen);
+  printf("Queue Peek datalen: %u\n", ((ureq_mpckts_t *)queue_peek(ureq_queue))->datalen);
 
-  PRINTF("enqueue in complete\n");
+  PRINTF("Enqueue is Complete\n");
 
   // uni_queue_deq();
+  // process_start(&queue_proc, NULL);
 
 }
-
 
 
 
@@ -525,11 +545,11 @@ udp_rx_callback(struct simple_udp_connection *c,
   // uni_queue_deq();
 
 
-  PRINTF("unicast request at root received: \n");
-  PRINTF("date len received at root: %u \n", datalen);
+  PRINTF("Request at Root Received:\n");
+  PRINTF("datelen Received at Root: %u \n", datalen);
 
   // LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
-  PRINTF("missing packets received: ");
+  PRINTF("Missing Packets Received at Root:");
   // PRINTF("%u", *data);
 
   for(int i = 0; i < datalen; i++){
@@ -670,33 +690,83 @@ PROCESS_THREAD(rpl_root_process, ev, data)
                        UDP_CLIENT_PORT, udp_rx_callback);
 
 
-  etimer_set(&et, START_DELAY * CLOCK_SECOND);
+  // etimer_set(&et, 60 * CLOCK_SECOND);
+  etimer_set(&et, START_DELAY);
   while (1) {
 
     // ureq_mpckts_t *this;
 
 
-    PRINTF("in while \n");
-    uni_queue_deq();
+    // PRINTF("in while \n");
+    // uni_queue_deq();
 
-    queue_check_enq();
-    queue_check_deq();
+    // queue_check_enq();
+    // queue_check_deq();
 
+    // PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
 
+    if((etimer_expired(&et) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) || mult_send_flag == TIME_SET){
+      if(!(mult_send_flag == TIME_SET)){
+        etimer_set(&et, SEND_INTERVAL);
+        mult_send_flag = TIME_SET;
+      }
+    } else {
+      etimer_set(&et, CHECK_INTERVAL);
+    }
 
 
     PROCESS_YIELD();
-    if (etimer_expired(&et)) {
-      if (seq_id == ITERATIONS) {
-        // etimer_stop(&et);
-        etimer_set(&et, (SEND_INTERVAL * 60));
-      } else {
-        multicast_send();
-        etimer_set(&et, (SEND_INTERVAL * 60));
-      }
+
+    PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
+
+    if (etimer_expired(&et) && mult_send_flag == TIME_SET) {
+      // if(uip_ds6_route_num_routes() == NUM_OF_NODES){ //wait until all the nodes are routed
+        // uni_queue_deq();
+        if (seq_id == ITERATIONS) {
+          mult_send_flag = TIME_RSET;
+          etimer_stop(&et);
+          // etimer_set(&et, (SEND_INTERVAL));
+        } else {
+          // PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
+          multicast_send();
+          etimer_set(&et, (SEND_INTERVAL));
+        }
+      // } else {
+        // etimer_set(&et, (SEND_INTERVAL));
+      // }
     }
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+
+
+PROCESS_THREAD(queue_proc, ev, data)
+{
+  static struct etimer et;
+
+  PROCESS_BEGIN();
+
+  etimer_set(&et, QUE_START_INTERVAL);
+  while(1){
+
+    // PRINTF("In Queue Process Yield\n");
+    PROCESS_YIELD();
+    if(etimer_expired(&et) && !queue_is_empty(ureq_queue))
+    {
+      PRINTF("Queue Process is Not Empty\n");
+      uni_queue_deq();
+    }
+
+    etimer_set(&et, 500);
+  }
+
+  // printf("queue process\n");
+
+  PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
+
+

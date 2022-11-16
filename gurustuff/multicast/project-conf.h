@@ -75,16 +75,23 @@
 
 
 
+#define ORCHESTRA_CONF_EBSF_PERIOD          397
+#define ORCHESTRA_CONF_UNICAST_PERIOD       17
+#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 23
+
+
+
 /* For Imin: Use 16 over CSMA, 64 over Contiki MAC */
 #define ROLL_TM_CONF_IMIN_1         64
 #define MPL_CONF_DATA_MESSAGE_IMIN  64
 #define MPL_CONF_CONTROL_MESSAGE_IMIN  64
 
 #define UIP_MCAST6_ROUTE_CONF_ROUTES 1
-#define UIP_CONF_TCP 1
+#define UIP_CONF_TCP 0
 
 // Enable Fragementation
 #define SICSLOWPAN_CONF_FRAG 1
+
 /**
  * Timeout for packet reassembly at the 6lowpan layer
  * (should be < 60s)
@@ -97,7 +104,7 @@
 
 /* Code/RAM footprint savings so that things will fit on our device */
 #ifndef NETSTACK_MAX_ROUTE_ENTRIES
-#define NETSTACK_MAX_ROUTE_ENTRIES   256
+#define NETSTACK_MAX_ROUTE_ENTRIES   512
 #endif
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
@@ -105,7 +112,7 @@
 #endif
 
 
-#define HEAPMEM_CONF_ARENA_SIZE 2048
+#define HEAPMEM_CONF_ARENA_SIZE 4096    //2048
 
 
 #endif /* PROJECT_CONF_H_ */
