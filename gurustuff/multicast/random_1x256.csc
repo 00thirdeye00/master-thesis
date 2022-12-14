@@ -16,7 +16,7 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype996287104</identifier>
+      <identifier>mtype189566903</identifier>
       <description>root</description>
       <source>[CONTIKI_DIR]/examples/multicast/root.c</source>
       <commands>make -j$(CPUS) root.cooja TARGET=cooja</commands>
@@ -40,7 +40,7 @@
     </motetype>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype293772363</identifier>
+      <identifier>mtype125417598</identifier>
       <description>sink</description>
       <source>[CONTIKI_DIR]/examples/multicast/sink.c</source>
       <commands>make -j$(CPUS) sink.cooja TARGET=cooja</commands>
@@ -78,7 +78,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype996287104</motetype_identifier>
+      <motetype_identifier>mtype189566903</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -96,7 +96,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -114,7 +114,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -132,7 +132,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -150,7 +150,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -168,7 +168,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -186,7 +186,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -204,7 +204,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -222,7 +222,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -240,7 +240,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -258,7 +258,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -276,7 +276,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -294,7 +294,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -312,7 +312,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -330,7 +330,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -348,7 +348,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -366,7 +366,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -384,7 +384,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -402,7 +402,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -420,7 +420,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -438,7 +438,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -456,7 +456,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -474,7 +474,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -492,7 +492,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -510,7 +510,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -528,7 +528,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -546,7 +546,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -564,7 +564,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -582,7 +582,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -600,7 +600,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -618,7 +618,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -636,7 +636,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -654,7 +654,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -672,7 +672,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -690,7 +690,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -708,7 +708,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -726,7 +726,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -744,7 +744,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -762,7 +762,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -780,7 +780,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -798,7 +798,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -816,7 +816,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -834,7 +834,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -852,7 +852,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -870,7 +870,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -888,7 +888,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -906,7 +906,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -924,7 +924,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -942,7 +942,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -960,7 +960,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -978,7 +978,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -996,7 +996,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1014,7 +1014,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1032,7 +1032,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1050,7 +1050,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1068,7 +1068,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1086,7 +1086,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1104,7 +1104,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1122,7 +1122,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1140,7 +1140,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1158,7 +1158,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1176,7 +1176,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1194,7 +1194,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1212,7 +1212,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1230,7 +1230,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1248,7 +1248,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1266,7 +1266,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1284,7 +1284,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1302,7 +1302,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1320,7 +1320,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1338,7 +1338,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1356,7 +1356,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1374,7 +1374,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1392,7 +1392,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1410,7 +1410,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1428,7 +1428,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1446,7 +1446,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1464,7 +1464,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1482,7 +1482,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1500,7 +1500,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1518,7 +1518,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1536,7 +1536,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1554,7 +1554,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1572,7 +1572,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1590,7 +1590,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1608,7 +1608,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1626,7 +1626,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1644,7 +1644,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1662,7 +1662,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1680,7 +1680,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1698,7 +1698,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1716,7 +1716,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1734,7 +1734,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1752,7 +1752,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1770,7 +1770,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1788,7 +1788,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1806,7 +1806,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1824,7 +1824,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1842,7 +1842,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1860,7 +1860,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1878,7 +1878,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1896,7 +1896,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1914,7 +1914,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1932,7 +1932,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1950,7 +1950,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1968,7 +1968,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -1986,7 +1986,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2004,7 +2004,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2022,7 +2022,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2040,7 +2040,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2058,7 +2058,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2076,7 +2076,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2094,7 +2094,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2112,7 +2112,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2130,7 +2130,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2148,7 +2148,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2166,7 +2166,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2184,7 +2184,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2202,7 +2202,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2220,7 +2220,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2238,7 +2238,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2256,7 +2256,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2274,7 +2274,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2292,7 +2292,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2310,7 +2310,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2328,7 +2328,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2346,7 +2346,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2364,7 +2364,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2382,7 +2382,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2400,7 +2400,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2418,7 +2418,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2436,7 +2436,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2454,7 +2454,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2472,7 +2472,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2490,7 +2490,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2508,7 +2508,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2526,7 +2526,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2544,7 +2544,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2562,7 +2562,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2580,7 +2580,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2598,7 +2598,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2616,7 +2616,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2634,7 +2634,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2652,7 +2652,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2670,7 +2670,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2688,7 +2688,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2706,7 +2706,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2724,7 +2724,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2742,7 +2742,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2760,7 +2760,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2778,7 +2778,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2796,7 +2796,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2814,7 +2814,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2832,7 +2832,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2850,7 +2850,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2868,7 +2868,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2886,7 +2886,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2904,7 +2904,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2922,7 +2922,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2940,7 +2940,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2958,7 +2958,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2976,7 +2976,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -2994,7 +2994,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3012,7 +3012,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3030,7 +3030,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3048,7 +3048,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3066,7 +3066,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3084,7 +3084,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3102,7 +3102,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3120,7 +3120,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3138,7 +3138,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3156,7 +3156,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3174,7 +3174,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3192,7 +3192,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3210,7 +3210,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3228,7 +3228,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3246,7 +3246,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3264,7 +3264,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3282,7 +3282,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3300,7 +3300,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3318,7 +3318,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3336,7 +3336,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3354,7 +3354,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3372,7 +3372,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3390,7 +3390,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3408,7 +3408,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3426,7 +3426,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3444,7 +3444,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3462,7 +3462,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3480,7 +3480,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3498,7 +3498,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3516,7 +3516,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3534,7 +3534,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3552,7 +3552,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3570,7 +3570,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3588,7 +3588,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3606,7 +3606,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3624,7 +3624,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3642,7 +3642,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3660,7 +3660,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3678,7 +3678,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3696,7 +3696,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3714,7 +3714,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3732,7 +3732,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3750,7 +3750,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3768,7 +3768,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3786,7 +3786,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3804,7 +3804,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3822,7 +3822,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3840,7 +3840,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3858,7 +3858,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3876,7 +3876,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3894,7 +3894,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3912,7 +3912,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3930,7 +3930,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3948,7 +3948,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3966,7 +3966,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -3984,7 +3984,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4002,7 +4002,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4020,7 +4020,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4038,7 +4038,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4056,7 +4056,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4074,7 +4074,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4092,7 +4092,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4110,7 +4110,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4128,7 +4128,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4146,7 +4146,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4164,7 +4164,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4182,7 +4182,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4200,7 +4200,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4218,7 +4218,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4236,7 +4236,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4254,7 +4254,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4272,7 +4272,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4290,7 +4290,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4308,7 +4308,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4326,7 +4326,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4344,7 +4344,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4362,7 +4362,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4380,7 +4380,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4398,7 +4398,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4416,7 +4416,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4434,7 +4434,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4452,7 +4452,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4470,7 +4470,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4488,7 +4488,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4506,7 +4506,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4524,7 +4524,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4542,7 +4542,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4560,7 +4560,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4578,7 +4578,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4596,7 +4596,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4614,7 +4614,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4632,7 +4632,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4650,7 +4650,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4668,7 +4668,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -4686,7 +4686,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype293772363</motetype_identifier>
+      <motetype_identifier>mtype125417598</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -4708,7 +4708,7 @@
       <viewport>5.16126338151555 0.0 0.0 5.16126338151555 131.70775761826502 41.58450401781033</viewport>
     </plugin_config>
     <width>945</width>
-    <z>2</z>
+    <z>3</z>
     <height>697</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -4716,7 +4716,7 @@
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
-      <filter />
+      <filter>ID:1$</filter>
       <formatted_time />
       <coloring />
     </plugin_config>
@@ -4733,10 +4733,25 @@
       <decorations>true</decorations>
     </plugin_config>
     <width>247</width>
-    <z>3</z>
+    <z>4</z>
     <height>160</height>
     <location_x>994</location_x>
     <location_y>0</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.RadioLogger
+    <plugin_config>
+      <split>150</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
+      <analyzers name="6lowpan-pcap" />
+    </plugin_config>
+    <width>500</width>
+    <z>2</z>
+    <height>300</height>
+    <location_x>95</location_x>
+    <location_y>437</location_y>
   </plugin>
 </simconf>
 
