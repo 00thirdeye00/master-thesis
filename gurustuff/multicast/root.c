@@ -63,13 +63,13 @@
 // #define SEND_INTERVAL CLOCK_SECOND /* clock ticks */
 
 
-#define DATA_LEN    (strlen(seq_idd))
-#define DATA_CHNKS  (DATA_LEN / MAX_PAYLOAD_LEN)
+// #define DATA_LEN    (strlen(seq_idd))
+// #define DATA_CHNKS  (DATA_LEN / MAX_PAYLOAD_LEN)
 
 
 
 
-#define ITERATIONS DATA_CHNKS /* messages */
+// #define ITERATIONS DATA_CHNKS /* messages */
 
 
 
@@ -331,7 +331,7 @@ unicast_send(uint8_t chnk, uip_ipaddr_t send_addr){
   /* send back the same string to the client as an echo reply */
   LOG_INFO("Sending Response to Sink\n");
   // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
-  simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data_send_u), &send_addr);
+  simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data), &send_addr);
 #endif /* WITH_SERVER_REPLY */
 
 }
@@ -728,7 +728,9 @@ PROCESS_THREAD(rpl_root_process, ev, data)
           // etimer_set(&et, (SEND_INTERVAL));
         } else {
           // PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
+// #if 0
           multicast_send();
+// #endif
           etimer_set(&et, (SEND_INTERVAL));
         }
       // } else {
@@ -768,5 +770,44 @@ PROCESS_THREAD(queue_proc, ev, data)
 }
 
 /*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

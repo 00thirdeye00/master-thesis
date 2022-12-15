@@ -78,6 +78,13 @@ static uint8_t total_chunks;
 
 
 typedef enum {
+  STATE_IDLE = 0,
+  STATE_DOWNLOADING,
+  STATE_RECOVERY,
+  STATE_COMPLETED
+} system_state_t;
+
+typedef enum {
   DATA_RSTFLAG = 0,
   DATA_RECEIVED,
   DATA_MISSING
@@ -89,6 +96,7 @@ typedef enum{
   TIME_EXPD
 } mult_recvtim_t;
 
+system_state_t system_state_flag;
 missing_data_t uni_req_flag;
 mult_recvtim_t mult_recv_flag;
 
@@ -288,8 +296,8 @@ recv_data_check(uint8_t chnks)
     PRINTF(" %u", miss_pckt[i]);
   }
   PRINTF("\n");
-  
-  (cnt > 0) ? (PRINTF(" --> cnt: %u\n", cnt)) : PRINTF("All Packets Received\n");
+
+  (cnt > 0) ? (PRINTF(" --> cnt: %u\n", cnt)) : (PRINTF("All Packets Received\n"), system_state_flag = STATE_COMPLETED);
     // PRINTF(" --> cnt: %u\n", cnt);
 
   // #if (UIP_MAX_ROUTES != 0)
@@ -421,6 +429,8 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   // uip_ipaddr_t dest_ipaddr;
   /* unicast connection */
 
+  system_state_flag = STATE_IDLE;
+
   PROCESS_BEGIN();
 
   // /* Initialize UDP connection for unicast */
@@ -455,7 +465,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   PRINTF(" local/remote port %u/%u\n",
          UIP_HTONS(sink_conn->lport), UIP_HTONS(sink_conn->rport));
 
-  etimer_set(&periodic_timer, UNI_REQ_START_SEND_INTERVAL + (((random_rand() % node_id) + 1) * CLOCK_SECOND)); //30 to 15
+  etimer_set(&periodic_timer, UNI_REQ_START_SEND_INTERVAL + ((random_rand() % node_id) + (random_rand() % NUM_OF_NODES)) * CLOCK_SECOND); //30 to 15 ((random_rand() % node_id) + 1) * CLOCK_SECOND)
   mult_recv_flag = TIME_RSET;
 
   while (1) {
@@ -465,13 +475,18 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
       mult_recv_flag = TIME_EXPD;
       PRINTF("SINK: Node ID: %d\n", node_id);
       PRINTF("SINK: 10 mins unicast request timer expired\n");
-      recv_data_check(total_chunks);
-      etimer_set(&periodic_timer, ((random_rand() % node_id) + (random_rand() % NUM_OF_NODES)) * CLOCK_SECOND); //UNI_REQ_SEND_INTERVAL or (random_rand() % 256)
 
+      if(system_state_flag != STATE_COMPLETED){
+        recv_data_check(total_chunks);
+        etimer_set(&periodic_timer, ((random_rand() % node_id) + (random_rand() % NUM_OF_NODES)) * CLOCK_SECOND); //UNI_REQ_SEND_INTERVAL or (random_rand() % 256)
+      } else {
+        etimer_stop(&periodic_timer);
+      }
     }
 
     PROCESS_YIELD();
     if (ev == tcpip_event) {
+      // system_state_flag = STATE_DOWNLOADING;
       tcpip_handler();
     }
   }
@@ -479,3 +494,11 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
