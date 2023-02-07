@@ -336,6 +336,7 @@ unicast_send(uint8_t chnk, uip_ipaddr_t send_addr){
 
 }
 
+// static struct etimer et_uni_send_data;
 
 
 static void
@@ -360,9 +361,15 @@ uni_queue_deq(){
       PRINTF("Dequeue data: ");
       for(int i = 0; i < dq->datalen; i++){
         PRINTF(" %u", dq->data[i]);
-        unicast_send(dq->data[i], dq->send_addr);
+        // etimer_set(&et_uni_send_data, 2 * CLOCK_SECOND);
+        // if(etimer_expired(&et_uni_send_data)){
+          unicast_send(dq->data[i], dq->send_addr);
+          // etimer_set(&et_uni_send_data, 2 * CLOCK_SECOND);
+        // }
+        // etimer_stop(&et_uni_send_data);
         // PRINTF("")
       }
+
 
       heapmem_free(dq->data);
       heapmem_free(dq);
@@ -375,6 +382,19 @@ uni_queue_deq(){
 }
 
 
+/*-------------------------------------------------------------------------------*/
+
+/*
+
+function name   : uni_queue_enq
+Parameters      : senders address, data length, data
+return          : void
+description     : unicast queue enqueue, to enque missing data's seq number
+                  received from nodes
+
+*/
+
+/*-------------------------------------------------------------------------------*/
 
 
 static void
@@ -428,63 +448,19 @@ uni_queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *dat
 }
 
 
-
-
-/*---------------------------------------------------------------------------*/
-
+/*-------------------------------------------------------------------------------*/
 
 /*
 
-function: create data packet
-
+function name   : udp_rx_callback
+Parameters      : udp connection, sender address, sender port, received address,
+                  receiver port, data, datalen
+return          : void
+description     : callback is triggered when there is a udp data sent to root
+                  address and the received data is enqueued
 */
 
-
-// static packet_data*
-// create_datapckt(uint8_t chnk){
-
-//   static packet_data packet_data_send;
-
-//   packet_data_send.seq_num = chnk;
-//   packet_data_send.tot_chnks = DATA_CHNKS;
-
-
-//   // memset(buf, 0, MAX_PAYLOAD_LEN);
-
-//   memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
-
-
-//   // for(int i = 0; i < DATA_CHNKS; i++){
-//   // for (int i = 0, k = chnk; seq_idd[k] != '\0' && k < (chnk+MAX_PAYLOAD_LEN); i++, k++) {
-//   //   packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
-//   // }
-
-//   for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {
-//     packet_data_send.buf[i] = seq_idd[k];
-//   }  
-
-//   // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
-//   PRINTF(" (msg= %s)", packet_data_send.buf);
-
-//   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
-//   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send));
-//   PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
-
-//   return (&packet_data_send);
-
-// }
-
-
-
-
-/*---------------------------------------------------------------------------*/
-
-
-/*
-
-function: unicast request receive and response
-
-*/
+/*-------------------------------------------------------------------------------*/
 
 static void
 udp_rx_callback(struct simple_udp_connection *c,
@@ -589,16 +565,10 @@ udp_rx_callback(struct simple_udp_connection *c,
 static void
 multicast_send(void)
 {
-  // // uint8_t id;
-  // uint8_t len;  //length of the data
-  // uint8_t chks; //number of chunks
-  // // uint8_t pkts; //number of packets
 
-  // len = strlen(seq_idd);
-
-  // chks = len/MAX_PAYLOAD_LEN;
-
-
+  #ifdef UNIREQ_ALLDATA
+    return;
+  #endif
 
   static uint8_t i;
   static packet_data packet_data_send;
@@ -609,10 +579,6 @@ multicast_send(void)
     packet_data_send.seq_num = seq_id;
     packet_data_send.tot_chnks = DATA_CHNKS;
 
-
-
-
-    // memset(buf, 0, MAX_PAYLOAD_LEN);
 
     memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 
@@ -634,7 +600,10 @@ multicast_send(void)
     PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
 
     seq_id++;
+
+    #ifndef UNIREQ_ALLDATA
     uip_udp_packet_send(mcast_conn, &packet_data_send, sizeof(packet_data_send));
+    #endif
 
     i++;
 

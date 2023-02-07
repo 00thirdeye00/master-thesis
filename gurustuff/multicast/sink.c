@@ -201,7 +201,7 @@ udp_rx_callback(struct simple_udp_connection *c,
   // PRINTF("received response for unicast request:\n");
   // LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
 
-  PRINTF("Received Response for Missing Packets Requested: ");
+  PRINTF("Received Response for Missing Packets Requested:\n");
 
   packet_data *this;
 
@@ -225,10 +225,8 @@ udp_rx_callback(struct simple_udp_connection *c,
 
   PRINTF("seq_num: ");
 
-  for(int i = 0; i < datalen; i++){
-    // PRINTF("inside unicast sink for\n");
+  for(int i = 0; i < 1; i++){     // i < datalen corrected to 1
     if(recv_cnt[this->seq_num] != true){ //-|
-      // PRINTF("unicast response received for %u packet \n", data[i]);
       recv_cnt[this->seq_num] = true;    //-|- uncomment when data sent from root
     }                              //-|
     PRINTF(" %u", this->seq_num);
@@ -275,9 +273,12 @@ recv_data_check(uint8_t chnks)
 
 
 
-
   // if(recv_cnt[chnks] == true){
   PRINTF("Missing Packet:");
+
+  #ifdef UNIREQ_ALLDATA
+  chnks = DATA_CHNKS;
+  #endif
 
   for (int i = 0; i < chnks; i++) {
     // PRINTF("Missing Packet:");
@@ -331,12 +332,15 @@ static void
 tcpip_handler(void)
 {
 
+PRINTF("inside tcpip handler\n");
   // static struct stimer periodic_timer;
 
   // stimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
   // static uint8_t total_chunks;
 
   if (uip_newdata()) {
+
+    PRINTF("inside tcpip handler new data\n");
 
     packet_data *packet_data_recv = (packet_data *)uip_appdata;
 
@@ -487,6 +491,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
     PROCESS_YIELD();
     if (ev == tcpip_event) {
       // system_state_flag = STATE_DOWNLOADING;
+      PRINTF("calling tcpip handler\n");
       tcpip_handler();
     }
   }

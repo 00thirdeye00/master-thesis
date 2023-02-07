@@ -10,11 +10,18 @@
 #include "net/routing/routing.h"
 #include "heapmem.h"
 
+// #define UNICAST_ALLDATA
+// #undef	UNIREQ_ALLDATA
 
+#ifdef UNICAST_ALLDATA
+#define UNIREQ_ALLDATA	1
+// #else
+// #undef	UNIREQ_ALLDATA
+#endif	
 
-// #define BYTES_1024 //BYTES_1024
+#define BYTES_1024 //BYTES_1024
 // #define BYTES_4000 //BYTES_4000
-#define BYTES_8000 //BYTES_8000
+// #define BYTES_8000 //BYTES_8000
 
 #ifdef BYTES_1024
 #include "data_1024B.h"
@@ -41,15 +48,14 @@
 #define MIN_THREE 		(3 * MIN_ONE)
 #define MIN_FIVE 		(5 * MIN_ONE)
 
-
-
+#define NODES_THIRTY_ONE		(28)
 #define NODES_SIX_FOUR			(60)
 #define NODES_ONE_TWO_EIGHT		(120)
 #define NODES_TWO_FIVE_SIX		(250)
 #define NODES_FIVE_ONE_TWO		(505)
 
 #define NUM_OF_NODES	NODES_SIX_FOUR //64 //128 //256 //512 //1024
-#define SEND_INTERVAL	(CLOCK_SECOND * MIN_FIVE) /* clock ticks */
+#define SEND_INTERVAL	(CLOCK_SECOND * MIN_FIVE) /* clock ticks */ //MIN_FIVE for multicast
 
 #define QUEUE_SIZE		20
 
