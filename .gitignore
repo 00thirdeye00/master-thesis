@@ -1,2 +1,5 @@
 # no need to put in github since the files are large
 pcap_capture_files/
+
+# ignore p2pdesign as it mac
+p2pdesign/
