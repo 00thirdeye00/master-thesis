@@ -46,66 +46,64 @@
 #define UDP_PORT_4	5678
 
 
-static struct simple_udp_connection udp_conn;
-// static struct simple_udp_connection udp_conn_2;
-// static struct simple_udp_connection udp_conn_3;
-// static struct simple_udp_connection udp_conn_4;
-
-PROCESS(comm_process, "UDP server");
-AUTOSTART_PROCESSES(&comm_process);
 /*---------------------------------------------------------------------------*/
-static void
-udp_rx_callback(struct simple_udp_connection *c,
-                const uip_ipaddr_t *sender_addr,
-                uint16_t sender_port,
-                const uip_ipaddr_t *receiver_addr,
-                uint16_t receiver_port,
-                const uint8_t *data,
-                uint16_t datalen)
-{
-	LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
-	LOG_INFO_6ADDR(sender_addr);
-	LOG_INFO_("\n");
-#if WITH_SERVER_REPLY
-	/* send back the same string to the client as an echo reply */
-	LOG_INFO("Sending response.\n");
-	simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
-#endif /* WITH_SERVER_REPLY */
+// static struct simple_udp_connection udp_conn;
+// // static struct simple_udp_connection udp_conn_2;
+// // static struct simple_udp_connection udp_conn_3;
+// // static struct simple_udp_connection udp_conn_4;
+
+// PROCESS(node_comm_process, "UDP server");
+// AUTOSTART_PROCESSES(&node_comm_process);
+// /*---------------------------------------------------------------------------*/
+// static void
+// udp_rx_callback(struct simple_udp_connection *c,
+//                 const uip_ipaddr_t *sender_addr,
+//                 uint16_t sender_port,
+//                 const uip_ipaddr_t *receiver_addr,
+//                 uint16_t receiver_port,
+//                 const uint8_t *data,
+//                 uint16_t datalen)
+// {
+// 	LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
+// 	LOG_INFO_6ADDR(sender_addr);
+// 	LOG_INFO_("\n");
+// #if WITH_SERVER_REPLY
+// 	/* send back the same string to the client as an echo reply */
+// 	LOG_INFO("Sending response.\n");
+// 	simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
+// #endif /* WITH_SERVER_REPLY */
+// }
+/*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+/*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: create control message to send in data packet
+ *
+ * params: control message enum
+ *
+ * return: new control message
+ *
+ *
+ */
+uint8_t create_ctrl_msg(ctrl_msg_t cm_type) {
+	uint8_t new_ctrl_msg = (1 << cm_type);
+	return new_ctrl_msg;
 }
-/*---------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-
-static nnode_state_t nbr[NUM_OF_NEIGHBORS];
-
-static bool chunks[512];
-
-
-
-//--------------------------------------------
-
-static void node_handshake(void);		// set HANDSHAKING_STATE with that neighbor
-static void node_ack_handshake(void);	// set HANDSHAKED_STATE with that neighbor
-static void node_interest(void);		// set INTEREST_INFORMING with that neighbor
-static void node_choke_wait();			// wait for 5 seconds
-static void node_choke_unchoke(void);	// refer point 2
-static void node_request(void);			// set DOWNLOADING_STATE with that neighbor
-static void node_upload(void);			// set UPLOADING_STATE with that neighbor
-
-
-
-
-
-
-
-
-
-
 
 
 /*------------------------------------------------------------------*/
@@ -118,13 +116,21 @@ static void node_upload(void);			// set UPLOADING_STATE with that neighbor
  *
  *
  */
+msg_pckt_t* prepare_handshake(void) {
+	msg_pckt_t pckt_msg_hs;
 
-static msg_pckt_t *prepare_handshake(void) {
-	msg_pckt_t hs_packet;
-	hs_packet.comm_msg = (1 << 0);
-	for (int i = 0; i < 512; i++)
-		hs_packet.data[i] = chunks[i];
-	return hs_packet;
+	// convert chunk_cnt from bool to uint 32bit to send in the data packet
+	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+		pckt_msg_hs.self_chunks = (chunk_cnt[i] ?
+		                           (pckt_msg_hs.self_chunks |= (1 << i)) :
+		                           (pckt_msg_hs.self_chunks));
+	}
+
+	pckt_msg_hs.ctrl_msg = create_ctrl_msg(HANDSHAKE_CTRL_MSG);
+
+	memset(pckt_msg_hs.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
+
+	return (&pckt_msg_hs);
 }
 
 /*------------------------------------------------------------------*/
@@ -138,10 +144,15 @@ static msg_pckt_t *prepare_handshake(void) {
  *
  */
 
-static msg_pckt_t *prepare_request(void) {
-	msg_pckt_t rqst_packet;
-	rqst_packet.comm_msg = (1 << 4);
-	rqst_packet.data = NULL;
+msg_pckt_t* prepare_request(void) {
+	msg_pckt_t pckt_msg_rq;
+	pckt_msg_rq.self_chunks = 0;
+	pckt_msg_rq.ctrl_msg = create_ctrl_msg(REQUEST_CTRL_MSG);
+	memset(pckt_msg_rq.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
+
+	//TODO: select random chunk that we do not have and request for it
+
+	return pckt_msg_rq;
 }
 
 
@@ -150,48 +161,28 @@ static msg_pckt_t *prepare_request(void) {
  * brief: initialize function to populate each neighbor with its
  * 			default values
  *
- * params: void
+ * params: neighbor number
  *
  * return: void
  *
  *
  */
 
-static void nnode_init(void) {
+void nnode_init(int node_i) {
 
-	for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
-		if (i == 0)
-			nbr[i].node_addr = uip_ds6_nbr_head();
-		else if (uip_ds6_nbr_next(nbr[i - 1]) != NULL)
-			nbr[i].node_addr = uip_ds6_nbr_next(nbr[i - 1]);
+	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
+	// 	if (i == 0)
+	// 		nbr[i].node_addr = uip_ds6_nbr_head();
+	// 	else if (uip_ds6_nbr_next(nbr[i - 1]) != NULL)
+	// 		nbr[i].node_addr = uip_ds6_nbr_next(nbr[i - 1]);
 
-		nbr[i].nnode_state = IDLE;
-		nbr[i].nnode_interest = NONE;
-		nbr[i].nnode_choke = NONE;
-		nbr[i].numUL = 0;
-	}
-
+	nbr[node_i].nnode_state = IDLE;
+	nbr[node_i].nnode_interest = NONE;
+	nbr[node_i].nnode_choke = NONE;
+	nbr[node_i].numUL = 0;
+	// }
 }
 
-
-
-// handshake();
-// ackhandshake();
-// interest();
-// wait();
-// choke();
-// unchoke();
-// request();
-// upload();
-
-
-
-
-
-
-
-
-// node i send/request functions
 
 
 
@@ -208,7 +199,7 @@ static void nnode_init(void) {
  *
  */
 
-static comm_states_t node_handshake(void) {
+comm_states_t node_handshake(void) {
 	msg_pckt_t *data_packet;
 
 	for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
@@ -231,7 +222,7 @@ static comm_states_t node_handshake(void) {
  *
  */
 
-static comm_states_t node_ack_handshake(void) {
+comm_states_t node_ack_handshake(void) {
 	msg_pckt_t *data_packet;
 
 	for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
@@ -255,7 +246,7 @@ static comm_states_t node_ack_handshake(void) {
  *
  */
 
-static comm_states_t node_interest(void) {
+comm_states_t node_interest(void) {
 	if (i < NODES_DOWNLOAD) {
 		chunk = random(chunk);
 		for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
@@ -288,7 +279,7 @@ static comm_states_t node_interest(void) {
  *
  */
 
-static comm_states_t node_choke_wait() {
+comm_states_t node_choke_wait() {
 	nbr[i].nnode_state = HANDSHAKED;
 	nbr[i].nnode_interest = INTEREST_FALSE;
 	wait(5); // wait for 5 seconds
@@ -309,7 +300,7 @@ static comm_states_t node_choke_wait() {
  *
  */
 
-static comm_states_t node_request(void) {
+comm_states_t node_request(void) {
 	msg_pckt_t *data_packet;
 	data_packet = prepare_request();
 	send(data_packet);
@@ -327,7 +318,7 @@ static comm_states_t node_request(void) {
  *
  */
 
-static comm_states_t node_upload(void) {
+comm_states_t node_upload(void) {
 	nbr[i].comm_states_t = UPLOADING;
 	int chunk_block_size = chunk / NUM_OF_BLOCKS;
 	uint8_t *each_block;
@@ -386,9 +377,9 @@ state_machine_download sm_download[] {
 	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
 	{HANDSHAKING_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
 	{NULL,							NULL,					NULL},
-	{INTEREST_INFORMING_STATE,			NULL,					NULL},
-	{INTEREST_INFORMING_C_STATE,	CHOKE_CTRL_MSG, 		node_choke_wait}, // state=handshaked, interest=false
-	{INTEREST_INFORMING_UC_STATE,	UNCHOKE_CTRL_MSG, 		node_request}, // state=interest_informed
+	{NULL,							NULL,					NULL},
+	{INTEREST_INFORMING_STATE,		CHOKE_CTRL_MSG, 		node_choke_wait}, // state=handshaked, interest=false
+	{INTEREST_INFORMING_STATE,		UNCHOKE_CTRL_MSG, 		node_request}, // state=interest_informed
 	{NULL,							NULL,					NULL},
 	{NULL,							NULL,					NULL},
 	{NULL,							NULL,					NULL},
@@ -454,8 +445,7 @@ state_machine_upload sm_upload[] {
 
 
 
-
-
+#if 0
 
 
 ----------------------process_1 comm task------------start
@@ -555,7 +545,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
 
 
-
+#endif
 
 
 

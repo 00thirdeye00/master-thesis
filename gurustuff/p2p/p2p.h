@@ -12,6 +12,23 @@
 /* Configuration */
 /*---------------------------------------------------------------------------*/
 
+// #define BYTES_1024 //BYTES_1024
+// #define BYTES_4000 //BYTES_4000
+#define BYTES_4000 //BYTES_8000
+
+#ifdef BYTES_1024
+#include "data_1024B.h"
+#endif
+
+#ifdef BYTES_4000
+#include "data_4000B.h"
+#endif
+
+#ifdef BYTES_8000
+#include "data_8000B.h"
+#endif
+
+
 #define NODES_MAX 			4 				// M is the max number of neighbor nodes a node 
 // can comm at a time
 #define NODES_MAX_DL_UL		2 // max uploading nodes = 2 and max downloading nodes = 2
@@ -22,15 +39,19 @@
 #define NODES_DOWNLOAD		2 // in the leecher mode
 
 
-#define TOTAL_DATA_S		4096	// 4kb of data
-#define NUM_CHUNKS_X		32		// constant number of chunks
-#define NUM_OF_BLOCKS		4 		// each chunk split into blocks of 4
+#define TOTAL_DATA_S		(strlen(seq_idd))	// 4kb of data
+#define NUM_CHUNKS_X		32					// constant number of chunks
+#define NUM_OF_BLOCKS		4 					// each chunk split into blocks of 4
 
 
 #define DATA_IN_BYTES 		TOTAL_DATA_S
 #define DATA_TOTAL_CHUNKS	NUM_CHUNKS_X
 #define DATA_CHUNK_SIZE		( TOTAL_DATA_S / NUM_CHUNKS_X )
-#define BLOCKS_OF_CHUNK		( DATA_CHUNK_SIZE / NUM_OF_BLOCKS )
+#define DATA_CHUNK_ONE		( DATA_CHUNK_SIZE / NUM_OF_BLOCKS )
+
+
+#define MAX_PAYLOAD_LEN DATA_CHUNK_ONE	// block or 32 bytes of payload in each packet
+
 
 /*--------------------------------------------*/
 
@@ -69,8 +90,8 @@ typedef enum {
 	HANDSHAKING_STATE,
 	HANDSHAKED_STATE,
 	INTEREST_INFORMING_STATE,
-	INTEREST_INFORMING_C_STATE,
-	INTEREST_INFORMING_UC_STATE,
+	// INTEREST_INFORMING_C_STATE,
+	// INTEREST_INFORMING_UC_STATE,
 	INTEREST_INFORMED_STATE,
 	DOWNLOADING_STATE,
 	UPLOADING_STATE,
@@ -94,14 +115,14 @@ typedef enum {
 
 // struct for each nbr node
 typedef struct {
-	uip_ds6_nbr_t *node_addr;			// neighbor address
+	uip_ipaddr_t node_addr;			// neighbor address
 	comm_states_t nnode_state;			// neighbor node state
 	interest_state_t nnode_interest;	// neighbor node interest state
 	choke_state_t nnode_choke;			// neighbor node choke state
-	uint8_t *data_chunks;				// neighbor nodes data chunks
+	uint8_t data_chunks[DATA_TOTAL_CHUNKS];				// neighbor nodes data chunks
 	// ctrl_msg_t nnode_interest;
 	// ctrl_msg_t nnode_choke;
-	uint8 numUL;
+	uint8_t num_upload;
 } nnode_state_t;
 
 /*--------------------------------------------*/
@@ -117,21 +138,40 @@ bit 3 -> CHOKE
 bit 4 -> UNCHOKE
 bit 5 -> REQUEST
 bit 6 -> UNDEFINED
-bit 7 -> UNDEFINED
+bit 7 -> DATAPACKET
 */
 
 // message packet
 typedef struct {
-	uint8 ctrl_msg;	//
-	uint8 *data;	// 32 bytes in a block
+	uint32_t self_chunks;	// data chunks a node has
+	uint8_t ctrl_msg;		//
+	uint8_t data[32];		// 32 bytes in a block
 } msg_pckt_t;
 
 /*--------------------------------------------*/
 
 
-#endif
+static bool chunk_cnt[DATA_TOTAL_CHUNKS] = {0};
+static nnode_state_t *nbr_list[NEIGHBORS_LIST];
 
 
+msg_pckt_t *prepare_handshake(void);
+msg_pckt_t *prepare_request(void);
+void nnode_init(int node_i);
+
+
+void node_handshake(void);		// set HANDSHAKING_STATE with that neighbor
+void node_ack_handshake(void);	// set HANDSHAKED_STATE with that neighbor
+void node_interest(void);		// set INTEREST_INFORMING with that neighbor
+void node_choke_wait();			// wait for 5 seconds
+void node_choke_unchoke(void);	// refer point 2
+void node_request(void);			// set DOWNLOADING_STATE with that neighbor
+void node_upload(void);			// set UPLOADING_STATE with that neighbor
+
+/*------------------------------------------------------------------*/
+
+
+#endif //P2P_H_
 
 
 
