@@ -52,16 +52,19 @@
 
 #define MAX_PAYLOAD_LEN DATA_CHUNK_ONE	// block or 32 bytes of payload in each packet
 
+#define LEECHER_UPLOAD		2
+#define LEECHER_DOWNLOAD	2
+
 
 /*--------------------------------------------*/
 
 // node state
 typedef enum {
 	NONE,
-	IDLE,		// node state at startup
-	LEECHER, 	// node doesn't have all pieces
-	SEEDER,		// node has all pieces
-} node_state_t;
+	MODE_IDLE,		// node state at startup
+	MODE_LEECHER, 	// node doesn't have all pieces
+	MODE_SEEDER,		// node has all pieces
+} system_mode_t;
 
 // node download state
 typedef enum {
@@ -100,7 +103,6 @@ typedef enum {
 
 // interest state of a node
 typedef enum {
-	NONE,
 	INTEREST_FALSE,
 	INTEREST_TRUE,
 } interest_state_t;
@@ -111,6 +113,11 @@ typedef enum {
 	UNCHOKE,
 	CHOKE,
 } choke_state_t;
+
+typedef enum {
+	WAIT_FALSE,
+	WAIT_TRUE,
+} wait_state_t;
 
 
 // struct for each nbr node
@@ -124,6 +131,26 @@ typedef struct {
 	// ctrl_msg_t nnode_choke;
 	uint8_t num_upload;
 } nnode_state_t;
+
+/* state machine handler function pointer */
+typedef comm_states_t (*downloading_state_handler)(void);
+// typedef comm_states_t (*uploading_state_handler)(uip_ds6_nbr_t *n_addr);
+
+/* state machine - download */
+typedef struct {
+	comm_states_t curr_state;					// current state
+	ctrl_msg_t ctrl_msg;						// control message
+	downloading_state_handler sm_handler_dl;	// handler function sm_handler_dl returns next state
+} state_machine_download;
+
+
+/* state machine - upload */
+typedef struct {
+	ctrl_msg_t ctrl_msg;
+	uploading_state_handler sm_handler_dl;
+} state_machine_upload;
+
+
 
 /*--------------------------------------------*/
 
@@ -152,21 +179,55 @@ typedef struct {
 
 
 static bool chunk_cnt[DATA_TOTAL_CHUNKS] = {0};
-static nnode_state_t *nbr_list[NEIGHBORS_LIST];
+nnode_state_t nbr_list[NEIGHBORS_LIST];
 
 
-msg_pckt_t *prepare_handshake(void);
-msg_pckt_t *prepare_request(void);
+state_machine_download sm_download[] {
+// curr_state, ctrl_msg, sm_handler_dl
+// nnode_state,
+	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
+	{HANDSHAKING_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
+	{HANDSHAKED_STATE,				NULL,					NULL},
+	{INTEREST_INFORMING_STATE,		NULL, 					NULL}, // state=handshaked, interest=false
+	{INTEREST_INFORMED_STATE,		NULL,					node_request},
+	{DOWNLOADING_STATE,				NULL,					NULL},
+	{UPLOADING_STATE,				NULL,					NULL},
+	{LAST_COMM_STATE,				NULL,					NULL}
+};
+
+state_machine_upload sm_upload[] {
+	//ctrl_msg, sm_handler_up
+	{NULL,					NULL},
+	{HANDSHAKE_CTRL_MSG,	node_ack_handshake},
+	{INTEREST_CTRL_MSG,		node_choke_unchoke},
+	{REQUEST_CTRL_MSG,		node_upload},
+	{NULL,					NULL},
+	{NULL,					NULL},
+	{NULL,					NULL},
+	{NULL,					NULL}
+}
+
+
+
+
+
+msg_pckt_t* prepare_handshake(void);
+msg_pckt_t* prepare_request(void);
 void nnode_init(int node_i);
 
-
+void node_statechange(void);	// changes state based on the current situation
 void node_handshake(void);		// set HANDSHAKING_STATE with that neighbor
 void node_ack_handshake(void);	// set HANDSHAKED_STATE with that neighbor
 void node_interest(void);		// set INTEREST_INFORMING with that neighbor
 void node_choke_wait();			// wait for 5 seconds
 void node_choke_unchoke(void);	// refer point 2
 void node_request(void);			// set DOWNLOADING_STATE with that neighbor
+void node_received(void);			//
 void node_upload(void);			// set UPLOADING_STATE with that neighbor
+bool node_chunk_check(void);	//
+
+system_mode_t system_mode_pp(system_mode_t sys_mode);
+
 
 /*------------------------------------------------------------------*/
 

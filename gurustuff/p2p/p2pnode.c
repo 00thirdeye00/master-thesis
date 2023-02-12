@@ -15,6 +15,7 @@
 #include "random.h"
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
+#include "p2p.h"
 
 #include "sys/log.h"
 #define LOG_MODULE "App"
@@ -59,9 +60,11 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	static unsigned count;
 	static char str[32];
 	static msg_pckt_t data_pckt;
-	uip_ipaddr_t dest_ipaddr;
+	static uip_ipaddr_t dest_ipaddr;
 
 	PROCESS_BEGIN();
+
+	system_mode_t system_mode = IDLE;
 
 	/* Initialize UDP connection */
 	simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
@@ -71,21 +74,8 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	while (1) {
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 
-		if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
-			/* Send to DAG root */
-			LOG_INFO("Sending request %u to ", count);
-			LOG_INFO_6ADDR(&dest_ipaddr);
-			LOG_INFO_("\n");
-			snprintf(str, sizeof(str), "hello %d", count);
-			simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
-			count++;
-		} else {
-			LOG_INFO("Not reachable yet\n");
-		}
+		system_mode = system_mode_pp(system_mode);
 
-		/* Add some jitter */
-		// etimer_set(&periodic_timer, SEND_INTERVAL
-		//            - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
 	}
 
 	PROCESS_END();
@@ -121,7 +111,6 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 				}
 			}
 		}
-
 
 
 		/* Add some jitter */

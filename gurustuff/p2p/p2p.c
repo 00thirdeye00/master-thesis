@@ -155,6 +155,24 @@ msg_pckt_t* prepare_request(void) {
 	return pckt_msg_rq;
 }
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: initialize function to populate each neighbor with its
+ * 			default values
+ *
+ * params: neighbor number
+ *
+ * return: void
+ *
+ *
+ */
+static void
+unicast_send(msg_pckt_t *pckt, uip_ipaddr_t send_addr) {
+	msg_pckt_t send_pckt = (void *)pckt;
+	simple_udp_sendto(&udp_conn, send_pckt, sizeof(msg_pckt_t), &send_addr);
+}
+
+
 
 /*------------------------------------------------------------------*/
 /**
@@ -184,6 +202,22 @@ void nnode_init(int node_i) {
 }
 
 
+// /*------------------------------------------------------------------*/
+// /**
+//  * brief: change state based on the current situation
+//  *
+//  *
+//  * params: void
+//  *
+//  * return: state
+//  *
+//  *
+//  */
+
+// void node_statechange(void) {
+
+// }
+
 
 
 
@@ -200,13 +234,13 @@ void nnode_init(int node_i) {
  */
 
 comm_states_t node_handshake(void) {
-	msg_pckt_t *data_packet;
 
-	for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
-		data_packet = prepare_handshake();
-		send(&data_packet);	// send packet
-		nbr[i].nnode_state = handshaking;
-	}
+	msg_pckt_t *data_packet;
+	data_packet = prepare_handshake();
+
+	unicast_send(data_packet, send_addr);
+
+
 }
 
 
@@ -267,8 +301,6 @@ comm_states_t node_interest(void) {
 
 
 
-
-
 /*------------------------------------------------------------------*/
 /**
  * brief: choke wait for 5 seconds before sending another request
@@ -286,9 +318,6 @@ comm_states_t node_choke_wait() {
 }
 
 
-// static void node_choke_unchoke() {
-
-// }
 
 /*------------------------------------------------------------------*/
 /**
@@ -301,12 +330,30 @@ comm_states_t node_choke_wait() {
  */
 
 comm_states_t node_request(void) {
+	// TODO: in leecher mode never request to more than two nodes
 	msg_pckt_t *data_packet;
 	data_packet = prepare_request();
 	send(data_packet);
+
+	// node_received();
+	// to check if the requested piece is received
+	// if yes then change state and interest
 }
 
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: request to start downloading
+ *
+ * params: void
+ *
+ * return: void
+ *
+ */
+void node_received(void) {
+	// TODO: change state to handshaked
+	// TODO: change interest to false
+}
 
 /*------------------------------------------------------------------*/
 /**
@@ -317,7 +364,6 @@ comm_states_t node_request(void) {
  * return: void
  *
  */
-
 comm_states_t node_upload(void) {
 	nbr[i].comm_states_t = UPLOADING;
 	int chunk_block_size = chunk / NUM_OF_BLOCKS;
@@ -335,111 +381,148 @@ comm_states_t node_upload(void) {
 
 
 
-// while (1) {
-
-
-
-
-
-
-// 	switch (case) {
-// 	case == ack_handshake:
-// 		nbr.nnode_state = HANDSHAKED;
-// 		node_interest();
-// 		break;
-// 	case == choke/unchoke:
-// 		nbr.nnode_choke = UNCHOKE;
-// 		if (unchoke)
-// 			node_request();
-// 		break;
-// 	default:
-// 		break;
-// 	}
-
-
-
-
-
-
-// downloading mode state machine:
-
-
-typedef comm_states_t (*downloading_state_handler)(void);
-
-typedef struct {
-	comm_states_t curr_state;					// current state
-	ctrl_msg_t ctrl_msg;						// control message
-	downloading_state_handler sm_handler_dl;	// handler function sm_handler_dl returns next state
-} state_machine_download;
-
-state_machine_download sm_download[] {
-// curr_state, ctrl_msg, sm_handler_dl
-	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
-	{HANDSHAKING_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
-	{NULL,							NULL,					NULL},
-	{NULL,							NULL,					NULL},
-	{INTEREST_INFORMING_STATE,		CHOKE_CTRL_MSG, 		node_choke_wait}, // state=handshaked, interest=false
-	{INTEREST_INFORMING_STATE,		UNCHOKE_CTRL_MSG, 		node_request}, // state=interest_informed
-	{NULL,							NULL,					NULL},
-	{NULL,							NULL,					NULL},
-	{NULL,							NULL,					NULL},
-	{NULL,							NULL,					NULL}
-};
-
-
-// ----------------
-
-
-
-
-
-// uploading mode state machine:
-
-
-typedef comm_states_t (*uploading_state_handler)(void);
-
-// ----------------check
-// typedef struct {
-// 	comm_states_t curr_state;
-// 	comm_states_t new_state;
-// 	uploading_state_handler sm_handler_dl;
-// } state_machine_upload;
-
-
-// state_machine_upload sm_up[]{
-// 	{handshake, handshaked, ackhandshake},
-// 	{handshaked, interest, choke_unchoke},
-// 	{interest, choke, unchoke},
-// 	{interest, request, upload}
-// }
-
-// ----------------more feasible
-
-
-// ctrl_msg, function
-
-
-
-
-typedef struct {
-	ctrl_msg_t ctrl_msg;
-	uploading_state_handler sm_handler_dl;
-} state_machine_upload;
-
-
-state_machine_upload sm_upload[] {
-	//ctrl_msg, sm_handler_up
-	{NULL,					NULL},
-	{HANDSHAKE_CTRL_MSG,	node_ack_handshake},
-	{INTEREST_CTRL_MSG,		node_choke_unchoke},
-	{REQUEST_CTRL_MSG,		node_upload},
-	{NULL,					NULL},
-	{NULL,					NULL},
-	{NULL,					NULL},
-	{NULL,					NULL}
+/*------------------------------------------------------------------*/
+/**
+ * brief: this function checks if the node received all the chunks
+ *
+ * params: void
+ *
+ * return: bool
+ *
+ */
+bool node_chunk_check(void) {
+	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+		if (chunk_cnt[i] != true)
+			return false;
+		else
+			continue;
+	}
+	return true;
 }
 
-// ----------------
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: this functions switches between systemm modes
+ *
+ * params: system_mode_t
+ *
+ * return: system_mode_t
+ *
+ */
+system_mode_t system_mode_pp(system_mode) {
+	system_mode_t sys_mode;
+	switch (system_mode) {
+	case MODE_IDLE:
+
+		/* TODO
+		*  when part of the network is formed
+		*
+		*/
+
+
+		// system_mode = MODE_LEECHER;
+		sys_mode = MODE_LEECHER;
+		break;
+	case MODE_LEECHER:
+		// for (int i = 0; i < NEIGHBORS_LIST; i++) {
+		// 	if ((system_next_state_dl < LAST_COMM_STATE) &&
+		// 	        (new_ctrl_msg_dl < LAST_CTRL_MSG) &&
+		// 	        sm_download[system_next_state_dl].ctrl_msg == new_ctrl_msg_dl &&
+		// 	        sm_download[system_next_state_dl].curr_state == system_next_state_dl &&
+		// 	        sm_download[system_next_state_dl].sm_handler_dl != NULL) {
+
+		// 		system_next_state_dl = (*sm_download[system_next_state_dl].sm_handler_dl)();
+
+		// 	}
+		// }
+
+		for (int i = 0; i < NEIGHBORS_LIST; i++) {
+			if ((nbr_list[i].nnode_state < LAST_COMM_STATE) &&
+			        (nbr_list[i].nnode_ctrlmsg < LAST_CTRL_MSG) &&
+			        sm_download[nbr_list[i].nnode_state].ctrl_msg == nbr_list[i].nnode_ctrlmsg &&
+			        sm_download[nbr_list[i].nnode_state].curr_state == nbr_list[i].nnode_state &&
+			        sm_download[nbr_list[i].nnode_state].sm_handler_dl != NULL) {
+
+				nbr_list[i].nnode_state = (*sm_download[nbr_list[i].nnode_state].sm_handler_dl)();
+
+			}
+
+
+			if (sm_download[nbr_list[i].nnode_state].curr_state == HANDSHAKED_STATE) {
+				if (nbr_list[i].nnode_interest) {
+					// TODO
+					// state -> interest informed
+				} else {
+					// wait for 5 seconds before sending messages to same node again
+					if (WAIT_FALSE == node_choke_wait()) {
+						// TODO
+						// can send messages again
+						// node_interest(); // to send interest again
+					}
+				}
+
+			} else if (sm_download[nbr_list[i].nnode_state].curr_state == INTEREST_INFORMING_STATE) {
+				if (nbr_list[i].nnode_ctrlmsg == UNCHOKE) {
+					nbr_list[i].nnode_state = INTEREST_INFORMED_STATE;
+				} else {
+					nbr_list[i].nnode_state = HANDSHAKED_STATE;
+					nbr_list[i].nnode_interest = INTEREST_FALSE;
+				}
+			}
+		}
+
+		/*
+		*  when all the chunks are received change system mode to seeder
+		*
+		*/
+		if (false == node_chunk_check()) {
+			/* no system mode change */
+			sys_mode = MODE_LEECHER;
+		} else {
+			sys_mode = MODE_SEEDER;	// change system mode to seeder
+		}
+		break;
+	case MODE_SEEDER:
+
+		/* TODO
+		*  when no one is requesting for chunks
+		*
+		*/
+		sys_mode = MODE_IDLE;
+		break;
+	default:
+
+		/* TODO
+		*  should never come here
+		*
+		*/
+
+		break;
+	}
+	return sys_mode;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
