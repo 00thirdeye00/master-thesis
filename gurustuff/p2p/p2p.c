@@ -27,6 +27,7 @@
 #endif /* ROUTING_CONF_RPL_LITE */
 #if ROUTING_CONF_RPL_CLASSIC
 #include "net/routing/rpl-classic/rpl.h"
+#include "sys/ctimer.h"
 #endif /* ROUTING_CONF_RPL_CLASSIC */
 #include <string.h>
 
@@ -45,6 +46,9 @@
 #define UDP_PORT_3	5432
 #define UDP_PORT_4	5678
 
+
+static struct ctimer choke_timer;
+static wait_state_t node_choke_wait;
 
 /*---------------------------------------------------------------------------*/
 // static struct simple_udp_connection udp_conn;
@@ -81,7 +85,29 @@
 
 
 
-/*---------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: create control message to send in data packet
+ *
+ * params: control message enum
+ *
+ * return: new control message
+ *
+ *
+ */
+
+static void choke_timer_callback(void *ptr) {
+	//
+	ctimer_reset(&choke_timer);
+	node_choke_wait = WAIT_END;
+
+}
+
+
+
+
 
 
 
@@ -133,6 +159,76 @@ msg_pckt_t* prepare_handshake(void) {
 	return (&pckt_msg_hs);
 }
 
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: function prepares message packet for interest
+ *
+ * params: void
+ *
+ * return: pointer to msg_pckt_t
+ *
+ *
+ */
+
+msg_pckt_t* prepare_interest(const uint8_t chunk) {
+	msg_pckt_t pckt_msg_in;
+
+
+	pckt_msg_in.ctrl_msg = create_ctrl_msg(INTEREST_CTRL_MSG);
+
+	memset(pckt_msg_in.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
+
+	pckt_msg_in.data[0] = chunk;
+
+
+	return (&pckt_msg_in);
+}
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: function prepares message packet for choke
+ *
+ * params: void
+ *
+ * return: pointer to msg_pckt_t
+ *
+ *
+ */
+
+msg_pckt_t* prepare_choke(void) {
+	msg_pckt_t pckt_msg_ch;
+	pckt_msg_ch.self_chunks = 0;
+	pckt_msg_ch.ctrl_msg = create_ctrl_msg(CHOKE_CTRL_MSG);
+	memset(pckt_msg_ch.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
+
+	return pckt_msg_ch;
+}
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: function prepares message packet for unchoke
+ *
+ * params: void
+ *
+ * return: pointer to msg_pckt_t
+ *
+ *
+ */
+
+msg_pckt_t* prepare_unchoke(void) {
+	msg_pckt_t pckt_msg_uch;
+	pckt_msg_uch.self_chunks = 0;
+	pckt_msg_uch.ctrl_msg = create_ctrl_msg(UNCHOKE_CTRL_MSG);
+	memset(pckt_msg_uch.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
+
+	return pckt_msg_uch;
+}
+
+
+
+
+
 /*------------------------------------------------------------------*/
 /**
  * brief: function prepares message packet for request to download
@@ -173,6 +269,60 @@ unicast_send(msg_pckt_t *pckt, uip_ipaddr_t send_addr) {
 }
 
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: check if the nbr address already exists in the nbr_list,
+ * 			this function should help not to overwrite the existing
+ * 			nbr_list in case the nbr exists already
+ *
+ *
+ * params: neighbor address
+ *
+ * return: 0 or 1
+ *
+ *
+ */
+
+uint8_t check_nbr_exist(const uip_ds6_nbr_t *nbr_addr)
+{
+	for (int i = 0; i < NEIGHBORS_LIST; i++) {
+		if (nbr_list[i].nnode_addr == nbr_addr) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: select a random missing chunk and return
+ *
+ *
+ * params: void
+ *
+ * return: missing chunk
+ *
+ */
+
+uint8_t missing_random_chunk(void) {
+
+	uint8_t missing_chunk;
+
+	uint8_t i = 0;
+
+	// while ((chunk_cnt[random_rand() % i]) != false) {	// TODO: random piece pick
+	while ((chunk_cnt[missing_chunk = i++]) != false) {	// this is not random but sequential
+		if (i >= DATA_TOTAL_CHUNKS)
+			break;
+	}
+
+	return missing_chunk;
+
+}
+
 
 /*------------------------------------------------------------------*/
 /**
@@ -194,11 +344,15 @@ void nnode_init(int node_i) {
 	// 	else if (uip_ds6_nbr_next(nbr[i - 1]) != NULL)
 	// 		nbr[i].node_addr = uip_ds6_nbr_next(nbr[i - 1]);
 
-	nbr[node_i].nnode_state = IDLE;
-	nbr[node_i].nnode_interest = NONE;
-	nbr[node_i].nnode_choke = NONE;
-	nbr[node_i].numUL = 0;
-	// }
+
+	nbr_list[node_i].nnode_state = IDLE_STATE;
+	nbr_list[node_i].nnode_ctrlmsg = NONE_CTRL_MSG;
+	nbr_list[node_i].nnode_interest = INTEREST_NONE;
+	nbr_list[node_i].nnode_choke = CHOKE_NONE;
+	nbr_list[node_i].data_chunks = 0;
+	nbr_list[node_i].chunk_interested = 0xff;	// to avoid init with 0 bug, where 0 can be chunk
+	nbr_list[node_i].num_upload = 0;
+
 }
 
 
@@ -226,20 +380,26 @@ void nnode_init(int node_i) {
  * brief: this function, node sends its own info about which pieces
  * 			it possess to its neighbor nodes
  *
- * params: void
+ * params: sender address
  *
- * return: nextstate
+ * return: void
  *
  *
  */
 
-comm_states_t node_handshake(void) {
+void node_handshake(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
 
-	msg_pckt_t *data_packet;
-	data_packet = prepare_handshake();
+	if (nbr_list[i].nnode_addr != n_addr) {
+		return;
+	} else {
 
-	unicast_send(data_packet, send_addr);
+		msg_pckt_t *data_packet;
+		data_packet = prepare_handshake();
 
+		unicast_send(data_packet, n_addr);
+
+		nbr_list[i].nnode_state = HANDSHAKING_STATE;
+	}
 
 }
 
@@ -248,22 +408,22 @@ comm_states_t node_handshake(void) {
 /**
  * brief: this function is response to the handshake and same as
  * 			handshake, sends its own info about which pieces it
- * 			possess the node as response
+ * 			possess to node as response
  *
  * params: void
  *
- * return: nextstate
+ * return: void
  *
  */
 
-comm_states_t node_ack_handshake(void) {
+void node_ack_handshake(uip_ds6_nbr_t *sender_addr) {
 	msg_pckt_t *data_packet;
 
-	for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
-		data_packet = prepare_handshake();
-		send(&data_packet);	// send packet
-		// nbr[i].nnode_state = handshaking;
-	}
+	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
+	data_packet = prepare_handshake();
+	unicast_send(data_packet, sender_addr);	// send packet
+	// nbr[i].nnode_state = handshaking;
+	// }
 }
 
 
@@ -276,28 +436,61 @@ comm_states_t node_ack_handshake(void) {
  *
  * params: void
  *
- * return: nextstate
+ * return: void
  *
  */
 
-comm_states_t node_interest(void) {
-	if (i < NODES_DOWNLOAD) {
-		chunk = random(chunk);
-		for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
-			for (int j = 0; j < sizeof(data_chunks) / sizeof(data_chunks[0]); j++) {
-				if (nbr[i].data_chunks[j] != chunk) {
-					continue;
-				} else {
-					// send request to nbr[i].node_addr
-					send(request to nbr[i].node_addr);
-					nbr[i].nnode_interest = INTEREST_TRUE;
-				}
+void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+	if ((n_addr == NULL) || (nbr_list[n_idx].nnode_addr != n_addr))
+		return;
+
+	if (node_download_nbr < NODES_DOWNLOAD) {
+		//TODO: random chunk select implementation
+		uint8_t chunk = missing_random_chunk();
+		for (int i = 0; i < NUM_OF_NEIGHBORS && nbr_list[i].nnode_addr != NULL; i++) {
+			if (nbr_list[i].data_chunks & (1 << chunk)) {
+
+				msg_pckt_t *data_packet;
+				data_packet = prepare_interest(chunk);
+
+				nbr_list[n_idx].nnode_interest = INTEREST_TRUE;
+				unicast_send(data_packet, nbr_list[i].nnode_addr);
+				nbr_list[n_idx].chunk_requested = chunk;
+				nbr_list[n_idx].nnode_state = INTEREST_INFORMING_STATE;
+			} else {
+				continue;
 			}
 		}
 	}
 }
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: send choke/unchoke to nbr based on i < mu
+ *
+ * params: void
+ *
+ * return: choke_state_t
+ *
+ */
 
+choke_state_t node_choke_unchoke(const uip_ds6_nbr_t *sender_addr) {
+	msg_pckt_t *data_packet;
+	choke_state_t ch_uch_state;
+
+	if (node_upload_nbr >= NODES_UPLOAD) {
+		data_packet = prepare_choke();
+		unicast_send(data_packet, sender_addr);	// send packet
+		ch_uch_state = CHOKE_FALSE;
+
+	} else if (node_upload_nbr < NODES_UPLOAD) {
+		data_packet = prepare_unchoke();
+		unicast_send(data_packet, sender_addr);	// send packet
+		ch_uch_state = CHOKE_FALSE;
+	}
+
+	return ch_uch_state;
+}
 
 
 
@@ -312,9 +505,19 @@ comm_states_t node_interest(void) {
  */
 
 comm_states_t node_choke_wait() {
+
+	// TODO: set timer, when timer expires
+	// TODO: set node_choke_wait = WAIT_END
+
+
+
 	nbr[i].nnode_state = HANDSHAKED;
 	nbr[i].nnode_interest = INTEREST_FALSE;
-	wait(5); // wait for 5 seconds
+	// TODO: wait function
+	// wait(5); // wait for 5 seconds
+
+	ctimer_set(&choke_timer, CLOCK_SECOND * 5, callback, NULL);
+
 }
 
 
@@ -329,11 +532,16 @@ comm_states_t node_choke_wait() {
  *
  */
 
-comm_states_t node_request(void) {
+comm_states_t node_request(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+	if ((n_addr == NULL) || (nbr_list[n_idx].nnode_addr != n_addr))
+		return;
 	// TODO: in leecher mode never request to more than two nodes
 	msg_pckt_t *data_packet;
 	data_packet = prepare_request();
-	send(data_packet);
+	unicast_send(data_packet, n_addr);
+
+	nbr_list[n_idx].nnode_state = DOWNLOADING_STATE;
+	node_download_nbr++;
 
 	// node_received();
 	// to check if the requested piece is received
@@ -350,7 +558,21 @@ comm_states_t node_request(void) {
  * return: void
  *
  */
-void node_received(void) {
+
+void node_received(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+	if ((n_addr == NULL) || (nbr_list[n_idx].nnode_addr != n_addr))
+		return;
+
+
+
+	if (chunk_cnt[nbr_list[n_idx].chunk_requested] == true) {
+
+		node_download_nbr--;
+
+		nbr_list[n_idx].nnode_state = HANDSHAKED_STATE;
+		nbr_list[n_idx].nnode_interest = INTEREST_FALSE;
+	}
+
 	// TODO: change state to handshaked
 	// TODO: change interest to false
 }
@@ -359,26 +581,34 @@ void node_received(void) {
 /**
  * brief: node is uploading a piece to its neighbor node
  *
- * params: void
+ * params: chunk, sender_address
  *
  * return: void
  *
  */
-comm_states_t node_upload(void) {
-	nbr[i].comm_states_t = UPLOADING;
-	int chunk_block_size = chunk / NUM_OF_BLOCKS;
-	uint8_t *each_block;
 
-	// each_block = (uint8_t *)malloc(chunk_block_size * sizeof(uint8_t));
+void node_upload(const uint8_t chunk, const uip_ds6_nbr_t *sender_addr) {
 
-	for (int i = 0; i < chunk_piece_size; i++) {
-		each_block[i] = data[i];
-		send(&each_block);
+	node_upload_nbr += 1;
+	msg_pckt_t *data_packet;
+
+
+	memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+
+	for (int i = 0, j = 0, k = 0; i < DATA_CHUNK_SIZE; i++) {
+
+		data_packet.ctrl_msg = create_ctrl_msg(LAST_CTRL_MSG);
+
+		if (j < MAX_PAYLOAD_LEN) {
+			data_packet.data[j] = seq_idd[(chunk * DATA_CHUNK_SIZE) + k + j++];
+		} else {
+			unicast_send(data_packet, sender_addr);
+			memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+			k += j;
+			j = 0;
+		}
 	}
-
-	free(each_block);
 }
-
 
 
 /*------------------------------------------------------------------*/
@@ -401,6 +631,36 @@ bool node_chunk_check(void) {
 }
 
 
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: this function returns the index of the address
+ *
+ * params: address
+ *
+ * return: uint8_t
+ *
+ */
+
+int8_t check_index(const uip_ds6_nbr_t *n_addr) {
+	for (int i = 0; i < NEIGHBORS_LIST && nbr_list[i].nnode_addr != NULL; i++) {
+		if (nbr_list[i].nnode_addr == n_addr)
+			break;
+		else
+			continue;
+	}
+
+	return (i > -1 && i < 10) ? i : -1;
+}
+
+
+
+
+
+
+
+
+
 /*------------------------------------------------------------------*/
 /**
  * brief: this functions switches between systemm modes
@@ -415,7 +675,7 @@ system_mode_t system_mode_pp(system_mode) {
 	switch (system_mode) {
 	case MODE_IDLE:
 
-		/* TODO
+		/* TODO:
 		*  when part of the network is formed
 		*
 		*/
@@ -440,12 +700,11 @@ system_mode_t system_mode_pp(system_mode) {
 		for (int i = 0; i < NEIGHBORS_LIST; i++) {
 			if ((nbr_list[i].nnode_state < LAST_COMM_STATE) &&
 			        (nbr_list[i].nnode_ctrlmsg < LAST_CTRL_MSG) &&
-			        sm_download[nbr_list[i].nnode_state].ctrl_msg == nbr_list[i].nnode_ctrlmsg &&
 			        sm_download[nbr_list[i].nnode_state].curr_state == nbr_list[i].nnode_state &&
+			        sm_download[nbr_list[i].nnode_state].ctrl_msg == nbr_list[i].nnode_ctrlmsg &&
 			        sm_download[nbr_list[i].nnode_state].sm_handler_dl != NULL) {
 
-				nbr_list[i].nnode_state = (*sm_download[nbr_list[i].nnode_state].sm_handler_dl)();
-
+				(*sm_download[nbr_list[i].nnode_state].sm_handler_dl)(nbr_list[i].nnode_addr, i);
 			}
 
 
@@ -465,6 +724,7 @@ system_mode_t system_mode_pp(system_mode) {
 			} else if (sm_download[nbr_list[i].nnode_state].curr_state == INTEREST_INFORMING_STATE) {
 				if (nbr_list[i].nnode_ctrlmsg == UNCHOKE) {
 					nbr_list[i].nnode_state = INTEREST_INFORMED_STATE;
+					nbr_list[i].nnode_ctrlmsg = NONE_CTRL_MSG; // to comply with state machine
 				} else {
 					nbr_list[i].nnode_state = HANDSHAKED_STATE;
 					nbr_list[i].nnode_interest = INTEREST_FALSE;

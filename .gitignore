@@ -3,3 +3,8 @@ pcap_capture_files/
 
 # ignore p2pdesign as it mac
 p2pdesign/
+
+# ignore .drawio file
+*.drawio
+
+
