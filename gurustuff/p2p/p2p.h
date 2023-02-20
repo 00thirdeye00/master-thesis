@@ -192,6 +192,7 @@ typedef struct {
 	uint8_t data[32];		// 32 bytes in a block
 } msg_pckt_t;
 
+extern struct simple_udp_connection p2p_socket;
 /*--------------------------------------------*/
 
 uint8_t node_upload_nbr = 0;

@@ -31,7 +31,8 @@
 
 static struct process_post_comm post_comm_process;
 
-static struct simple_udp_connection p2p_socket;
+// TODO: check the socket
+// static struct simple_udp_connection p2p_socket;
 // process_event_t node_comm_upload_event;
 enum {
 	HANDSHAKE_EVENT,

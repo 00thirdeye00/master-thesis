@@ -50,6 +50,8 @@
 static struct ctimer choke_timer;
 static wait_state_t node_choke_wait;
 
+extern struct simple_udp_connection p2p_socket;
+
 /*---------------------------------------------------------------------------*/
 // static struct simple_udp_connection udp_conn;
 // // static struct simple_udp_connection udp_conn_2;
@@ -262,10 +264,12 @@ msg_pckt_t* prepare_request(void) {
  *
  *
  */
+
+
 static void
 unicast_send(msg_pckt_t *pckt, uip_ipaddr_t send_addr) {
 	msg_pckt_t send_pckt = (void *)pckt;
-	simple_udp_sendto(&udp_conn, send_pckt, sizeof(msg_pckt_t), &send_addr);
+	simple_udp_sendto(&p2p_socket, send_pckt, sizeof(msg_pckt_t), &send_addr);
 }
 
 
