@@ -144,7 +144,7 @@ typedef struct {
 	uint8_t num_upload;
 } nnode_state_t;
 
-
+// See comment in udp callback
 typedef struct  {
 	uip_ipaddr_t *sender_addr;
 	uint8_t *data;
@@ -199,6 +199,10 @@ uint8_t node_upload_nbr = 0;
 uint8_t node_download_nbr = 0;
 
 bool chunk_cnt[DATA_TOTAL_CHUNKS] = {0};
+
+// nbr_list, consider whether it should be static, meaning it is only available for p2p.c code. 
+// Not external code if external modules should access the data structure it should be via functions. 
+// That would give a cleaner structure. 
 nnode_state_t nbr_list[NEIGHBORS_LIST];
 
 

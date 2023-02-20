@@ -267,9 +267,11 @@ msg_pckt_t* prepare_request(void) {
 
 
 static void
-unicast_send(msg_pckt_t *pckt, uip_ipaddr_t send_addr) {
-	msg_pckt_t send_pckt = (void *)pckt;
-	simple_udp_sendto(&p2p_socket, send_pckt, sizeof(msg_pckt_t), &send_addr);
+// Pass addresses as pointers. 
+unicast_send(const msg_pckt_t *pckt, const uip_ipaddr_t *send_addr) {
+	if (pckt != NULL && send_addr != NULL) {
+		simple_udp_sendto(&p2p_socket, (void *)pckt, sizeof(msg_pckt_t), send_addr);
+	}
 }
 
 
@@ -287,10 +289,12 @@ unicast_send(msg_pckt_t *pckt, uip_ipaddr_t send_addr) {
  *
  */
 
+// SHouldn't the return value be opposite. 1 (true) if it exists and 0 (false) if not found
 uint8_t check_nbr_exist(const uip_ds6_nbr_t *nbr_addr)
 {
 	for (int i = 0; i < NEIGHBORS_LIST; i++) {
-		if (nbr_list[i].nnode_addr == nbr_addr) {
+
+		if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, nbr_addr)) {
 			return 0;
 		}
 	}
@@ -392,8 +396,9 @@ void nnode_init(int node_i) {
  */
 
 void node_handshake(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+	// Good to actually test value of n_addr. If it is NULL what should happen
 
-	if (nbr_list[i].nnode_addr != n_addr) {
+	if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, n_addr)) {
 		return;
 	} else {
 
@@ -444,8 +449,9 @@ void node_ack_handshake(uip_ds6_nbr_t *sender_addr) {
  *
  */
 
+// n_addr is not an ip-address it is a neighbor. 
 void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
-	if ((n_addr == NULL) || (nbr_list[n_idx].nnode_addr != n_addr))
+	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 
 	if (node_download_nbr < NODES_DOWNLOAD) {
@@ -458,7 +464,7 @@ void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
 				data_packet = prepare_interest(chunk);
 
 				nbr_list[n_idx].nnode_interest = INTEREST_TRUE;
-				unicast_send(data_packet, nbr_list[i].nnode_addr);
+				unicast_send(data_packet, &nbr_list[i].nnode_addr);
 				nbr_list[n_idx].chunk_requested = chunk;
 				nbr_list[n_idx].nnode_state = INTEREST_INFORMING_STATE;
 			} else {
@@ -478,6 +484,7 @@ void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  *
  */
 
+// Note uip_ds6_nbr_t is a neighbor not an address. This will not work for unicast send.
 choke_state_t node_choke_unchoke(const uip_ds6_nbr_t *sender_addr) {
 	msg_pckt_t *data_packet;
 	choke_state_t ch_uch_state;
@@ -519,6 +526,10 @@ comm_states_t node_choke_wait() {
 	nbr[i].nnode_interest = INTEREST_FALSE;
 	// TODO: wait function
 	// wait(5); // wait for 5 seconds
+	
+	// We talked about whether your should test if the timer is already running. 
+	// If it is running you should not overwrite the timer. It should be handled as an
+	// error case
 
 	ctimer_set(&choke_timer, CLOCK_SECOND * 5, callback, NULL);
 
@@ -537,7 +548,7 @@ comm_states_t node_choke_wait() {
  */
 
 comm_states_t node_request(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
-	if ((n_addr == NULL) || (nbr_list[n_idx].nnode_addr != n_addr))
+	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 	// TODO: in leecher mode never request to more than two nodes
 	msg_pckt_t *data_packet;
@@ -563,8 +574,9 @@ comm_states_t node_request(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  *
  */
 
+// n_addr not an IP-address
 void node_received(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
-	if ((n_addr == NULL) || (nbr_list[n_idx].nnode_addr != n_addr))
+	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 
 
@@ -591,6 +603,7 @@ void node_received(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  *
  */
 
+// send_addr not an IP it is a neighbor
 void node_upload(const uint8_t chunk, const uip_ds6_nbr_t *sender_addr) {
 
 	node_upload_nbr += 1;
@@ -654,7 +667,7 @@ int8_t check_index(const uip_ds6_nbr_t *n_addr) {
 			continue;
 	}
 
-	return (i > -1 && i < 10) ? i : -1;
+	return (i > -1 && i < NEIGHBORS_LIST) ? i : -1;
 }
 
 
