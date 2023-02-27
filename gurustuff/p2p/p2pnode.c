@@ -46,6 +46,10 @@ PROCESS(node_comm_process, "UDP client");
 PROCESS(nbr_construction_process, "Neighbor construction");
 AUTOSTART_PROCESSES(&node_comm_process, &nbr_construction_process);
 /*---------------------------------------------------------------------------*/
+
+// As you say I think you should have this in p2p.c. p2p.[ch] provides the api for a main process
+// that would like to use the p2p implementation. Internal data structures should not be exposed to the
+// main program only the api. Understand that the process post needs to know where to post data. 
 static void
 udp_rx_callback(struct simple_udp_connection *c,
                 const uip_ipaddr_t *sender_addr,
@@ -63,11 +67,16 @@ udp_rx_callback(struct simple_udp_connection *c,
 	if ((0 > node_idx) && (node_idx >= NEIGHBORS_LIST)) {
 		LOG_ERROR("Node doesn't exists in the node list");
 	} else {
-		msg_pckt_t *this;
-		process_post_data_t *post_data;
+		msg_pckt_t *this; 
 
-		post_data->sender_addr;
-		post_data->data = data;
+        // These are not safe constructions. I started to change them but you need to refactory the code here.
+		// sender_addr and data are only available in the callback. In addition
+		// if you post the data you need to have memory where you store data post_data is lost 
+		// once you leave the callback. 
+		process_post_data_t post_data; 
+		post_data.sender_addr = sender_addr; 
+		post_data.data = (uint8_t *)data; //
+
 
 		this = (msg_pckt_t *)data;
 
@@ -77,11 +86,11 @@ udp_rx_callback(struct simple_udp_connection *c,
 			nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
 			nbr_list[node_idx].data_chunks = this->self_chunks;
 		} else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
-			process_post(&node_comm_process, HANDSHAKE_EVENT, post_data);
+			process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 		} else if (this->ctrl_msg == INTEREST_CTRL_MSG) {
-			process_post(&node_comm_process, INTEREST_EVENT, post_data);
+			process_post(&node_comm_process, INTEREST_EVENT, &post_data);
 		} else if (this->ctrl_msg == REQUEST_CTRL_MSG) {
-			process_post(&node_comm_process, REQUEST_EVENT, post_data);
+			process_post(&node_comm_process, REQUEST_EVENT, &post_data);
 		} else if (this->ctrl_msg == LAST_CTRL_MSG) {
 
 			LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data);
@@ -99,8 +108,6 @@ udp_rx_callback(struct simple_udp_connection *c,
 		else {
 			nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
 		}
-
-
 
 	}
 
@@ -121,7 +128,7 @@ static void
 upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 {
 
-	int8_t node_idx = -1;
+	static int8_t node_idx = -1;
 	node_idx = check_index(post_data->sender_addr);
 	if (-1 == node_idx) {
 		LOG_ERROR("Node doesn't exists in the node list");
@@ -166,8 +173,9 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	static uip_ipaddr_t dest_ipaddr;
 
 	PROCESS_BEGIN();
-
-	system_mode_t system_mode = MODE_IDLE;
+    
+	// In threads and processes variables need to be static
+	static system_mode_t system_mode = MODE_IDLE;
 
 	/* Initialize UDP connection */
 	simple_udp_register(&p2p_socket, P2P_PORT, NULL,
@@ -175,6 +183,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 
 	etimer_set(&et, random_rand() % SEND_INTERVAL);
 	while (1) {
+		// You never sleep. This will not work. 
 		// PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer) ||
 		//                          ev == node_comm_upload_event);
 		// // TODO: line75 ||
@@ -182,6 +191,8 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		if ((etimer_expired(&et) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) ||
 		        ev == node_comm_upload_event) {
 
+            // Here you are passing system mode as a value not pointer. If it is an integer or similar
+			// It is fine. If it is a complex type you should use pointers. 
 			system_mode = system_mode_pp(system_mode);
 
 			upload_event_handler(ev, post_data);
@@ -196,6 +207,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 PROCESS_THREAD(nbr_construction_process, ev, data)
 {
 	// static unsigned i = 0;
+	// i is used below, 
 	static uip_ds6_nbr_t *nbr;
 
 	PROCESS_BEGIN();
@@ -204,24 +216,30 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 	while (1) {
 		// PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+		// This process does not sleep. It should sleep until an en event occur or timer expire.
+		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
+		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e. 
+		// is there not a need for add, delete reset functions. Now it is only add. 
 
-		if (nbr_list[0].nnode_addr != Null) {
+		if (nbr_list[0].nnode_addr != NULL) {
+			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
+			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
 			continue;
 		} else {
 
 			nbr = uip_ds6_nbr_head();
-			if (check_nbr_exist(nbr->ipaddr)) {
-				if (nbr->ipaddr != NULL && nbr_list[i].nnode_addr != nbr->ipaddr) {
-					nbr_list[i].nnode_addr = nbr->ipaddr;
+			if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
+				if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
+					uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
 					nnode_init(i);
 				}
 			}
 
 			for (int i = 1; i < NEIGHBORS_LIST; i++) {
 				nbr = uip_ds6_nbr_next(nbr)
-				if (check_nbr_exist(nbr->ipaddr)) {
-					if (nbr->ipaddr != NULL && nbr_list[i].nnode_addr != nbr->ipaddr) {
-						nbr_list[i].nnode_addr = nbr->ipaddr;
+				if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
+					if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
+						uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
 						nnode_init(i);
 					}
 				}
