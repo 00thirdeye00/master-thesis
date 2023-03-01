@@ -148,7 +148,6 @@ typedef struct {
 typedef struct  {
 	uip_ipaddr_t *sender_addr;
 	uint8_t *data;
-
 } process_post_data_t;
 
 /* state machine - download */
@@ -200,9 +199,9 @@ uint8_t node_download_nbr = 0;
 
 bool chunk_cnt[DATA_TOTAL_CHUNKS] = {0};
 
-// nbr_list, consider whether it should be static, meaning it is only available for p2p.c code. 
-// Not external code if external modules should access the data structure it should be via functions. 
-// That would give a cleaner structure. 
+// nbr_list, consider whether it should be static, meaning it is only available for p2p.c code.
+// Not external code if external modules should access the data structure it should be via functions.
+// That would give a cleaner structure.
 nnode_state_t nbr_list[NEIGHBORS_LIST];
 
 
