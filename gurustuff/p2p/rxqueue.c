@@ -86,7 +86,7 @@ queue_deq(void) {
 			if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
 				nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
 				nbr_list[node_idx].data_chunks = this->self_chunks;
-			} else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
+			}  else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
 				// process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 				upload_event_handler(HANDSHAKE_EVENT, &post_data);
 			} else if (this->ctrl_msg == INTEREST_CTRL_MSG) {

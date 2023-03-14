@@ -7,4 +7,5 @@ p2pdesign/
 # ignore .drawio file
 *.drawio
 
-
+# image files
+*.png

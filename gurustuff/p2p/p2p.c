@@ -83,10 +83,93 @@ extern struct simple_udp_connection p2p_socket;
 
 
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: handshake time out callback
+ *
+ * params: neighbor
+ *
+ * return: void
+ *
+ *
+ */
+
+void callback_ack_handshake (void *ptr) {
+
+	if (ctimer_expired((nnode_state_t *)ptr->c_timer)) {
+		ctimer_stop(ptr->c_timer);
+		if (ptr->nnode_ctrlmsg == ACKHANDSHAKE_CTRL_MSG) {
+			ptr->nnode_state = HANDSHAKED_STATE;
+		} else {
+			ptr->nnode_ctrlmsg = NONE_CTRL_MSG;
+			ptr->nnode_state = IDLE_STATE;
+		}
+	}
+}
 
 
 
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: interest informing time out callback
+ *
+ * params: neighbor
+ *
+ * return: void
+ *
+ *
+ */
+
+void callback_interest_informing (void *ptr) {
+
+	if (ctimer_expired((nnode_state_t *)ptr->c_timer)) {
+		ctimer_stop(ptr->c_timer);
+
+		switch (ptr->nnode_ctrlmsg) {
+		case UNCHOKE_CTRL_MSG:
+			ptr->nnode_state = INTEREST_INFORMED_STATE;
+			break;
+		case CHOKE_CTRL_MSG:
+			static struct ctimer t;
+			if (ctimer_expired(t)) {
+				ptr->nnode_ctrlmsg = NONE_CTRL_MSG;
+				ctimer_set(&t, CLOCK_SECOND * 5, check_interest_informing, ptr);
+			}
+			else
+				LOG_ERR(“NODE '%d' : INTEREST TIMER CANNOT START”, n_idx);
+		default:
+			ptr->nnode_state = HANDSHAKED_STATE;
+			ptr->nnode_interest = INTEREST_FALSE;
+			break;
+		}
+	}
+}
+
+
+
+
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: request to download timeout callback
+ *
+ * params: neighbor
+ *
+ * return: void
+ *
+ *
+ */
+
+void callback_request (void *ptr) {
+
+	if (ctimer_expired((nnode_state_t *)ptr->c_timer))
+		ctimer_stop(ptr->c_timer);
+
+	ptr->nnode_state = HANDSHAKED_STATE;
+	ptr->nnode_interest = INTEREST_FALSE;
+}
 
 
 /*------------------------------------------------------------------*/
@@ -106,15 +189,6 @@ static void choke_timer_callback(void *ptr) {
 	node_choke_wait = WAIT_END;
 
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -267,7 +341,7 @@ msg_pckt_t* prepare_request(void) {
 
 
 static void
-// Pass addresses as pointers. 
+// Pass addresses as pointers.
 unicast_send(const msg_pckt_t *pckt, const uip_ipaddr_t *send_addr) {
 	if (pckt != NULL && send_addr != NULL) {
 		simple_udp_sendto(&p2p_socket, (void *)pckt, sizeof(msg_pckt_t), send_addr);
@@ -290,7 +364,7 @@ unicast_send(const msg_pckt_t *pckt, const uip_ipaddr_t *send_addr) {
  */
 
 // SHouldn't the return value be opposite. 1 (true) if it exists and 0 (false) if not found
-uint8_t check_nbr_exist(const uip_ds6_nbr_t *nbr_addr)
+uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr)
 {
 	for (int i = 0; i < NEIGHBORS_LIST; i++) {
 
@@ -385,8 +459,8 @@ void nnode_init(int node_i) {
 
 /*------------------------------------------------------------------*/
 /**
- * brief: this function, node sends its own info about which pieces
- * 			it possess to its neighbor nodes
+ * brief: this function, node sends handshake i.e its own info about
+ * 			which pieces it possess to its neighbor nodes
  *
  * params: sender address
  *
@@ -395,8 +469,11 @@ void nnode_init(int node_i) {
  *
  */
 
-void node_handshake(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	// Good to actually test value of n_addr. If it is NULL what should happen
+
+	struct nnode_state_t *cb_data = &nbr_list[n_idx];
+	static struct ctimer *t = &nbr_list[n_idx].c_timer;
 
 	if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, n_addr)) {
 		return;
@@ -407,9 +484,13 @@ void node_handshake(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
 
 		unicast_send(data_packet, n_addr);
 
-		nbr_list[i].nnode_state = HANDSHAKING_STATE;
-	}
+		nbr_list[n_idx].nnode_state = HANDSHAKING_STATE;
 
+		if (ctimer_expired(t))
+			ctimer_set(&t, CLOCK_SECOND * 3, check_ack_handshake, cb_data);
+		else
+			LOG_ERR(“NODE '%d': HANDSHAKE TIMER CANNOT START”, n_idx);
+	}
 }
 
 
@@ -425,7 +506,7 @@ void node_handshake(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  *
  */
 
-void node_ack_handshake(uip_ds6_nbr_t *sender_addr) {
+void node_ack_handshake(uip_ipaddr_t *sender_addr) {
 	msg_pckt_t *data_packet;
 
 	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
@@ -449,13 +530,15 @@ void node_ack_handshake(uip_ds6_nbr_t *sender_addr) {
  *
  */
 
-// n_addr is not an ip-address it is a neighbor. 
-void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+// n_addr is not an ip-address it is a neighbor.
+void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 
+	struct nnode_state_t *cb_data = &nbr_list[n_idx];
+	static struct ctimer *t = &nbr_list[n_idx].c_timer;
+
 	if (node_download_nbr < NODES_DOWNLOAD) {
-		//TODO: random chunk select implementation
 		uint8_t chunk = missing_random_chunk();
 		for (int i = 0; i < NUM_OF_NEIGHBORS && nbr_list[i].nnode_addr != NULL; i++) {
 			if (nbr_list[i].data_chunks & (1 << chunk)) {
@@ -467,12 +550,20 @@ void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
 				unicast_send(data_packet, &nbr_list[i].nnode_addr);
 				nbr_list[n_idx].chunk_requested = chunk;
 				nbr_list[n_idx].nnode_state = INTEREST_INFORMING_STATE;
+
+
+				if (ctimer_expired(t))
+					ctimer_set(&t, CLOCK_SECOND * 3, check_interest_informing, cb_data);
+				else
+					LOG_ERR(“NODE '%d' : INTEREST TIMER CANNOT START”, n_idx);
+
 			} else {
 				continue;
 			}
 		}
 	}
 }
+
 
 /*------------------------------------------------------------------*/
 /**
@@ -484,8 +575,8 @@ void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  *
  */
 
-// Note uip_ds6_nbr_t is a neighbor not an address. This will not work for unicast send.
-choke_state_t node_choke_unchoke(const uip_ds6_nbr_t *sender_addr) {
+// Note uip_ipaddr_t is a neighbor not an address. This will not work for unicast send.
+choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
 	msg_pckt_t *data_packet;
 	choke_state_t ch_uch_state;
 
@@ -526,8 +617,8 @@ comm_states_t node_choke_wait() {
 	nbr[i].nnode_interest = INTEREST_FALSE;
 	// TODO: wait function
 	// wait(5); // wait for 5 seconds
-	
-	// We talked about whether your should test if the timer is already running. 
+
+	// We talked about whether your should test if the timer is already running.
 	// If it is running you should not overwrite the timer. It should be handled as an
 	// error case
 
@@ -547,17 +638,28 @@ comm_states_t node_choke_wait() {
  *
  */
 
-comm_states_t node_request(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
-	// TODO: in leecher mode never request to more than two nodes
-	msg_pckt_t *data_packet;
-	data_packet = prepare_request();
-	unicast_send(data_packet, n_addr);
 
-	nbr_list[n_idx].nnode_state = DOWNLOADING_STATE;
-	node_download_nbr++;
+	struct nnode_state_t *cb_data = &nbr_list[n_idx];
+	static struct ctimer *t = &nbr_list[n_idx].c_timer;
 
+	if (node_download_nbr < NODES_DOWNLOAD) {
+
+		// TODO: in leecher mode never request to more than two nodes
+		msg_pckt_t *data_packet;
+		data_packet = prepare_request();
+		unicast_send(data_packet, n_addr);
+
+		nbr_list[n_idx].nnode_state = DOWNLOADING_STATE;
+		node_download_nbr++;
+
+		if (ctimer_expired(t))
+			ctimer_set(&t, CLOCK_SECOND * 3, check_request, cb_data);
+		else
+			LOG_ERR(“NODE '%d' : INTEREST TIMER CANNOT START”, n_idx);
+	}
 	// node_received();
 	// to check if the requested piece is received
 	// if yes then change state and interest
@@ -575,11 +677,10 @@ comm_states_t node_request(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  */
 
 // n_addr not an IP-address
-void node_received(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
+
+void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
-
-
 
 	if (chunk_cnt[nbr_list[n_idx].chunk_requested] == true) {
 
@@ -604,7 +705,7 @@ void node_received(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx) {
  */
 
 // send_addr not an IP it is a neighbor
-void node_upload(const uint8_t chunk, const uip_ds6_nbr_t *sender_addr) {
+void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 
 	node_upload_nbr += 1;
 	msg_pckt_t *data_packet;
@@ -659,7 +760,7 @@ bool node_chunk_check(void) {
  *
  */
 
-int8_t check_index(const uip_ds6_nbr_t *n_addr) {
+int8_t check_index(const uip_ipaddr_t *n_addr) {
 	for (int i = 0; i < NEIGHBORS_LIST && nbr_list[i].nnode_addr != NULL; i++) {
 		if (nbr_list[i].nnode_addr == n_addr)
 			break;
@@ -669,13 +770,6 @@ int8_t check_index(const uip_ds6_nbr_t *n_addr) {
 
 	return (i > -1 && i < NEIGHBORS_LIST) ? i : -1;
 }
-
-
-
-
-
-
-
 
 
 /*------------------------------------------------------------------*/
@@ -721,15 +815,24 @@ system_mode_t system_mode_pp(system_mode) {
 			        sm_download[nbr_list[i].nnode_state].ctrl_msg == nbr_list[i].nnode_ctrlmsg &&
 			        sm_download[nbr_list[i].nnode_state].sm_handler_dl != NULL) {
 
-				(*sm_download[nbr_list[i].nnode_state].sm_handler_dl)(nbr_list[i].nnode_addr, i);
+				(*sm_download[nbr_list[i].nnode_state].sm_handler_dl)(&nbr_list[i].nnode_addr, i);
 			}
 
 
 			if (sm_download[nbr_list[i].nnode_state].curr_state == HANDSHAKED_STATE) {
-				if (nbr_list[i].nnode_interest) {
-					// TODO
-					// state -> interest informed
-				} else {
+				if (nbr_list[i].nnode_interest == INTEREST_FALSE) {
+
+#if 0 // we can call node_interest() function here
+					node_interest(&nbr_list[i].nnode_addr, i);
+
+#else // or we can modify the nnode_interest so state machine calls the 
+					// node_interest() function in next iteration
+
+					nbr_list[i].nnode_interest == ACKHANDSHAKE_CTRL_MSG;
+#endif
+				}
+#if 0 // handled in the timer callback function check_interest_informing()
+				else {
 					// wait for 5 seconds before sending messages to same node again
 					if (WAIT_FALSE == node_choke_wait()) {
 						// TODO
@@ -737,8 +840,11 @@ system_mode_t system_mode_pp(system_mode) {
 						// node_interest(); // to send interest again
 					}
 				}
+#endif // handled in the timer callback function check_interest_informing()
 
-			} else if (sm_download[nbr_list[i].nnode_state].curr_state == INTEREST_INFORMING_STATE) {
+			}
+#if 0 // handled in the timer callback function check_interest_informing()
+			else if (sm_download[nbr_list[i].nnode_state].curr_state == INTEREST_INFORMING_STATE) {
 				if (nbr_list[i].nnode_ctrlmsg == UNCHOKE) {
 					nbr_list[i].nnode_state = INTEREST_INFORMED_STATE;
 					nbr_list[i].nnode_ctrlmsg = NONE_CTRL_MSG; // to comply with state machine
@@ -747,6 +853,7 @@ system_mode_t system_mode_pp(system_mode) {
 					nbr_list[i].nnode_interest = INTEREST_FALSE;
 				}
 			}
+#endif // handled in the timer callback function check_interest_informing()
 		}
 
 		/*
@@ -906,76 +1013,6 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

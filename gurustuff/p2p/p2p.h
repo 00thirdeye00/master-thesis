@@ -135,10 +135,10 @@ typedef struct {
 	ctrl_msg_t nnode_ctrlmsg;			// neighbor node ctrl msg received
 	interest_state_t nnode_interest;	// neighbor node interest state
 	choke_state_t nnode_choke;			// neighbor node choke state
-	struct timer choke_timer;		// choke timer for this node
+	struct ctimer c_timer;		// ctimer for this node
 	uint32_t data_chunks;			// neighbor nodes data chunks
-	uint8_t chunk_requested;		// chunk, nbr is interested in
-	uint8_t chunk_interested;		// chunk, nbr is interested in
+	uint8_t chunk_requested;		// chunk requested to nbr
+	uint8_t chunk_interested;		// nbr is interested in chunk
 	// ctrl_msg_t nnode_interest;
 	// ctrl_msg_t nnode_choke;
 	uint8_t num_upload;
@@ -209,10 +209,10 @@ state_machine_download sm_download[] {
 // curr_state, ctrl_msg, sm_handler_dl
 // nnode_state,
 	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
-	{HANDSHAKING_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
-	{HANDSHAKED_STATE,				NULL,					NULL},
+	{NULL,							NULL,					NULL},
+	{HANDSHAKED_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
 	{INTEREST_INFORMING_STATE,		NULL, 					NULL}, // state=handshaked, interest=false
-	{INTEREST_INFORMED_STATE,		NONE_CTRL_MSG,			node_request},
+	{INTEREST_INFORMED_STATE,		UNCHOKE_CTRL_MSG,		node_request},
 	{DOWNLOADING_STATE,				NONE_CTRL_MSG,			node_received},
 	// {UPLOADING_STATE,				NULL,					NULL},
 	// {LAST_COMM_STATE,				NULL,					NULL}
@@ -238,22 +238,22 @@ state_machine_upload sm_upload[] {
 msg_pckt_t* prepare_handshake(void);
 msg_pckt_t* prepare_interest(const uint8_t chunk);
 msg_pckt_t* prepare_request(void);
-uint8_t check_nbr_exist(const uip_ds6_nbr_t *nbr_addr);
+uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr);
 uint8_t missing_random_chunk(void);
 void nnode_init(int node_i);
 
 void node_statechange(void);	// changes state based on the current situation
-void node_handshake(const uip_ds6_nbr_t *n_addr, const uint8_t node_idx);		// set HANDSHAKING_STATE with that neighbor
-void node_ack_handshake(const uip_ds6_nbr_t *sender_addr);	// set HANDSHAKED_STATE with that neighbor
-void node_interest(const uip_ds6_nbr_t *n_addr, const uint8_t node_idx);		// set INTEREST_INFORMING with that neighbor
+void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t node_idx);		// set HANDSHAKING_STATE with that neighbor
+void node_ack_handshake(const uip_ipaddr_t *sender_addr);	// set HANDSHAKED_STATE with that neighbor
+void node_interest(const uip_ipaddr_t *n_addr, const uint8_t node_idx);		// set INTEREST_INFORMING with that neighbor
 void node_choke_wait();			// wait for 5 seconds
-choke_state_t node_choke_unchoke(const uip_ds6_nbr_t *sender_addr);	// refer point 2
-void node_request(const uip_ds6_nbr_t *n_addr, const uint8_t node_idx);			// set DOWNLOADING_STATE with that neighbor
-void node_received(const uip_ds6_nbr_t *n_addr, const uint8_t n_idx);		//
-void node_upload(const uint8_t chunk, const uip_ds6_nbr_t *sender_addr);			// set UPLOADING_STATE with that neighbor
+choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr);	// refer point 2
+void node_request(const uip_ipaddr_t *n_addr, const uint8_t node_idx);			// set DOWNLOADING_STATE with that neighbor
+void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx);		//
+void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr);			// set UPLOADING_STATE with that neighbor
 bool node_chunk_check(void);	//
 
-int8_t check_index(const uip_ds6_nbr_t *n_addr); // check node index at callback
+int8_t check_index(const uip_ipaddr_t *n_addr); // check node index at callback
 
 system_mode_t system_mode_pp(system_mode_t sys_mode);
 
