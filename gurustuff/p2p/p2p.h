@@ -138,6 +138,8 @@ typedef struct {
 	struct ctimer c_timer;		// ctimer for this node
 	uint32_t data_chunks;			// neighbor nodes data chunks
 	uint8_t chunk_requested;		// chunk requested to nbr
+	uint8_t	chunk_block;			// block number of the chunk
+	uint8_t failed_dlreq;			// failed download request attemp
 	uint8_t chunk_interested;		// nbr is interested in chunk
 	// ctrl_msg_t nnode_interest;
 	// ctrl_msg_t nnode_choke;
@@ -186,8 +188,13 @@ bit 7 -> DATAPACKET
 
 // message packet
 typedef struct {
-	uint32_t self_chunks;	// data chunks a node has
-	uint8_t ctrl_msg;		//
+	union {
+		uint32_t self_chunks;	// data chunks a node has
+		// uint8_t	req_chunk;	// requested chunk
+		// uint8_t	req_cblock;	// requested chunks block number
+		uint16_t req_chunk_block;	// requested chunk and block number
+	} chunk_type;
+	uint8_t ctrl_msg;		// control message
 	uint8_t data[32];		// 32 bytes in a block
 } msg_pckt_t;
 

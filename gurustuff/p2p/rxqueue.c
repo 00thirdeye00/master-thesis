@@ -85,7 +85,7 @@ queue_deq(void) {
 			// nbr_list[node_idx].node_addr = sender_addr;
 			if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
 				nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
-				nbr_list[node_idx].data_chunks = this->self_chunks;
+				nbr_list[node_idx].data_chunks = this->chunk_type.self_chunks;
 			}  else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
 				// process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 				upload_event_handler(HANDSHAKE_EVENT, &post_data);
@@ -95,15 +95,16 @@ queue_deq(void) {
 			} else if (this->ctrl_msg == REQUEST_CTRL_MSG) {
 				// process_post(&node_comm_process, REQUEST_EVENT, &post_data);
 				upload_event_handler(REQUEST_EVENT, &post_data);
-			} else if (this->ctrl_msg == LAST_CTRL_MSG) {
-
-				// print data since it is uint8_t
-				LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data[0]);
-				recv_block_count++;
-
-				if (recv_block_count >= 4)
-					recv_block_count = 0;
 			}
+			// else if (this->ctrl_msg == LAST_CTRL_MSG) {
+
+			// 	// print data since it is uint8_t
+			// 	LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data[0]);
+			// 	recv_block_count++;
+
+			// 	if (recv_block_count >= 4)
+			// 		recv_block_count = 0;
+			// }
 			else {
 				nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
 			}

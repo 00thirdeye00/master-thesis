@@ -164,13 +164,26 @@ void callback_interest_informing (void *ptr) {
 
 void callback_request (void *ptr) {
 
-	if (ctimer_expired((nnode_state_t *)ptr->c_timer))
+	if (ctimer_expired((nnode_state_t *)ptr->c_timer)) {
 		ctimer_stop(ptr->c_timer);
 
-	ptr->nnode_state = HANDSHAKED_STATE;
-	ptr->nnode_interest = INTEREST_FALSE;
-}
+		if (chunk_cnt[ptr->chunk_block] >= 0x01) {
+			/* nothing to do */
+		} else {
+			ptr->failed_dlreq++;
+			ptr->nnode_state = HANDSHAKED_STATE;
+			ptr->nnode_interest = INTEREST_FALSE;
+		}
 
+		// FIX: for now "node_download_nbr" is reduced in the receive callback
+		// if (node_download_nbr > 0 &&
+		//         (chunk_cnt[ptr->chunk_requested] == true)) {
+		// 	node_download_nbr--;
+		// }
+
+	}
+
+}
 
 /*------------------------------------------------------------------*/
 /**
@@ -223,9 +236,9 @@ msg_pckt_t* prepare_handshake(void) {
 
 	// convert chunk_cnt from bool to uint 32bit to send in the data packet
 	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
-		pckt_msg_hs.self_chunks = (chunk_cnt[i] ?
-		                           (pckt_msg_hs.self_chunks |= (1 << i)) :
-		                           (pckt_msg_hs.self_chunks));
+		pckt_msg_hs.chunk_type.self_chunks = (chunk_cnt[i] ?
+		                                      (pckt_msg_hs.chunk_type.self_chunks |= (1 << i)) :
+		                                      (pckt_msg_hs.chunk_type.self_chunks));
 	}
 
 	pckt_msg_hs.ctrl_msg = create_ctrl_msg(HANDSHAKE_CTRL_MSG);
@@ -274,7 +287,7 @@ msg_pckt_t* prepare_interest(const uint8_t chunk) {
 
 msg_pckt_t* prepare_choke(void) {
 	msg_pckt_t pckt_msg_ch;
-	pckt_msg_ch.self_chunks = 0;
+	pckt_msg_ch.chunk_type.self_chunks = 0;
 	pckt_msg_ch.ctrl_msg = create_ctrl_msg(CHOKE_CTRL_MSG);
 	memset(pckt_msg_ch.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
 
@@ -294,7 +307,7 @@ msg_pckt_t* prepare_choke(void) {
 
 msg_pckt_t* prepare_unchoke(void) {
 	msg_pckt_t pckt_msg_uch;
-	pckt_msg_uch.self_chunks = 0;
+	pckt_msg_uch.chunk_type.self_chunks = 0;
 	pckt_msg_uch.ctrl_msg = create_ctrl_msg(UNCHOKE_CTRL_MSG);
 	memset(pckt_msg_uch.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
 
@@ -318,7 +331,7 @@ msg_pckt_t* prepare_unchoke(void) {
 
 msg_pckt_t* prepare_request(void) {
 	msg_pckt_t pckt_msg_rq;
-	pckt_msg_rq.self_chunks = 0;
+	pckt_msg_rq.chunk_type.self_chunks = 0;
 	pckt_msg_rq.ctrl_msg = create_ctrl_msg(REQUEST_CTRL_MSG);
 	memset(pckt_msg_rq.data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
 
@@ -553,7 +566,7 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 
 				if (ctimer_expired(t))
-					ctimer_set(&t, CLOCK_SECOND * 3, check_interest_informing, cb_data);
+					ctimer_set(&t, CLOCK_SECOND * 3, callback_interest_informing, cb_data);
 				else
 					LOG_ERR(“NODE '%d' : INTEREST TIMER CANNOT START”, n_idx);
 
@@ -656,7 +669,7 @@ void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 		node_download_nbr++;
 
 		if (ctimer_expired(t))
-			ctimer_set(&t, CLOCK_SECOND * 3, check_request, cb_data);
+			ctimer_set(&t, CLOCK_SECOND * 3, callback_request, cb_data);
 		else
 			LOG_ERR(“NODE '%d' : INTEREST TIMER CANNOT START”, n_idx);
 	}
@@ -713,13 +726,18 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 
 	memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 
-	for (int i = 0, j = 0, k = 0; i < DATA_CHUNK_SIZE; i++) {
+	for (int i = 0, j = 0, k = 0; l = 1; i < DATA_CHUNK_SIZE; i++) {
 
 		data_packet.ctrl_msg = create_ctrl_msg(LAST_CTRL_MSG);
+		// data_packet.chunk_type.req_chunk = chunk;
 
 		if (j < MAX_PAYLOAD_LEN) {
 			data_packet.data[j] = seq_idd[(chunk * DATA_CHUNK_SIZE) + k + j++];
 		} else {
+			l |= l << k / 32;
+			data_packet.chunk_type.req_chunk_block |= l;
+			data_packet.chunk_type.req_chunk_block <<= 8;
+			data_packet.chunk_type.req_chunk_block |= chunk;
 			unicast_send(data_packet, sender_addr);
 			memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 			k += j;
@@ -738,6 +756,7 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
  * return: bool
  *
  */
+
 bool node_chunk_check(void) {
 	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
 		if (chunk_cnt[i] != true)

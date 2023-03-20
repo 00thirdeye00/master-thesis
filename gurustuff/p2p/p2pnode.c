@@ -60,7 +60,6 @@ udp_rx_callback(struct simple_udp_connection *c,
                 uint16_t datalen)
 {
 	static int8_t node_idx = -1;
-	static uint8_t recv_block_count = 0;
 
 	node_idx = check_index(sender_addr);
 
@@ -68,9 +67,38 @@ udp_rx_callback(struct simple_udp_connection *c,
 		LOG_ERROR("Node doesn't exists in the node list");
 	} else {
 
+		this = (msg_pckt_t *)data;
+
+		if (this->ctrl_msg == LAST_CTRL_MSG) {
+
+			uint8_t chunk_num;
+			uint8_t block_num;
+
+			chunk_num = (this->chunk_type.req_chunk_block & 0x00ff);
+			block_num = (this->chunk_type.req_chunk_block & 0x0f00) >> 8;
 
 
-		uni_queue_enq(sender_addr, datalen, data);
+
+			// print data since it is uint8_t
+			LOG_INFO("Received response '%.*s' from ", 32, (char *) this->data);
+
+			if ((chunk_num == nbr_list[node_idx].chunk_requested) &&
+			        nbr_list[node_idx].chunk_block ! > block_num &&
+			        nbr_list[node_idx].chunk_block < 0x0f) {
+
+				nbr_list[node_idx].chunk_block |= block_num;
+
+				if (nbr_list[node_idx].chunk_block == 0x0f) {
+					chunk_cnt[nbr_list[node_idx].chunk_requested] == true;
+					node_download_nbr--;
+					nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
+					nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
+				}
+			}
+
+		} else {
+			uni_queue_enq(sender_addr, datalen, data);
+		}
 
 
 
@@ -157,18 +185,6 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 		}
 	}
 }
-/*---------------------------------------------------------------------------*/
-// static uint8_t
-// check_nbr_exist(const uip_ds6_nbr_t *nbr_addr)
-// {
-// 	for (int i = 0; i < NEIGHBORS_LIST; i++) {
-// 		if (nbr_list[i].node_addr == nbr_addr) {
-// 			return 0;
-// 		}
-// 	}
-// 	return 1;
-// }
-
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_comm_process, ev, data)
@@ -217,22 +233,22 @@ PROCESS_THREAD(node_comm_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(nbr_construction_process, ev, data)
 {
-	// static unsigned i = 0;
+	static uint8_t i = 0;
 	// i is used below,
 	static uip_ds6_nbr_t *nbr;
 
 	PROCESS_BEGIN();
 
+	etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 
-	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 	while (1) {
-		// PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 		// This process does not sleep. It should sleep until an en event occur or timer expire.
 		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
 		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
 		// is there not a need for add, delete reset functions. Now it is only add.
 
-		if (nbr_list[0].nnode_addr != NULL) {
+		if (!nbr_list[0].nnode_addr) {
 			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
 			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
 			continue;
@@ -259,8 +275,7 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 
 
 		/* Add some jitter */
-		// etimer_set(&periodic_timer, SEND_INTERVAL
-		// - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
+		etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));
 	}
 
 	PROCESS_END();
