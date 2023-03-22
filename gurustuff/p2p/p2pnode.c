@@ -16,6 +16,7 @@
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
 #include "p2p.h"
+#include "rxqueue.h"
 
 #include "sys/log.h"
 #define LOG_MODULE "App"
@@ -29,7 +30,7 @@
 #define SEND_INTERVAL		  (60 * CLOCK_SECOND)
 
 
-static struct process_post_comm post_comm_process;
+// static struct process_post_comm post_comm_process;
 
 // TODO: check the socket
 // static struct simple_udp_connection p2p_socket;
@@ -64,8 +65,10 @@ udp_rx_callback(struct simple_udp_connection *c,
 	node_idx = check_index(sender_addr);
 
 	if ((0 > node_idx) && (node_idx >= NEIGHBORS_LIST)) {
-		LOG_ERROR("Node doesn't exists in the node list");
+		LOG_ERR("Node doesn't exists in the node list");
 	} else {
+
+		msg_pckt_t *this;
 
 		this = (msg_pckt_t *)data;
 
@@ -83,13 +86,13 @@ udp_rx_callback(struct simple_udp_connection *c,
 			LOG_INFO("Received response '%.*s' from ", 32, (char *) this->data);
 
 			if ((chunk_num == nbr_list[node_idx].chunk_requested) &&
-			        nbr_list[node_idx].chunk_block ! > block_num &&
-			        nbr_list[node_idx].chunk_block < 0x0f) {
+			        !(nbr_list[node_idx].chunk_block > block_num) &&
+			        (nbr_list[node_idx].chunk_block < 0x0f)) {
 
 				nbr_list[node_idx].chunk_block |= block_num;
 
 				if (nbr_list[node_idx].chunk_block == 0x0f) {
-					chunk_cnt[nbr_list[node_idx].chunk_requested] == true;
+					chunk_cnt[nbr_list[node_idx].chunk_requested] = true;
 					node_download_nbr--;
 					nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
 					nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
@@ -97,7 +100,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 			}
 
 		} else {
-			uni_queue_enq(sender_addr, datalen, data);
+			queue_enq(sender_addr, datalen, data);
 		}
 
 
@@ -159,14 +162,14 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 }
 /*---------------------------------------------------------------------------*/
-static void
+void
 upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 {
 
 	static int8_t node_idx = -1;
 	node_idx = check_index(post_data->sender_addr);
 	if (-1 == node_idx) {
-		LOG_ERROR("Node doesn't exists in the node list");
+		LOG_ERR("Node doesn't exists in the node list");
 		return;
 	} else {
 		switch (ev) {
@@ -190,10 +193,10 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 PROCESS_THREAD(node_comm_process, ev, data)
 {
 	static struct etimer periodic_timer;
-	static unsigned count;
-	static char str[32];
-	static msg_pckt_t data_pckt;
-	static uip_ipaddr_t dest_ipaddr;
+	// static unsigned count;
+	// static char str[32];
+	// static msg_pckt_t data_pckt;
+	// static uip_ipaddr_t dest_ipaddr;
 
 	PROCESS_BEGIN();
 
@@ -204,19 +207,19 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	simple_udp_register(&p2p_socket, P2P_PORT, NULL,
 	                    P2P_PORT, udp_rx_callback);
 
-	etimer_set(&et, random_rand() % SEND_INTERVAL);
+	etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 	while (1) {
 		// You never sleep. This will not work.
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer) ||
-		                         ev == node_comm_upload_event ||
+		                         // ev == node_comm_upload_event ||
 		                         !is_queue_empty());
 
 		if (!is_queue_empty()) {
 			queue_deq();
 		}
 
-		if ((etimer_expired(&et) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) ||
-		        ev == node_comm_upload_event) {
+		if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) //||
+		        /*ev == node_comm_upload_event */) {
 
 			// Here you are passing system mode as a value not pointer. If it is an integer or similar
 			// It is fine. If it is a complex type you should use pointers.
@@ -224,7 +227,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 
 			// upload_event_handler(ev, post_data);
 
-			etimer_set(&et, CLOCK_SECOND);
+			etimer_set(&periodic_timer, CLOCK_SECOND);
 		}
 	}
 
@@ -233,6 +236,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(nbr_construction_process, ev, data)
 {
+	static struct etimer periodic_timer;
 	static uint8_t i = 0;
 	// i is used below,
 	static uip_ds6_nbr_t *nbr;
@@ -248,7 +252,7 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
 		// is there not a need for add, delete reset functions. Now it is only add.
 
-		if (!nbr_list[0].nnode_addr) {
+		if (&nbr_list[i].nnode_addr != NULL) {
 			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
 			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
 			continue;
@@ -263,7 +267,7 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 			}
 
 			for (int i = 1; i < NEIGHBORS_LIST; i++) {
-				nbr = uip_ds6_nbr_next(nbr)
+				nbr = uip_ds6_nbr_next(nbr);
 				if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
 					if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
 						uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);

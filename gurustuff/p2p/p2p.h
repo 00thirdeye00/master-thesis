@@ -152,6 +152,10 @@ typedef struct  {
 	uint8_t *data;
 } process_post_data_t;
 
+/* state machine handler function pointer */
+typedef void (*downloading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
+typedef void (*uploading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
+
 /* state machine - download */
 typedef struct {
 	comm_states_t curr_state;					// current state
@@ -165,9 +169,6 @@ typedef struct {
 	uploading_state_handler sm_handler_dl;
 } state_machine_upload;
 
-/* state machine handler function pointer */
-// typedef comm_states_t (*downloading_state_handler)(void);
-typedef comm_states_t (*uploading_state_handler)(uip_ds6_nbr_t *n_addr, uint8_t node_idx);
 
 
 /*--------------------------------------------*/
@@ -212,34 +213,7 @@ bool chunk_cnt[DATA_TOTAL_CHUNKS] = {0};
 nnode_state_t nbr_list[NEIGHBORS_LIST];
 
 
-state_machine_download sm_download[] {
-// curr_state, ctrl_msg, sm_handler_dl
-// nnode_state,
-	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
-	{NULL,							NULL,					NULL},
-	{HANDSHAKED_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
-	{INTEREST_INFORMING_STATE,		NULL, 					NULL}, // state=handshaked, interest=false
-	{INTEREST_INFORMED_STATE,		UNCHOKE_CTRL_MSG,		node_request},
-	{DOWNLOADING_STATE,				NONE_CTRL_MSG,			node_received},
-	// {UPLOADING_STATE,				NULL,					NULL},
-	// {LAST_COMM_STATE,				NULL,					NULL}
-};
-
-
-state_machine_upload sm_upload[] {
-	//ctrl_msg, sm_handler_up
-	{NULL,					NULL},
-	{HANDSHAKE_CTRL_MSG,	node_ack_handshake},
-	{INTEREST_CTRL_MSG,		node_choke_unchoke},
-	{REQUEST_CTRL_MSG,		node_upload},
-	// {NULL,					NULL},
-	// {NULL,					NULL},
-	// {NULL,					NULL},
-	// {NULL,					NULL}
-}
-
-
-
+/*------------------------------------------------------------------*/
 
 
 msg_pckt_t* prepare_handshake(void);
@@ -263,6 +237,32 @@ bool node_chunk_check(void);	//
 int8_t check_index(const uip_ipaddr_t *n_addr); // check node index at callback
 
 system_mode_t system_mode_pp(system_mode_t sys_mode);
+
+/*------------------------------------------------------------------*/
+
+
+state_machine_download sm_download[] = {
+	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
+	{HANDSHAKING_STATE,				NONE_CTRL_MSG,			NULL},
+	{HANDSHAKED_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
+	{INTEREST_INFORMING_STATE,		NONE_CTRL_MSG, 			NULL}, // state=handshaked, interest=false
+	{INTEREST_INFORMED_STATE,		UNCHOKE_CTRL_MSG,		node_request},
+	{DOWNLOADING_STATE,				NONE_CTRL_MSG,			node_received},
+	// {UPLOADING_STATE,				NULL,					NULL},
+	// {LAST_COMM_STATE,				NULL,					NULL}
+};
+
+
+// state_machine_upload sm_upload[] = {
+// 	{NONE_CTRL_MSG,			NULL},
+// 	{HANDSHAKE_CTRL_MSG,	node_ack_handshake},
+// 	{INTEREST_CTRL_MSG,		node_choke_unchoke},
+// 	{REQUEST_CTRL_MSG,		node_upload},
+// 	// {NULL,					NULL},
+// 	// {NULL,					NULL},
+// 	// {NULL,					NULL},
+// 	// {NULL,					NULL}
+// }
 
 
 /*------------------------------------------------------------------*/

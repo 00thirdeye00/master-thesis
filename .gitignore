@@ -9,3 +9,6 @@ p2pdesign/
 
 # image files
 *.png
+
+# ignore build/object files
+build/

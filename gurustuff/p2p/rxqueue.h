@@ -33,14 +33,14 @@ typedef struct rx_mpckts_s {
 rx_mpckts_t *rx_q;
 
 
-bool is_queue_empty(void)
+bool is_queue_empty(void);
 
 void queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data);
 
 void queue_deq(void);
 
 
-
+extern void upload_event_handler(process_event_t ev, const process_post_data_t *post_data);
 
 
 
