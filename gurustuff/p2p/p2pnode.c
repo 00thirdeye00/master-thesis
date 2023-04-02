@@ -11,6 +11,7 @@
  */
 
 #include "contiki.h"
+#include "sys/node-id.h"
 #include "net/routing/routing.h"
 #include "random.h"
 #include "net/netstack.h"
@@ -19,7 +20,7 @@
 #include "rxqueue.h"
 
 #include "sys/log.h"
-#define LOG_MODULE "App"
+#define LOG_MODULE "p2p"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 // #define WITH_SERVER_REPLY  1
@@ -33,16 +34,17 @@
 // static struct process_post_comm post_comm_process;
 
 // TODO: check the socket
-// static struct simple_udp_connection p2p_socket;
+struct simple_udp_connection p2p_socket;
 // process_event_t node_comm_upload_event;
-enum {
-	HANDSHAKE_EVENT,
-	INTEREST_EVENT,
-	REQUEST_EVENT
-};
+// enum {
+// 	HANDSHAKE_EVENT,
+// 	INTEREST_EVENT,
+// 	REQUEST_EVENT
+// };
 
 
 /*---------------------------------------------------------------------------*/
+PROCESS_NAME(p2p_content_distribution);
 PROCESS(node_comm_process, "UDP client");
 PROCESS(nbr_construction_process, "Neighbor construction");
 AUTOSTART_PROCESSES(&node_comm_process, &nbr_construction_process);
@@ -66,6 +68,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 	if ((0 > node_idx) && (node_idx >= NEIGHBORS_LIST)) {
 		LOG_ERR("Node doesn't exists in the node list");
+		// PRINTF("Node doesn't exists in the node list");
 	} else {
 
 		msg_pckt_t *this;
@@ -167,22 +170,23 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 {
 
 	static int8_t node_idx = -1;
-	node_idx = check_index(post_data->sender_addr);
+	node_idx = check_index(&post_data->sender_addr);
 	if (-1 == node_idx) {
-		LOG_ERR("Node doesn't exists in the node list");
+		// LOG_ERR("NODE DOES NOT EXIST IN NODE LIST\n");
+		PRINTF("NODE DOES NOT EXIST IN NODE LIST\n");
 		return;
 	} else {
 		switch (ev) {
 		case HANDSHAKE_EVENT:
-			node_ack_handshake(post_data->sender_addr);
+			node_ack_handshake(&post_data->sender_addr);
 			break;
 		case INTEREST_EVENT:
 			nbr_list[node_idx].chunk_interested = post_data->data[0];
-			nbr_list[node_idx].nnode_choke = node_choke_unchoke(post_data->sender_addr);
+			nbr_list[node_idx].nnode_choke = node_choke_unchoke(&post_data->sender_addr);
 			break;
 		case REQUEST_EVENT:
 			nbr_list[node_idx].nnode_state = UPLOADING_STATE;
-			node_upload(nbr_list[node_idx].chunk_interested, post_data->sender_addr);
+			node_upload(nbr_list[node_idx].chunk_interested, &post_data->sender_addr);
 			nbr_list[node_idx].num_upload += 4;
 			break;
 		}
@@ -197,29 +201,58 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	// static char str[32];
 	// static msg_pckt_t data_pckt;
 	// static uip_ipaddr_t dest_ipaddr;
+	chunk_cnt[DATA_TOTAL_CHUNKS] = 0;
 
-	PROCESS_BEGIN();
+
+	static int is_coordinator;
+
+  	PROCESS_BEGIN();
+
+  	is_coordinator = 0;
+
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_Z1
+  is_coordinator = (node_id == 1);
+#endif
+
+	if(is_coordinator) {
+	NETSTACK_ROUTING.root_start();
+	}
 
 	// In threads and processes variables need to be static
 	static system_mode_t system_mode = MODE_IDLE;
+
+	LOG_ERR("MAIN PROCESS\n");
 
 	/* Initialize UDP connection */
 	simple_udp_register(&p2p_socket, P2P_PORT, NULL,
 	                    P2P_PORT, udp_rx_callback);
 
-	etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+	etimer_set(&periodic_timer, 60 * SEND_INTERVAL);
+
 	while (1) {
+
+		LOG_INFO("Enter: In while\n");
+
 		// You never sleep. This will not work.
+		#if (UIP_MAX_ROUTES != 0)
+        PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
+      	#endif
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer) ||
-		                         // ev == node_comm_upload_event ||
 		                         !is_queue_empty());
+
+
+		// PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+
+		LOG_INFO("Enter: In while after clock\n");
 
 		if (!is_queue_empty()) {
 			queue_deq();
 		}
 
-		if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) //||
-		        /*ev == node_comm_upload_event */) {
+		if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
+
+			LOG_INFO("In main while:");
 
 			// Here you are passing system mode as a value not pointer. If it is an integer or similar
 			// It is fine. If it is a complex type you should use pointers.
@@ -227,7 +260,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 
 			// upload_event_handler(ev, post_data);
 
-			etimer_set(&periodic_timer, CLOCK_SECOND);
+			etimer_set(&periodic_timer, 60 * CLOCK_SECOND);
 		}
 	}
 
@@ -243,18 +276,28 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 
 	PROCESS_BEGIN();
 
-	etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+	etimer_set(&periodic_timer, 80 * SEND_INTERVAL);
+	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+
+	LOG_INFO("Enter: nbr construction process\n");
 
 	while (1) {
+
+
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 		// This process does not sleep. It should sleep until an en event occur or timer expire.
 		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
 		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
 		// is there not a need for add, delete reset functions. Now it is only add.
 
+
+		LOG_INFO("Enter: nbr construction process in while after clock\n");
+
+
 		if (&nbr_list[i].nnode_addr != NULL) {
 			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
 			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
+			LOG_INFO("nbr continue\n");
 			continue;
 		} else {
 
@@ -277,9 +320,13 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 			}
 		}
 
-
 		/* Add some jitter */
-		etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));
+		// etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));
+
+		nbr_list_print();
+
+		etimer_set(&periodic_timer, (80 * CLOCK_SECOND));
+
 	}
 
 	PROCESS_END();

@@ -1,4 +1,6 @@
-CONTIKI_PROJECT = root intermediate sink
+CONTIKI_PROJECT = p2pnode
+PROJECT_SOURCEFILES += p2p.c rxqueue.c
+# PROJECT_SOURCEFILES += rxqueue.c
 all: $(CONTIKI_PROJECT)
 
 # nrf52dk only supports slave mode, i.e., with no routing
@@ -9,7 +11,7 @@ PLATFORMS_EXCLUDE += sky z1
 CONTIKI = /home/sony/thesis/os/contiki-ng
 
 # Set MCAST = (ESMRF | SMRF | MPL)
-MCAST ?= SMRF
+# MCAST ?= SMRF
 
 MAKE_MAC ?= MAKE_MAC_TSCH
 
@@ -17,7 +19,7 @@ include $(CONTIKI)/Makefile.identify-target
 MODULES_REL += $(TARGET)
 
 include $(CONTIKI)/Makefile.dir-variables
-MODULES += $(CONTIKI_NG_NET_DIR)/ipv6/multicast
+# MODULES += $(CONTIKI_NG_NET_DIR)/ipv6/multicast
 MODULES += $(CONTIKI_NG_SERVICES_DIR)/shell
 
 # force Orchestra from command line
@@ -28,22 +30,22 @@ MAKE_WITH_STORING_ROUTING ?= 1
 # Orchestra link-based rule? (Works only if Orchestra & storing mode routing is enabled)
 MAKE_WITH_LINK_BASED_ORCHESTRA ?= 1
 # Use the Orchestra root rule?
-MAKE_WITH_ORCHESTRA_ROOT_RULE ?= 0
+MAKE_WITH_ORCHESTRA_ROOT_RULE ?= 1
 
-ifeq ($(MCAST),ESMRF)
-  # Storage based routing must be used
-	MAKE_WITH_STORING_ROUTING = 1
-	CFLAGS += -DRPL_CONF_MOP=RPL_MOP_STORING_MULTICAST
-	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_ESMRF
-else ifeq ($(MCAST), SMRF)
-	# Storage based routing must be used
-	MAKE_WITH_STORING_ROUTING = 1
-	CFLAGS += -DRPL_CONF_MOP=RPL_MOP_STORING_MULTICAST
-	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_SMRF
-else ifeq ($(MCAST), MPL)
-  # Works for none and storage based routing
-	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_MPL
-endif
+# ifeq ($(MCAST),ESMRF)
+#   # Storage based routing must be used
+# 	MAKE_WITH_STORING_ROUTING = 1
+# 	CFLAGS += -DRPL_CONF_MOP=RPL_MOP_STORING_MULTICAST
+# 	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_ESMRF
+# else ifeq ($(MCAST), SMRF)
+# 	# Storage based routing must be used
+# 	MAKE_WITH_STORING_ROUTING = 1
+# 	CFLAGS += -DRPL_CONF_MOP=RPL_MOP_STORING_MULTICAST
+# 	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_SMRF
+# else ifeq ($(MCAST), MPL)
+#   # Works for none and storage based routing
+# 	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_MPL
+# endif
 
 include $(CONTIKI)/Makefile.dir-variables
 MODULES += $(CONTIKI_NG_SERVICES_DIR)/shell
