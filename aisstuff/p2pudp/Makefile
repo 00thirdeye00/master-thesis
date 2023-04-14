@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = p2pudp
+CONTIKI_PROJECT = p2pudp 
 all: $(CONTIKI_PROJECT)
 
 # nrf52dk only supports slave mode, i.e., with no routing
@@ -26,6 +26,10 @@ MAKE_WITH_LINK_BASED_ORCHESTRA ?= 1
 # Use the Orchestra root rule?
 MAKE_WITH_ORCHESTRA_ROOT_RULE ?= 0
 
+# Use the Orchestra Neighbor rule?
+MAKE_WITH_ORCHESTRA_NEIGHBOR_RULE ?= 1
+
+
 include $(CONTIKI)/Makefile.dir-variables
 MODULES += $(CONTIKI_NG_SERVICES_DIR)/shell
 
@@ -46,6 +50,10 @@ ifeq ($(MAKE_WITH_ORCHESTRA),1)
 	 ifeq ($(MAKE_WITH_ORCHESTRA_ROOT_RULE),1)
 		 # add the root rule
 		 ORCHESTRA_EXTRA_RULES +=,&special_for_root
+	 endif
+
+	 ifeq ($(MAKE_WITH_ORCHESTRA_NEIGHBOR_RULE),1)
+		 ORCHESTRA_EXTRA_RULES +=,&update_neighbor
 	 endif
  else
 	 ifeq ($(MAKE_WITH_LINK_BASED_ORCHESTRA),1)

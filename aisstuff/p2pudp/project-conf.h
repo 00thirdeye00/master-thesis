@@ -94,6 +94,7 @@
 #define LOG_CONF_LEVEL_6LOWPAN                     LOG_LEVEL_ERR
 #define LOG_CONF_LEVEL_MAC                         LOG_LEVEL_ERR
 #define LOG_CONF_LEVEL_FRAMER                      LOG_LEVEL_ERR
+#define LOG_CONF_LEVEL_ORCHESTRA                   LOG_LEVEL_INFO
 #define TSCH_LOG_CONF_PER_SLOT                     0
 
 #endif /* PROJECT_CONF_H_ */
