@@ -234,7 +234,13 @@ void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx);		//
 void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr);			// set UPLOADING_STATE with that neighbor
 bool node_chunk_check(void);	//
 
+<<<<<<< Updated upstream
 int8_t check_index(const uip_ipaddr_t *n_addr); // check node index at callback
+=======
+
+// uip_ipaddr_t *nbr_list_nnode_addr(uint8_t node_idx);
+void nbr_list_print(void);
+>>>>>>> Stashed changes
 
 system_mode_t system_mode_pp(system_mode_t sys_mode);
 

@@ -207,7 +207,13 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	simple_udp_register(&p2p_socket, P2P_PORT, NULL,
 	                    P2P_PORT, udp_rx_callback);
 
+<<<<<<< Updated upstream
 	etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+=======
+	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+	etimer_set(&periodic_timer, 400 * SEND_INTERVAL);
+
+>>>>>>> Stashed changes
 	while (1) {
 		// You never sleep. This will not work.
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer) ||
@@ -218,8 +224,14 @@ PROCESS_THREAD(node_comm_process, ev, data)
 			queue_deq();
 		}
 
+<<<<<<< Updated upstream
 		if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) //||
 		        /*ev == node_comm_upload_event */) {
+=======
+		if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
+
+			LOG_INFO("In main while:\n");
+>>>>>>> Stashed changes
 
 			// Here you are passing system mode as a value not pointer. If it is an integer or similar
 			// It is fine. If it is a complex type you should use pointers.
@@ -227,7 +239,11 @@ PROCESS_THREAD(node_comm_process, ev, data)
 
 			// upload_event_handler(ev, post_data);
 
+<<<<<<< Updated upstream
 			etimer_set(&periodic_timer, CLOCK_SECOND);
+=======
+			etimer_set(&periodic_timer, 200 * CLOCK_SECOND);
+>>>>>>> Stashed changes
 		}
 	}
 
@@ -240,43 +256,99 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 	static uint8_t i = 0;
 	// i is used below,
 	static uip_ds6_nbr_t *nbr;
+	// static uip_ipaddr_t *nnode_addr_exists;
 
 	PROCESS_BEGIN();
 
+<<<<<<< Updated upstream
 	etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 
 	while (1) {
+=======
+	etimer_set(&periodic_timer, 200 * SEND_INTERVAL);
+	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+
+	LOG_INFO("Enter: nbr construction process\n");
+
+	while (1) {
+
+		i = 0;
+
+>>>>>>> Stashed changes
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 		// This process does not sleep. It should sleep until an en event occur or timer expire.
 		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
 		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
 		// is there not a need for add, delete reset functions. Now it is only add.
 
+<<<<<<< Updated upstream
 		if (&nbr_list[i].nnode_addr != NULL) {
 			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
 			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
+=======
+
+		LOG_INFO("Enter: nbr construction process in while after clock\n");
+
+		// nnode_addr_exists = nbr_list_nnode_addr(i);
+		if (!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)) {
+		// if(nnode_addr_exists != NULL && !uip_is_addr_unspecified(nnode_addr_exists)) {
+			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
+			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
+			LOG_INFO("nbr continue\n");
+			LOG_INFO("Address specified node %d: ", i);
+			// LOG_INFO_6ADDR(nnode_addr_exists);
+			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
+			LOG_INFO("\n");
+			i++;
+			// LOG_INFO("check again\n");
+>>>>>>> Stashed changes
 			continue;
 		} else {
 
-			nbr = uip_ds6_nbr_head();
-			if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
-				if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
-					uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
-					nnode_init(i);
-				}
-			}
+			LOG_INFO("nbr else\n");
 
-			for (int i = 1; i < NEIGHBORS_LIST; i++) {
-				nbr = uip_ds6_nbr_next(nbr);
+			nbr = uip_ds6_nbr_head();
+			// if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
+			// 	if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
+			// 		uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
+			// 		nnode_init(i);
+			// 		i++;
+			// 	}
+			// }
+
+			// printf("i = %d\n", i);
+
+			for (; i < NEIGHBORS_LIST; i++) {
+				// nbr = uip_ds6_nbr_next(nbr);
 				if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
-					if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
+					if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
 						uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
 						nnode_init(i);
 					}
 				}
+				nbr = uip_ds6_nbr_next(nbr);
 			}
 		}
 
+<<<<<<< Updated upstream
+=======
+
+		for(int j = 0; j < NEIGHBORS_LIST; j++){
+			LOG_INFO("Address specified node %d: ", j);
+			// LOG_INFO_6ADDR(nnode_addr_exists);
+			LOG_INFO_6ADDR(&nbr_list[j].nnode_addr);
+			LOG_INFO("\n");
+		}
+
+		/* Add some jitter */
+		// etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));
+
+		LOG_INFO("check\n");
+
+		nbr_list_print();
+
+		etimer_set(&periodic_timer, (100 * CLOCK_SECOND));
+>>>>>>> Stashed changes
 
 		/* Add some jitter */
 		etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));

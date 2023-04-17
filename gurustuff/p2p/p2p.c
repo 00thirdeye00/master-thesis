@@ -790,6 +790,72 @@ int8_t check_index(const uip_ipaddr_t *n_addr) {
 	return (i > -1 && i < NEIGHBORS_LIST) ? i : -1;
 }
 
+<<<<<<< Updated upstream
+=======
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: get node address as a pointer
+ *
+ * params: node index
+ *
+ * return: pointer to node address
+ *
+ */
+
+// uip_ipaddr_t *nbr_list_nnode_addr(uint8_t node_idx) {
+
+// 	// PRINTF("in func: nbr_list_nnode_addr\n");
+
+// 	return (&nbr_list[node_idx].nnode_addr);
+
+// }
+
+
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: print the nbr list
+ *
+ * params: void
+ *
+ * return: void
+ *
+ */
+
+void nbr_list_print(void) {
+	// int i;
+	// uip_ipaddr_t address = n_addr;
+	// for (i = 0; i < NEIGHBORS_LIST && nbr_list[i].nnode_addr != NULL; i++) {
+
+	// LOG_INFO("nbr list print\n");
+
+	PRINTF("nbr list print\n");
+	// printf("nbr list print\n");
+
+	// for (int i = 0; i < NEIGHBORS_LIST; i++) {
+	// 	if(!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)){
+	// 		PRINTF("node : %d\n", i);
+	// 		PRINTF("	node nbr address		: %x\n", nbr_list[i].nnode_addr);
+	// 		PRINTF("	node state 				: %d\n", nbr_list[i].nnode_state);
+	// 		PRINTF("	node ctrl msg 			: %d\n", nbr_list[i].nnode_ctrlmsg);
+	// 		PRINTF("	node interest 			: %d\n", nbr_list[i].nnode_interest);
+
+	// 		PRINTF("	node choke 				: %d\n", nbr_list[i].nnode_choke);
+	// 		PRINTF("	node chunks 			: %d\n", nbr_list[i].data_chunks);
+	// 		PRINTF("	node chunk req 			: %d\n", nbr_list[i].chunk_requested);
+	// 		PRINTF("	node block 				: %d\n", nbr_list[i].chunk_block);
+	// 		PRINTF("	node failed req 		: %u\n", nbr_list[i].failed_dlreq);
+	// 		PRINTF("	node chunk interested 	: %d\n", nbr_list[i].chunk_interested);
+	// 		PRINTF("	node num upload 		: %d\n", nbr_list[i].num_upload);
+	// 	} else {
+	// 		PRINTF("nbr list exit\n");
+	// 	}
+
+	// }
+}
+>>>>>>> Stashed changes
 
 /*------------------------------------------------------------------*/
 /**
