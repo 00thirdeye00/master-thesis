@@ -1,12 +1,11 @@
-
-
-
+#include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include "sys/process.h"
+// #include "sys/process.h"
 
 #include "queue.h"
+#include "rxqueue.h"
 
 
 static uint8_t q_elem;
@@ -37,19 +36,21 @@ is_queue_empty(void) {
  *
  * params: void
  *
- * return: void
+ * return: uint8_t
  *
  *
  */
 
-int
+uint8_t
 queue_deq(void) {
 
-	static uint8_t recv_block_count = 0;
+	// static uint8_t recv_block_count = 0;
+	static int8_t node_index = -1;
 
 	PRINTF("Deque in Progress\n");
 
 	rx_mpckts_t *dq;
+
 
 	if (!queue_is_empty(rx_queue)) {
 		PRINTF("Queue is not Empty\n");
@@ -60,6 +61,7 @@ queue_deq(void) {
 			return 0;
 		} else {
 			q_elem--;
+			node_index = check_index(&dq->send_addr);
 			PRINTF("Dequeued datalen: %u\n", dq->datalen);
 			PRINTF("Dequeue data: ");
 			// for (int i = 0; i < dq->datalen; i++) {
@@ -75,17 +77,17 @@ queue_deq(void) {
 			// if you post the data you need to have memory where you store data post_data is lost
 			// once you leave the callback.
 			process_post_data_t post_data;
-			post_data.sender_addr = dq->sender_addr;
+			post_data.sender_addr = dq->send_addr;
 			post_data.data = (uint8_t *)dq->data;
 
 
 			this = (msg_pckt_t *)dq->data;
 
 			// TODO: populate nbr node based on the ctrl_msg
-			// nbr_list[node_idx].node_addr = sender_addr;
+			// nbr_list[node_index].node_addr = sender_addr;
 			if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
-				nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
-				nbr_list[node_idx].data_chunks = this->chunk_type.self_chunks;
+				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
+				nbr_list[node_index].data_chunks = this->chunk_type.self_chunks;
 			}  else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
 				// process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 				upload_event_handler(HANDSHAKE_EVENT, &post_data);
@@ -106,7 +108,7 @@ queue_deq(void) {
 			// 		recv_block_count = 0;
 			// }
 			else {
-				nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
+				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
 			}
 
 
@@ -120,6 +122,7 @@ queue_deq(void) {
 		}
 	}
 	// PRINTF("Deque is Complete\n");
+	return 0;
 }
 
 /*------------------------------------------------------------------*/
@@ -137,6 +140,7 @@ void
 queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	PRINTF("Enqueue in Progress\n");
 
+	rx_mpckts_t *rx_q;
 
 	rx_q = (rx_mpckts_t *)heapmem_alloc(sizeof(rx_mpckts_t));
 
@@ -169,11 +173,11 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 		queue_enqueue(rx_queue, rx_q);
 		q_elem++;
 	}
-	printf("Queue is%s Empty\n",
+	PRINTF("Queue is%s Empty\n",
 	       queue_is_empty(rx_queue) ? "" : " not");
 
 
-	printf("Queue Peek datalen: %u\n", ((rx_mpckts_t *)queue_peek(rx_queue))->datalen);
+	PRINTF("Queue Peek datalen: %u\n", ((rx_mpckts_t *)queue_peek(rx_queue))->datalen);
 
 	PRINTF("Enqueue is Complete\n");
 
