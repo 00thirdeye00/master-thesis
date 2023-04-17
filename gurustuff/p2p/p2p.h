@@ -7,14 +7,15 @@
 #include "contiki.h"
 
 #include <stdint.h>
+#include "sys/ctimer.h"
 
 /*---------------------------------------------------------------------------*/
 /* Configuration */
 /*---------------------------------------------------------------------------*/
 
-// #define BYTES_1024 //BYTES_1024
+#define BYTES_1024 //BYTES_1024
 // #define BYTES_4000 //BYTES_4000
-#define BYTES_4000 //BYTES_8000
+// #define BYTES_4000 //BYTES_8000
 
 #ifdef BYTES_1024
 #include "data_1024B.h"
@@ -39,7 +40,7 @@
 #define NODES_DOWNLOAD		2 // in the leecher mode
 
 
-#define TOTAL_DATA_S		(strlen(seq_idd))	// 4kb of data
+#define TOTAL_DATA_S		(sizeof(seq_idd))	// 1kb of data
 #define NUM_CHUNKS_X		32					// constant number of chunks
 #define NUM_OF_BLOCKS		4 					// each chunk split into blocks of 4
 
@@ -56,7 +57,7 @@
 #define LEECHER_DOWNLOAD	2
 
 
-#define NUM_OF_NODES	10 	// no. of nodes in network
+#define NUM_OF_NODES		2 	// no. of nodes in network
 
 
 
@@ -148,7 +149,7 @@ typedef struct {
 
 // See comment in udp callback
 typedef struct  {
-	uip_ipaddr_t *sender_addr;
+	uip_ipaddr_t sender_addr;
 	uint8_t *data;
 } process_post_data_t;
 
@@ -202,10 +203,10 @@ typedef struct {
 extern struct simple_udp_connection p2p_socket;
 /*--------------------------------------------*/
 
-uint8_t node_upload_nbr = 0;
-uint8_t node_download_nbr = 0;
+uint8_t node_upload_nbr;
+uint8_t node_download_nbr;
 
-bool chunk_cnt[DATA_TOTAL_CHUNKS] = {0};
+bool chunk_cnt[DATA_TOTAL_CHUNKS];
 
 // nbr_list, consider whether it should be static, meaning it is only available for p2p.c code.
 // Not external code if external modules should access the data structure it should be via functions.
@@ -216,47 +217,45 @@ nnode_state_t nbr_list[NEIGHBORS_LIST];
 /*------------------------------------------------------------------*/
 
 
-msg_pckt_t* prepare_handshake(void);
-msg_pckt_t* prepare_interest(const uint8_t chunk);
-msg_pckt_t* prepare_request(void);
+void prepare_handshake(msg_pckt_t *d_pckt);
+void prepare_interest(msg_pckt_t *d_pckt, const uint8_t chunk);
+void prepare_request(msg_pckt_t *d_pckt);
 uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr);
 uint8_t missing_random_chunk(void);
 void nnode_init(int node_i);
+
+int8_t check_index(const uip_ipaddr_t *n_addr); // check node index at callback
 
 void node_statechange(void);	// changes state based on the current situation
 void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t node_idx);		// set HANDSHAKING_STATE with that neighbor
 void node_ack_handshake(const uip_ipaddr_t *sender_addr);	// set HANDSHAKED_STATE with that neighbor
 void node_interest(const uip_ipaddr_t *n_addr, const uint8_t node_idx);		// set INTEREST_INFORMING with that neighbor
-void node_choke_wait();			// wait for 5 seconds
+// void node_choke_wait(void);			// wait for 5 seconds
 choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr);	// refer point 2
 void node_request(const uip_ipaddr_t *n_addr, const uint8_t node_idx);			// set DOWNLOADING_STATE with that neighbor
 void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx);		//
 void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr);			// set UPLOADING_STATE with that neighbor
 bool node_chunk_check(void);	//
 
-<<<<<<< Updated upstream
-int8_t check_index(const uip_ipaddr_t *n_addr); // check node index at callback
-=======
 
 // uip_ipaddr_t *nbr_list_nnode_addr(uint8_t node_idx);
 void nbr_list_print(void);
->>>>>>> Stashed changes
 
 system_mode_t system_mode_pp(system_mode_t sys_mode);
 
 /*------------------------------------------------------------------*/
 
 
-state_machine_download sm_download[] = {
-	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
-	{HANDSHAKING_STATE,				NONE_CTRL_MSG,			NULL},
-	{HANDSHAKED_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
-	{INTEREST_INFORMING_STATE,		NONE_CTRL_MSG, 			NULL}, // state=handshaked, interest=false
-	{INTEREST_INFORMED_STATE,		UNCHOKE_CTRL_MSG,		node_request},
-	{DOWNLOADING_STATE,				NONE_CTRL_MSG,			node_received},
-	// {UPLOADING_STATE,				NULL,					NULL},
-	// {LAST_COMM_STATE,				NULL,					NULL}
-};
+// static state_machine_download sm_download[] = {
+// 	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
+// 	{HANDSHAKING_STATE,				NONE_CTRL_MSG,			NULL},
+// 	{HANDSHAKED_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
+// 	{INTEREST_INFORMING_STATE,		NONE_CTRL_MSG, 			NULL}, // state=handshaked, interest=false
+// 	{INTEREST_INFORMED_STATE,		UNCHOKE_CTRL_MSG,		node_request},
+// 	{DOWNLOADING_STATE,				NONE_CTRL_MSG,			node_received},
+// 	// {UPLOADING_STATE,				NULL,					NULL},
+// 	// {LAST_COMM_STATE,				NULL,					NULL}
+// };
 
 
 // state_machine_upload sm_upload[] = {

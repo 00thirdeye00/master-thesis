@@ -41,7 +41,7 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
-#include "net/ipv6/multicast/uip-mcast6-engines.h"
+// #include "net/ipv6/multicast/uip-mcast6-engines.h"
 
 // UIP_MCAST6_ENGINE_NONE
 // UIP_MCAST6_ENGINE_SMRF
@@ -51,9 +51,9 @@
 
 
 /* Change this to switch engines. Engine codes in uip-mcast6-engines.h */
-#ifndef UIP_MCAST6_CONF_ENGINE
-#define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_SMRF
-#endif
+// #ifndef UIP_MCAST6_CONF_ENGINE
+// #define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_SMRF
+// #endif
 
 // #define LOG_INFO false
 
@@ -81,12 +81,12 @@
 
 
 
-/* For Imin: Use 16 over CSMA, 64 over Contiki MAC */
-#define ROLL_TM_CONF_IMIN_1         64
-#define MPL_CONF_DATA_MESSAGE_IMIN  64
-#define MPL_CONF_CONTROL_MESSAGE_IMIN  64
+// /* For Imin: Use 16 over CSMA, 64 over Contiki MAC */
+// #define ROLL_TM_CONF_IMIN_1         64
+// #define MPL_CONF_DATA_MESSAGE_IMIN  64
+// #define MPL_CONF_CONTROL_MESSAGE_IMIN  64
 
-#define UIP_MCAST6_ROUTE_CONF_ROUTES 1
+// #define UIP_MCAST6_ROUTE_CONF_ROUTES 1
 #define UIP_CONF_TCP 0
 
 // Enable Fragementation
@@ -96,7 +96,7 @@
  * Timeout for packet reassembly at the 6lowpan layer
  * (should be < 60s)
  */
-#define SICSLOWPAN_CONF_MAXAGE 60
+// #define SICSLOWPAN_CONF_MAXAGE 60
 
 // Size of send queue, default is 8
 #define QUEUEBUF_CONF_NUM 64
