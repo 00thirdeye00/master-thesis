@@ -97,16 +97,16 @@
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <viewport>4.875734994927651 0.0 0.0 4.875734994927651 51.40639205261435 -21.995065657186988</viewport>
     </plugin_config>
-    <bounds x="1" y="1" height="923" width="400" />
+    <bounds x="1" y="1" height="923" width="400" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
-      <filter>(Child | parent)</filter>
+      <filter>Orchestra</filter>
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="400" y="160" height="240" width="2828" z="1" />
+    <bounds x="400" y="160" height="240" width="2828" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
