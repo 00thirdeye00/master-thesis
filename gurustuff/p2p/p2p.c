@@ -34,7 +34,7 @@
 
 #include "sys/log.h"
 #define LOG_MODULE "p2p"
-#define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_INFO
 
 #define DEBUG DEBUG_NONE
 #include "net/ipv6/uip-debug.h"
@@ -482,6 +482,7 @@ void nnode_init(int node_i) {
 	// 	else if (uip_ds6_nbr_next(nbr[i - 1]) != NULL)
 	// 		nbr[i].node_addr = uip_ds6_nbr_next(nbr[i - 1]);
 
+	LOG_INFO("nbr node %d initialized\n", node_i);
 
 	nbr_list[node_i].nnode_state = IDLE_STATE;
 	nbr_list[node_i].nnode_ctrlmsg = NONE_CTRL_MSG;
@@ -489,6 +490,9 @@ void nnode_init(int node_i) {
 	nbr_list[node_i].nnode_choke = CHOKE_NONE;
 	nbr_list[node_i].data_chunks = 0;
 	nbr_list[node_i].chunk_interested = 0xff;	// to avoid init with 0 bug, where 0 can be chunk
+	nbr_list[node_i].chunk_block = 0;
+	nbr_list[node_i].failed_dlreq = 0;
+	nbr_list[node_i].chunk_interested = 0;
 	nbr_list[node_i].num_upload = 0;
 
 }
@@ -886,31 +890,35 @@ void nbr_list_print(void) {
 	// uip_ipaddr_t address = n_addr;
 	// for (i = 0; i < NEIGHBORS_LIST && nbr_list[i].nnode_addr != NULL; i++) {
 
-	// LOG_INFO("nbr list print\n");
+	LOG_INFO("nbr list print\n");
 
-	PRINTF("nbr list print\n");
+	// PRINTF("nbr list print\n");
 	// printf("nbr list print\n");
 
-	// for (int i = 0; i < NEIGHBORS_LIST; i++) {
-	// 	if(!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)){
-	// 		PRINTF("node : %d\n", i);
-	// 		PRINTF("	node nbr address		: %x\n", nbr_list[i].nnode_addr);
-	// 		PRINTF("	node state 				: %d\n", nbr_list[i].nnode_state);
-	// 		PRINTF("	node ctrl msg 			: %d\n", nbr_list[i].nnode_ctrlmsg);
-	// 		PRINTF("	node interest 			: %d\n", nbr_list[i].nnode_interest);
+	for (int i = 0; i < NEIGHBORS_LIST && !uip_is_addr_unspecified(&nbr_list[i].nnode_addr); i++) {
+		// if(!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)){
+			LOG_INFO("node : %d\n", i);
+			LOG_INFO("	node nbr address: ");
+			// LOG_INFO("	node nbr address		: %x\n", nbr_list[i].nnode_addr);
+			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
+			// LOG_INFO("\n");
+			PRINTF("\n");
+			LOG_INFO("	node state 				: %d\n", nbr_list[i].nnode_state);
+			LOG_INFO("	node ctrl msg 			: %d\n", nbr_list[i].nnode_ctrlmsg);
+			LOG_INFO("	node interest 			: %d\n", nbr_list[i].nnode_interest);
 
-	// 		PRINTF("	node choke 				: %d\n", nbr_list[i].nnode_choke);
-	// 		PRINTF("	node chunks 			: %d\n", nbr_list[i].data_chunks);
-	// 		PRINTF("	node chunk req 			: %d\n", nbr_list[i].chunk_requested);
-	// 		PRINTF("	node block 				: %d\n", nbr_list[i].chunk_block);
-	// 		PRINTF("	node failed req 		: %u\n", nbr_list[i].failed_dlreq);
-	// 		PRINTF("	node chunk interested 	: %d\n", nbr_list[i].chunk_interested);
-	// 		PRINTF("	node num upload 		: %d\n", nbr_list[i].num_upload);
-	// 	} else {
-	// 		PRINTF("nbr list exit\n");
-	// 	}
+			LOG_INFO("	node choke 				: %d\n", nbr_list[i].nnode_choke);
+			LOG_INFO("	node chunks 			: %d\n", nbr_list[i].data_chunks);
+			LOG_INFO("	node chunk req 			: %d\n", nbr_list[i].chunk_requested);
+			LOG_INFO("	node block 				: %d\n", nbr_list[i].chunk_block);
+			LOG_INFO("	node failed req 		: %u\n", nbr_list[i].failed_dlreq);
+			LOG_INFO("	node chunk interested 	: %d\n", nbr_list[i].chunk_interested);
+			LOG_INFO("	node num upload 		: %d\n", nbr_list[i].num_upload);
+		// } else {
+		// 	LOG_INFO("nbr list exit\n");
+		// }
 
-	// }
+	}
 }
 
 /*------------------------------------------------------------------*/

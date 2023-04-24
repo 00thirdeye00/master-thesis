@@ -160,9 +160,9 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	rx_q->datalen = dlen;
 
 	PRINTF("Printing from Queue Created: \n");
-	// for (int i = 0; i < rx_q->datalen; i++) {
-	// 	PRINTF(" %u", rx_q->data[i]);
-	// }
+	for (int i = 0; i < rx_q->datalen; i++) {
+		PRINTF(" %u", rx_q->data[i]);
+	}
 	PRINTF("\nPrinting from Queue Created Complete \n");
 
 	if (q_elem >= QUEUE_SIZE /*|| !queue_is_empty()*/) {

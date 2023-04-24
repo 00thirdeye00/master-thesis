@@ -16,7 +16,7 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype453196759</identifier>
+      <identifier>mtype622382011</identifier>
       <description>p2p_node</description>
       <source>[CONTIKI_DIR]/examples/p2p/p2pnode.c</source>
       <commands>make -j$(CPUS) p2pnode.cooja TARGET=cooja</commands>
@@ -54,7 +54,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype453196759</motetype_identifier>
+      <motetype_identifier>mtype622382011</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -72,7 +72,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype453196759</motetype_identifier>
+      <motetype_identifier>mtype622382011</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -90,7 +90,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype453196759</motetype_identifier>
+      <motetype_identifier>mtype622382011</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -112,7 +112,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype453196759</motetype_identifier>
+      <motetype_identifier>mtype622382011</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -130,7 +130,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype453196759</motetype_identifier>
+      <motetype_identifier>mtype622382011</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -152,7 +152,7 @@
       <viewport>1.9142534501032231 0.0 0.0 1.9142534501032231 221.29416300926803 127.90916553596938</viewport>
     </plugin_config>
     <width>591</width>
-    <z>3</z>
+    <z>0</z>
     <height>484</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -165,7 +165,7 @@
       <coloring />
     </plugin_config>
     <width>825</width>
-    <z>0</z>
+    <z>2</z>
     <height>480</height>
     <location_x>391</location_x>
     <location_y>191</location_y>
@@ -209,7 +209,7 @@
       <scrollpos>0,0</scrollpos>
     </plugin_config>
     <width>573</width>
-    <z>2</z>
+    <z>3</z>
     <height>425</height>
     <location_x>351</location_x>
     <location_y>19</location_y>

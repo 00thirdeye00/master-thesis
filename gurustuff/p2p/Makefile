@@ -11,7 +11,8 @@ PLATFORMS_EXCLUDE += sky z1
 CONTIKI = /home/sony/thesis/os/contiki-ng
 
 # Set MCAST = (ESMRF | SMRF | MPL)
-# MCAST ?= SMRF
+# MCAST ?= SMRFCONTIKI = /home/sony/thesis/os/contiki-ng
+
 
 MAKE_MAC ?= MAKE_MAC_TSCH
 

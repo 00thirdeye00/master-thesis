@@ -20,7 +20,7 @@
 #include "rxqueue.h"
 
 #include "sys/log.h"
-#define LOG_MODULE "p2p"
+#define LOG_MODULE "p2pnode"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 // #define WITH_SERVER_REPLY  1
@@ -228,7 +228,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	                    P2P_PORT, udp_rx_callback);
 
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-	etimer_set(&periodic_timer, 400 * SEND_INTERVAL);
+	etimer_set(&periodic_timer, 30 * SEND_INTERVAL);
 
 	while (1) {
 
@@ -277,7 +277,7 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 
 	PROCESS_BEGIN();
 
-	etimer_set(&periodic_timer, 200 * SEND_INTERVAL);
+	etimer_set(&periodic_timer, 10 * SEND_INTERVAL);
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 
 	LOG_INFO("Enter: nbr construction process\n");
@@ -304,10 +304,11 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 			LOG_INFO("Address specified node %d: ", i);
 			// LOG_INFO_6ADDR(nnode_addr_exists);
 			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
-			LOG_INFO("\n");
+			// LOG_INFO("\n");
+			PRINTF("\n");
 			i++;
 			// LOG_INFO("check again\n");
-			continue;
+			// continue;
 		} else {
 
 			LOG_INFO("nbr else\n");
@@ -336,12 +337,26 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 		}
 
 
-		for(int j = 0; j < NEIGHBORS_LIST; j++){
-			LOG_INFO("Address specified node %d: ", j);
-			// LOG_INFO_6ADDR(nnode_addr_exists);
-			LOG_INFO_6ADDR(&nbr_list[j].nnode_addr);
-			LOG_INFO("\n");
-		}
+		// for(int j = 0; j < NEIGHBORS_LIST && !uip_is_addr_unspecified(&nbr_list[j].nnode_addr); j++){
+		// 	LOG_INFO("Nbr addr node %d: ", j);
+		// 	// LOG_INFO_6ADDR(nnode_addr_exists);
+		// 	LOG_INFO_6ADDR(&nbr_list[j].nnode_addr);
+		// 	// LOG_INFO("\n");
+		// 	PRINTF("\n");
+		// 	// LOG_INFO("	node state 				: %d\n", nbr_list[i].nnode_state);
+		// 	// PRINTF("	node nbr address		: %x\n", nbr_list[i].nnode_addr);
+		// 	PRINTF("	node state 				: %d\n", nbr_list[j].nnode_state);
+		// 	PRINTF("	node ctrl msg 			: %d\n", nbr_list[j].nnode_ctrlmsg);
+		// 	PRINTF("	node interest 			: %d\n", nbr_list[j].nnode_interest);
+
+		// 	PRINTF("	node choke 				: %d\n", nbr_list[j].nnode_choke);
+		// 	PRINTF("	node chunks 			: %d\n", nbr_list[j].data_chunks);
+		// 	PRINTF("	node chunk req 			: %d\n", nbr_list[j].chunk_requested);
+		// 	PRINTF("	node block 				: %d\n", nbr_list[j].chunk_block);
+		// 	PRINTF("	node failed req 		: %u\n", nbr_list[j].failed_dlreq);
+		// 	PRINTF("	node chunk interested 	: %d\n", nbr_list[j].chunk_interested);
+		// 	PRINTF("	node num upload 		: %d\n", nbr_list[j].num_upload);
+		// }
 
 		/* Add some jitter */
 		// etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));
@@ -350,9 +365,10 @@ PROCESS_THREAD(nbr_construction_process, ev, data)
 
 		nbr_list_print();
 
-		etimer_set(&periodic_timer, (100 * CLOCK_SECOND));
+		etimer_set(&periodic_timer, (10 * 60 * CLOCK_SECOND));
 
 	}
+
 
 	PROCESS_END();
 }
