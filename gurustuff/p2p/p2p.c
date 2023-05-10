@@ -50,6 +50,12 @@
 // static uint8_t node_upload_nbr;
 // static uint8_t node_download_nbr;
 
+uint8_t node_upload_nbr = 0;
+uint8_t node_download_nbr = 0;
+
+bool chunk_cnt[DATA_TOTAL_CHUNKS];
+nnode_state_t nbr_list[NEIGHBORS_LIST];
+
 static const char seq_idd[] = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100"
                       "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou101"
                       "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g102"
@@ -278,14 +284,23 @@ uint8_t create_ctrl_msg(ctrl_msg_t cm_type) {
 void prepare_handshake(msg_pckt_t *d_pckt) {
 	msg_pckt_t *pckt_msg_hs = d_pckt;
 
+
+	memset(pckt_msg_hs, 0, sizeof(msg_pckt_t));
+
+	LOG_INFO("hand shake prep check: %u\n", pckt_msg_hs->chunk_type.self_chunks);
+
 	// convert chunk_cnt from bool to uint 32bit to send in the data packet
 	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+
+		LOG_INFO("handshake preparation: %u\n", pckt_msg_hs->chunk_type.self_chunks);
 		// pckt_msg_hs.chunk_type.self_chunks = ((chunk_cnt[i] == true) ?	
 		//                                       (pckt_msg_hs.chunk_type.self_chunks |= (1 << i)) :	
 		//                                       (pckt_msg_hs.chunk_type.self_chunks));
-		pckt_msg_hs->chunk_type.self_chunks |= ((chunk_cnt[i] == true) ?
-		                                      (1 << i) : 0);
+		pckt_msg_hs->chunk_type.self_chunks |= (chunk_cnt[i] == true) ? (1 << i) : 0;
+
 	}
+
+	LOG_INFO("prepared ack handshake: %u\n", pckt_msg_hs->chunk_type.self_chunks);
 
 	pckt_msg_hs->ctrl_msg = create_ctrl_msg(HANDSHAKE_CTRL_MSG);
 
@@ -482,7 +497,14 @@ void nnode_init(int node_i) {
 	// 	else if (uip_ds6_nbr_next(nbr[i - 1]) != NULL)
 	// 		nbr[i].node_addr = uip_ds6_nbr_next(nbr[i - 1]);
 
-	LOG_INFO("nbr node %d initialized\n", node_i);
+	LOG_INFO("Enter: node init\n");
+
+	LOG_INFO("nbr node %d: ", node_i);
+
+	LOG_INFO_6ADDR(&nbr_list[node_i].nnode_addr);
+
+	LOG_INFO(" initialized\n");
+
 
 	nbr_list[node_i].nnode_state = IDLE_STATE;
 	nbr_list[node_i].nnode_ctrlmsg = NONE_CTRL_MSG;
@@ -495,6 +517,7 @@ void nnode_init(int node_i) {
 	nbr_list[node_i].chunk_interested = 0;
 	nbr_list[node_i].num_upload = 0;
 
+	LOG_INFO("Exit: node init\n");
 }
 
 
@@ -533,6 +556,10 @@ void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	// Good to actually test value of n_addr. If it is NULL what should happen
 
 	LOG_INFO("Enter: node handshake\n");
+	LOG_INFO("to send to: ");
+	LOG_INFO_6ADDR(n_addr);
+	LOG_INFO("\n");
+
 
 	nnode_state_t *cb_data = &nbr_list[n_idx];
 	static struct ctimer *t;
@@ -573,13 +600,16 @@ void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
  */
 
 void node_ack_handshake(const uip_ipaddr_t *sender_addr) {
+	LOG_INFO("Enter: node ack handshake\n");
 	msg_pckt_t data_packet;
 
+	// memset(&data_packet, 0, sizeof(msg_pckt_t));
 	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
 	prepare_handshake(&data_packet);
 	unicast_send(&data_packet, sender_addr);	// send packet
 	// nbr[i].nnode_state = handshaking;
 	// }
+	LOG_INFO("Exit: node ack handshake\n");
 }
 
 
@@ -598,6 +628,8 @@ void node_ack_handshake(const uip_ipaddr_t *sender_addr) {
 
 // n_addr is not an ip-address it is a neighbor.
 void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
+	LOG_INFO("Enter: node interest\n");
+
 	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 
@@ -631,6 +663,7 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 			}
 		}
 	}
+	LOG_INFO("Exit: node interest\n");
 }
 
 
@@ -646,6 +679,7 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 // Note uip_ipaddr_t is a neighbor not an address. This will not work for unicast send.
 choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
+	LOG_INFO("Enter: node choke unchoke\n");
 	msg_pckt_t data_packet;
 	choke_state_t ch_uch_state;
 
@@ -660,6 +694,7 @@ choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
 		ch_uch_state = CHOKE_FALSE;
 	}
 
+	LOG_INFO("Exit: node choke unchoke\n");
 	return ch_uch_state;
 }
 
@@ -708,6 +743,8 @@ choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
  */
 
 void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
+	LOG_INFO("Enter: node request\n");
+
 	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 
@@ -734,6 +771,9 @@ void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	// node_received();
 	// to check if the requested piece is received
 	// if yes then change state and interest
+
+	LOG_INFO("Exit: node request\n");
+
 }
 
 
@@ -750,6 +790,9 @@ void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 // n_addr not an IP-address
 
 void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
+
+	LOG_INFO("Enter: node received\n");
+
 	if ((n_addr == NULL) || !uip_ipaddr_cmp(&nbr_list[n_idx].nnode_addr, n_addr))
 		return;
 
@@ -760,6 +803,8 @@ void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 		nbr_list[n_idx].nnode_state = HANDSHAKED_STATE;
 		nbr_list[n_idx].nnode_interest = INTEREST_FALSE;
 	}
+
+	LOG_INFO("Exit: node received\n");
 
 	// TODO: change state to handshaked
 	// TODO: change interest to false
@@ -777,6 +822,8 @@ void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 // send_addr not an IP it is a neighbor
 void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
+
+	LOG_INFO("Enter: node upload\n");
 
 	node_upload_nbr += 1;
 	msg_pckt_t *data_packet = NULL;
@@ -802,6 +849,9 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 			j = 0;
 		}
 	}
+
+	LOG_INFO("Exit: node upload\n");
+
 }
 
 
@@ -816,12 +866,18 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
  */
 
 bool node_chunk_check(void) {
+
+	LOG_INFO("Enter: node chunk check\n");
+
 	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
 		if (chunk_cnt[i] != true)
 			return false;
 		else
 			continue;
 	}
+
+	LOG_INFO("Exit: node chunk check\n");
+
 	return true;
 }
 
@@ -838,6 +894,9 @@ bool node_chunk_check(void) {
  */
 
 int8_t check_index(const uip_ipaddr_t *n_addr) {
+
+	LOG_INFO("Enter: node check index\n");
+
 	int i;
 	// uip_ipaddr_t address = n_addr;
 	// for (i = 0; i < NEIGHBORS_LIST && nbr_list[i].nnode_addr != NULL; i++) {
@@ -849,6 +908,8 @@ int8_t check_index(const uip_ipaddr_t *n_addr) {
 		else
 			continue;
 	}
+
+	LOG_INFO("Exit: node check index\n");
 
 	return ((i > -1 && i < NEIGHBORS_LIST) ? i : -1);
 }
@@ -890,6 +951,8 @@ void nbr_list_print(void) {
 	// uip_ipaddr_t address = n_addr;
 	// for (i = 0; i < NEIGHBORS_LIST && nbr_list[i].nnode_addr != NULL; i++) {
 
+	LOG_INFO("Enter: node nbr list print\n");
+
 	LOG_INFO("nbr list print\n");
 
 	// PRINTF("nbr list print\n");
@@ -919,6 +982,9 @@ void nbr_list_print(void) {
 		// }
 
 	}
+
+	LOG_INFO("Exit: node nbr list print\n");
+
 }
 
 /*------------------------------------------------------------------*/
@@ -963,6 +1029,10 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 			        sm_download[nbr_list[i].nnode_state].curr_state == nbr_list[i].nnode_state &&
 			        sm_download[nbr_list[i].nnode_state].ctrl_msg == nbr_list[i].nnode_ctrlmsg &&
 			        sm_download[nbr_list[i].nnode_state].sm_handler_dl != NULL) {
+
+				// LOG_INFO("in state machine: ");
+				// LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
+				// LOG_INFO("\n");
 
 				(*sm_download[nbr_list[i].nnode_state].sm_handler_dl)(&nbr_list[i].nnode_addr, i);
 			}

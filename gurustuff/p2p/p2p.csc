@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
   <simulation>
-    <title>pp2</title>
+    <title>p2p</title>
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -16,8 +16,8 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype622382011</identifier>
-      <description>p2p_node</description>
+      <identifier>mtype806886067</identifier>
+      <description>p2pnode</description>
       <source>[CONTIKI_DIR]/examples/p2p/p2pnode.c</source>
       <commands>make -j$(CPUS) p2pnode.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
@@ -41,8 +41,8 @@
     <mote>
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>20.809315154754152</x>
-        <y>89.11055868137993</y>
+        <x>45.142561060504924</x>
+        <y>84.3771604159743</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -54,13 +54,13 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype622382011</motetype_identifier>
+      <motetype_identifier>mtype806886067</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>-8.155428614834388</x>
-        <y>67.43049706206337</y>
+        <x>6.827523754907183</x>
+        <y>70.07310593537917</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -72,13 +72,13 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype622382011</motetype_identifier>
+      <motetype_identifier>mtype806886067</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>55.37958830900118</x>
-        <y>65.81232245015896</y>
+        <x>6.938091168525217</x>
+        <y>28.196158364948538</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -90,13 +90,13 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype622382011</motetype_identifier>
+      <motetype_identifier>mtype806886067</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>42.98722913114632</x>
-        <y>33.254953256766015</y>
+        <x>46.35021788770288</x>
+        <y>18.379438870482854</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -104,21 +104,17 @@
         <id>4</id>
       </interface_config>
       <interface_config>
-        org.contikios.cooja.contikimote.interfaces.ContikiRS232
-        <history>ip-nbr~;help~;</history>
-      </interface_config>
-      <interface_config>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype622382011</motetype_identifier>
+      <motetype_identifier>mtype806886067</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>2.180123116452367</x>
-        <y>34.54067719871705</y>
+        <x>70.2770611476638</x>
+        <y>51.70641531586951</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -130,7 +126,7 @@
         <bitrate>250.0</bitrate>
       </interface_config>
       <interface_config>org.contikios.cooja.contikimote.interfaces.ContikiEEPROM</interface_config>
-      <motetype_identifier>mtype622382011</motetype_identifier>
+      <motetype_identifier>mtype806886067</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -138,8 +134,8 @@
     <width>280</width>
     <z>1</z>
     <height>160</height>
-    <location_x>915</location_x>
-    <location_y>23</location_y>
+    <location_x>942</location_x>
+    <location_y>1</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -149,11 +145,11 @@
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>1.9142534501032231 0.0 0.0 1.9142534501032231 221.29416300926803 127.90916553596938</viewport>
+      <viewport>2.6626692229708424 0.0 0.0 2.6626692229708424 183.34799741499097 103.19658281140144</viewport>
     </plugin_config>
-    <width>591</width>
+    <width>584</width>
     <z>0</z>
-    <height>484</height>
+    <height>535</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
   </plugin>
@@ -164,11 +160,11 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <width>825</width>
+    <width>832</width>
     <z>2</z>
-    <height>480</height>
-    <location_x>391</location_x>
-    <location_y>191</location_y>
+    <height>493</height>
+    <location_x>400</location_x>
+    <location_y>160</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.TimeLine
@@ -184,7 +180,7 @@
       <zoomfactor>500.0</zoomfactor>
     </plugin_config>
     <width>1241</width>
-    <z>5</z>
+    <z>4</z>
     <height>166</height>
     <location_x>0</location_x>
     <location_y>697</location_y>
@@ -195,24 +191,11 @@
       <notes>Enter notes here</notes>
       <decorations>true</decorations>
     </plugin_config>
-    <width>387</width>
-    <z>4</z>
-    <height>129</height>
-    <location_x>485</location_x>
-    <location_y>33</location_y>
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>3</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>573</width>
+    <width>561</width>
     <z>3</z>
-    <height>425</height>
-    <location_x>351</location_x>
-    <location_y>19</location_y>
+    <height>160</height>
+    <location_x>515</location_x>
+    <location_y>13</location_y>
   </plugin>
 </simconf>
 

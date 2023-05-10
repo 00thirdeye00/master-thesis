@@ -20,7 +20,6 @@
 #include "p2p.h"
 
 
-
 #define QUEUE_SIZE		20
 
 enum {
@@ -38,7 +37,7 @@ typedef struct rx_mpckts_s {
 	uint8_t *data;
 } rx_mpckts_t;
 
-rx_mpckts_t *rx_q;
+// rx_mpckts_t *rx_q;
 
 
 bool is_queue_empty(void);

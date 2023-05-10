@@ -46,8 +46,21 @@ struct simple_udp_connection p2p_socket;
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(p2p_content_distribution);
 PROCESS(node_comm_process, "UDP client");
-PROCESS(nbr_construction_process, "Neighbor construction");
-AUTOSTART_PROCESSES(&node_comm_process, &nbr_construction_process);
+// PROCESS(nbr_construction_process, "Neighbor construction");
+// AUTOSTART_PROCESSES(&node_comm_process, &nbr_construction_process);
+AUTOSTART_PROCESSES(&node_comm_process);
+
+/*---------------------------------------------------------------------------*/
+
+/******function declarations*******/
+
+void nbr_construction(const uip_ipaddr_t *ipaddr);
+
+
+
+
+
+
 /*---------------------------------------------------------------------------*/
 
 // As you say I think you should have this in p2p.c. p2p.[ch] provides the api for a main process
@@ -68,12 +81,13 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 	if ((0 > node_idx) && (node_idx >= NEIGHBORS_LIST)) {
 		LOG_ERR("Node doesn't exists in the node list");
-		// PRINTF("Node doesn't exists in the node list");
 	} else {
 
 		msg_pckt_t *this;
 
 		this = (msg_pckt_t *)data;
+
+		// PRINTF("ctrl msg: %d\n", (uint8_t)this->ctrl_msg);
 
 		if (this->ctrl_msg == LAST_CTRL_MSG) {
 
@@ -164,6 +178,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 	LOG_INFO_("\n");
 
 }
+
 /*---------------------------------------------------------------------------*/
 void
 upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
@@ -193,6 +208,25 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 	}
 }
 
+
+/*---------------------------------------------------------------------------*/
+static void
+node_coordinator_data(uint8_t chunk_init){
+	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+		// PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+		chunk_cnt[i] = chunk_init;
+	}
+}
+
+/*---------------------------------------------------------------------------*/
+static void
+node_data_check(void){
+	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+		PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+	}
+}
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_comm_process, ev, data)
 {
@@ -214,9 +248,14 @@ PROCESS_THREAD(node_comm_process, ev, data)
   is_coordinator = (node_id == 1);
 #endif
 
+	node_coordinator_data(0);
+
 	if(is_coordinator) {
 	NETSTACK_ROUTING.root_start();
+	node_coordinator_data(1);
 	}
+
+	node_data_check();
 
 	// In threads and processes variables need to be static
 	static system_mode_t system_mode = MODE_IDLE;
@@ -228,7 +267,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	                    P2P_PORT, udp_rx_callback);
 
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-	etimer_set(&periodic_timer, 30 * SEND_INTERVAL);
+	etimer_set(&periodic_timer, 120 * SEND_INTERVAL);
 
 	while (1) {
 
@@ -250,126 +289,112 @@ PROCESS_THREAD(node_comm_process, ev, data)
 			queue_deq();
 		}
 
-		if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
-
+		// if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
+		if (etimer_expired(&periodic_timer)) {
 			LOG_INFO("In main while:\n");
 
 			// Here you are passing system mode as a value not pointer. If it is an integer or similar
 			// It is fine. If it is a complex type you should use pointers.
+
+			// nbr_list_print();
 			system_mode = system_mode_pp(system_mode);
 
 			// upload_event_handler(ev, post_data);
 
-			etimer_set(&periodic_timer, 200 * CLOCK_SECOND);
+			etimer_set(&periodic_timer, 10 * 60 * CLOCK_SECOND);
 		}
 	}
 
 	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(nbr_construction_process, ev, data)
-{
-	static struct etimer periodic_timer;
-	static uint8_t i = 0;
-	// i is used below,
-	static uip_ds6_nbr_t *nbr;
-	// static uip_ipaddr_t *nnode_addr_exists;
-
-	PROCESS_BEGIN();
-
-	etimer_set(&periodic_timer, 10 * SEND_INTERVAL);
-	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-
-	LOG_INFO("Enter: nbr construction process\n");
-
-	while (1) {
-
-		i = 0;
-
-		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-		// This process does not sleep. It should sleep until an en event occur or timer expire.
-		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
-		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
-		// is there not a need for add, delete reset functions. Now it is only add.
 
 
-		LOG_INFO("Enter: nbr construction process in while after clock\n");
+void nbr_construction(const uip_ipaddr_t *ipaddr) {
 
-		// nnode_addr_exists = nbr_list_nnode_addr(i);
-		if (!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)) {
-		// if(nnode_addr_exists != NULL && !uip_is_addr_unspecified(nnode_addr_exists)) {
-			// I don't understand the construction. If nnode_addr != NULL, nothing is done?
-			// Should [0] be [i]? nbr_list[0].nnode_addr is not a pointer so you can't compare with NULL
-			LOG_INFO("nbr continue\n");
-			LOG_INFO("Address specified node %d: ", i);
-			// LOG_INFO_6ADDR(nnode_addr_exists);
-			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
+	static uint8_t nbr_index;
+
+	if (ipaddr != NULL && check_nbr_exist(ipaddr)) {
+		if (!uip_ipaddr_cmp(&nbr_list[nbr_index].nnode_addr, ipaddr)) {
+			uip_ipaddr_copy(&nbr_list[nbr_index].nnode_addr, ipaddr);
+			LOG_INFO("new neighbor added:\n");
+			// LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
 			// LOG_INFO("\n");
-			PRINTF("\n");
-			i++;
-			// LOG_INFO("check again\n");
-			// continue;
-		} else {
-
-			LOG_INFO("nbr else\n");
-
-			nbr = uip_ds6_nbr_head();
-			// if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
-			// 	if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
-			// 		uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
-			// 		nnode_init(i);
-			// 		i++;
-			// 	}
-			// }
-
-			// printf("i = %d\n", i);
-
-			for (; i < NEIGHBORS_LIST; i++) {
-				// nbr = uip_ds6_nbr_next(nbr);
-				if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
-					if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
-						uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
-						nnode_init(i);
-					}
-				}
-				nbr = uip_ds6_nbr_next(nbr);
-			}
+			nnode_init(nbr_index);
+			nbr_index++;
 		}
-
-
-		// for(int j = 0; j < NEIGHBORS_LIST && !uip_is_addr_unspecified(&nbr_list[j].nnode_addr); j++){
-		// 	LOG_INFO("Nbr addr node %d: ", j);
-		// 	// LOG_INFO_6ADDR(nnode_addr_exists);
-		// 	LOG_INFO_6ADDR(&nbr_list[j].nnode_addr);
-		// 	// LOG_INFO("\n");
-		// 	PRINTF("\n");
-		// 	// LOG_INFO("	node state 				: %d\n", nbr_list[i].nnode_state);
-		// 	// PRINTF("	node nbr address		: %x\n", nbr_list[i].nnode_addr);
-		// 	PRINTF("	node state 				: %d\n", nbr_list[j].nnode_state);
-		// 	PRINTF("	node ctrl msg 			: %d\n", nbr_list[j].nnode_ctrlmsg);
-		// 	PRINTF("	node interest 			: %d\n", nbr_list[j].nnode_interest);
-
-		// 	PRINTF("	node choke 				: %d\n", nbr_list[j].nnode_choke);
-		// 	PRINTF("	node chunks 			: %d\n", nbr_list[j].data_chunks);
-		// 	PRINTF("	node chunk req 			: %d\n", nbr_list[j].chunk_requested);
-		// 	PRINTF("	node block 				: %d\n", nbr_list[j].chunk_block);
-		// 	PRINTF("	node failed req 		: %u\n", nbr_list[j].failed_dlreq);
-		// 	PRINTF("	node chunk interested 	: %d\n", nbr_list[j].chunk_interested);
-		// 	PRINTF("	node num upload 		: %d\n", nbr_list[j].num_upload);
-		// }
-
-		/* Add some jitter */
-		// etimer_set(&periodic_timer, (random_rand() % (1 * CLOCK_SECOND)));
-
-		LOG_INFO("check\n");
-
-		nbr_list_print();
-
-		etimer_set(&periodic_timer, (10 * 60 * CLOCK_SECOND));
-
 	}
 
+	nbr_list_print();
 
-	PROCESS_END();
 }
+
+
+/*---------------------------------------------------------------------------*/
+
+
+
+
+
+// PROCESS_THREAD(nbr_construction_process, ev, data)
+// {
+// 	static struct etimer periodic_timer;
+// 	static uint8_t i;
+// 	static uip_ds6_nbr_t *nbr;
+
+// 	PROCESS_BEGIN();
+
+// 	etimer_set(&periodic_timer, 10 * SEND_INTERVAL);
+
+// 	LOG_INFO("Enter: nbr construction process\n");
+
+// 	while (1) {
+
+// 		i = 0;
+
+// 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+// 		// This process does not sleep. It should sleep until an en event occur or timer expire.
+// 		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
+// 		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
+// 		// is there not a need for add, delete reset functions. Now it is only add.
+
+
+// 		LOG_INFO("Enter: nbr construction process in while after clock\n");
+
+// 		if (!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)) {
+// 			LOG_INFO("nbr continue\n");
+// 			LOG_INFO("Address specified node %d: ", i);
+// 			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
+// 			PRINTF("\n");
+// 			i++;
+// 			// continue;
+// 		} else {
+
+// 			LOG_INFO("nbr else\n");
+
+// 			nbr = uip_ds6_nbr_head();
+
+// 			for (; i < NEIGHBORS_LIST; i++) {
+// 				// nbr = uip_ds6_nbr_next(nbr);
+// 				if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
+// 					if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
+// 						uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
+// 						nnode_init(i);
+// 					}
+// 				}
+// 				nbr = uip_ds6_nbr_next(nbr);
+// 			}
+// 		}
+
+// 		LOG_INFO("check\n");
+
+// 		nbr_list_print();
+
+// 		etimer_set(&periodic_timer, (10 * 60 * CLOCK_SECOND));
+
+// 	}
+
+
+// 	PROCESS_END();
+// }
 /*---------------------------------------------------------------------------*/

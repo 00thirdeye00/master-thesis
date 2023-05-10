@@ -7,8 +7,14 @@
 #include "queue.h"
 #include "rxqueue.h"
 
+#include "sys/log.h"
+#define LOG_MODULE "queue"
+#define LOG_LEVEL LOG_LEVEL_INFO
+
 
 static uint8_t q_elem;
+
+// static rx_mpckts_t *rx_q;
 
 
 QUEUE(rx_queue);
@@ -83,18 +89,25 @@ queue_deq(void) {
 
 			this = (msg_pckt_t *)dq->data;
 
+			// LOG_INFO("control message: %d\n", dq->ctrl_msg);
+
+
 			// TODO: populate nbr node based on the ctrl_msg
 			// nbr_list[node_index].node_addr = sender_addr;
 			if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
+				LOG_INFO("Acknowledgement received\n");
 				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
 				nbr_list[node_index].data_chunks = this->chunk_type.self_chunks;
 			}  else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
+				LOG_INFO("Handshake received\n");
 				// process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 				upload_event_handler(HANDSHAKE_EVENT, &post_data);
 			} else if (this->ctrl_msg == INTEREST_CTRL_MSG) {
+				LOG_INFO("Interest received\n");
 				// process_post(&node_comm_process, INTEREST_EVENT, &post_data);
 				upload_event_handler(INTEREST_EVENT, &post_data);
 			} else if (this->ctrl_msg == REQUEST_CTRL_MSG) {
+				LOG_INFO("Request received\n");
 				// process_post(&node_comm_process, REQUEST_EVENT, &post_data);
 				upload_event_handler(REQUEST_EVENT, &post_data);
 			}
@@ -140,6 +153,14 @@ void
 queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	PRINTF("Enqueue in Progress\n");
 
+	msg_pckt_t *this;
+	this = (msg_pckt_t *)data;
+
+	PRINTF("self chunks: %d\n", this->chunk_type.self_chunks);
+	PRINTF("ctrl msg: %d\n", this->ctrl_msg);
+	// PRINTF("self chunks: %d", this->self_chunks);
+
+
 	rx_mpckts_t *rx_q;
 
 	rx_q = (rx_mpckts_t *)heapmem_alloc(sizeof(rx_mpckts_t));
@@ -158,6 +179,10 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	memcpy(rx_q->data, data, dlen);
 
 	rx_q->datalen = dlen;
+
+	PRINTF("Data sent from: ");
+	LOG_INFO_6ADDR(sender_addr);
+	PRINTF("\n");
 
 	PRINTF("Printing from Queue Created: \n");
 	for (int i = 0; i < rx_q->datalen; i++) {

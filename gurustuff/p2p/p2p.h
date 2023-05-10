@@ -35,7 +35,7 @@
 #define NODES_MAX_DL_UL		2 // max uploading nodes = 2 and max downloading nodes = 2
 
 #define NUM_OF_NEIGHBORS	NODES_MAX // num of nodes to comm at at time from the ref paper
-#define NEIGHBORS_LIST		10 // num of neighbors in the list
+#define NEIGHBORS_LIST		2 // num of neighbors in the list
 #define NODES_UPLOAD		2 // in the leecher mode
 #define NODES_DOWNLOAD		2 // in the leecher mode
 
@@ -57,7 +57,7 @@
 #define LEECHER_DOWNLOAD	2
 
 
-#define NUM_OF_NODES		2 	// no. of nodes in network
+#define NUM_OF_NODES		1 	// no. of nodes in network
 
 
 
@@ -125,9 +125,11 @@ typedef enum {
 	WAIT_START,
 } wait_state_t;
 
-struct process_post_comm {
-	ctrl_msg_t process_post;
-};
+// struct process_post_comm {
+// 	ctrl_msg_t process_post;
+// };
+
+#pragma pack(push, 1)
 
 // struct for each nbr node
 typedef struct {
@@ -153,6 +155,8 @@ typedef struct  {
 	uint8_t *data;
 } process_post_data_t;
 
+#pragma pack(pop)
+
 /* state machine handler function pointer */
 typedef void (*downloading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
 typedef void (*uploading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
@@ -169,7 +173,6 @@ typedef struct {
 	ctrl_msg_t ctrl_msg;
 	uploading_state_handler sm_handler_dl;
 } state_machine_upload;
-
 
 
 /*--------------------------------------------*/
@@ -203,15 +206,15 @@ typedef struct {
 extern struct simple_udp_connection p2p_socket;
 /*--------------------------------------------*/
 
-uint8_t node_upload_nbr;
-uint8_t node_download_nbr;
+extern uint8_t node_upload_nbr;
+extern uint8_t node_download_nbr;
 
-bool chunk_cnt[DATA_TOTAL_CHUNKS];
+extern bool chunk_cnt[DATA_TOTAL_CHUNKS];
 
 // nbr_list, consider whether it should be static, meaning it is only available for p2p.c code.
 // Not external code if external modules should access the data structure it should be via functions.
 // That would give a cleaner structure.
-nnode_state_t nbr_list[NEIGHBORS_LIST];
+extern nnode_state_t nbr_list[NEIGHBORS_LIST];
 
 
 /*------------------------------------------------------------------*/
@@ -242,6 +245,8 @@ bool node_chunk_check(void);	//
 void nbr_list_print(void);
 
 system_mode_t system_mode_pp(system_mode_t sys_mode);
+// extern void nbr_construction(const uip_ipaddr_t *ipaddr);
+
 
 /*------------------------------------------------------------------*/
 
