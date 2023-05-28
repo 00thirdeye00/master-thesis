@@ -53,13 +53,13 @@ queue_deq(void) {
 	// static uint8_t recv_block_count = 0;
 	static int8_t node_index = -1;
 
-	PRINTF("Deque in Progress\n");
+	LOG_INFO("Deque in Progress\n");
 
 	rx_mpckts_t *dq;
 
 
 	if (!queue_is_empty(rx_queue)) {
-		PRINTF("Queue is not Empty\n");
+		LOG_INFO("Queue is not Empty\n");
 		dq = queue_dequeue(rx_queue);
 		// if(q_elem > 0) q_elem--;
 		if (dq == NULL) {
@@ -68,8 +68,8 @@ queue_deq(void) {
 		} else {
 			q_elem--;
 			node_index = check_index(&dq->send_addr);
-			PRINTF("Dequeued datalen: %u\n", dq->datalen);
-			PRINTF("Dequeue data: ");
+			LOG_INFO("Dequeued datalen: %u\n", dq->datalen);
+			LOG_INFO("Dequeue data: \n");
 			// for (int i = 0; i < dq->datalen; i++) {
 			// 	PRINTF(" %u", dq->data[i]);
 			// 	unicast_send(dq->data[i], dq->send_addr);
@@ -91,14 +91,16 @@ queue_deq(void) {
 
 			// LOG_INFO("control message: %d\n", dq->ctrl_msg);
 
+			LOG_INFO("control message received:  %d\n", this->ctrl_msg);
 
 			// TODO: populate nbr node based on the ctrl_msg
 			// nbr_list[node_index].node_addr = sender_addr;
 			if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
 				LOG_INFO("Acknowledgement received\n");
+				nbr_list[node_index].nnode_state = HANDSHAKED_STATE;
 				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
 				nbr_list[node_index].data_chunks = this->chunk_type.self_chunks;
-			}  else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
+			} else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
 				LOG_INFO("Handshake received\n");
 				// process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 				upload_event_handler(HANDSHAKE_EVENT, &post_data);
@@ -106,6 +108,11 @@ queue_deq(void) {
 				LOG_INFO("Interest received\n");
 				// process_post(&node_comm_process, INTEREST_EVENT, &post_data);
 				upload_event_handler(INTEREST_EVENT, &post_data);
+			} else if (this->ctrl_msg == UNCHOKE_CTRL_MSG) {
+				LOG_INFO("Unchoke received\n");
+				// nbr_list[node_index].nnode_state = HANDSHAKED_STATE;
+				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
+				nbr_list[node_index].nnode_state = INTEREST_INFORMED_STATE;
 			} else if (this->ctrl_msg == REQUEST_CTRL_MSG) {
 				LOG_INFO("Request received\n");
 				// process_post(&node_comm_process, REQUEST_EVENT, &post_data);
@@ -128,7 +135,7 @@ queue_deq(void) {
 			heapmem_free(dq->data);
 			heapmem_free(dq);
 
-			PRINTF("\n");
+			LOG_INFO("\n");
 
 			return 1;
 
@@ -151,13 +158,13 @@ queue_deq(void) {
 
 void
 queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
-	PRINTF("Enqueue in Progress\n");
+	LOG_INFO("Enqueue in Progress\n");
 
 	msg_pckt_t *this;
 	this = (msg_pckt_t *)data;
 
-	PRINTF("self chunks: %d\n", this->chunk_type.self_chunks);
-	PRINTF("ctrl msg: %d\n", this->ctrl_msg);
+	LOG_INFO("self chunks: %d\n", this->chunk_type.self_chunks);
+	LOG_INFO("ctrl msg: %d\n", this->ctrl_msg);
 	// PRINTF("self chunks: %d", this->self_chunks);
 
 
@@ -166,7 +173,7 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	rx_q = (rx_mpckts_t *)heapmem_alloc(sizeof(rx_mpckts_t));
 
 	if (rx_q == NULL) {
-		PRINTF("Failed to Allocate Memory\n");
+		LOG_INFO("Failed to Allocate Memory\n");
 		// return 0;
 	}
 
@@ -180,31 +187,32 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 
 	rx_q->datalen = dlen;
 
-	PRINTF("Data sent from: ");
+	LOG_INFO("Data received from: ");
 	LOG_INFO_6ADDR(sender_addr);
-	PRINTF("\n");
+	LOG_INFO("\n");
 
-	PRINTF("Printing from Queue Created: \n");
+	LOG_INFO("Printing from Queue Created: \n");
 	for (int i = 0; i < rx_q->datalen; i++) {
 		PRINTF(" %u", rx_q->data[i]);
 	}
-	PRINTF("\nPrinting from Queue Created Complete \n");
+	PRINTF("\n");
+	LOG_INFO("\nPrinting from Queue Created Complete \n");
 
 	if (q_elem >= QUEUE_SIZE /*|| !queue_is_empty()*/) {
-		PRINTF(">>>>>>>> Queue is Full >>>>>>>>\n");
+		LOG_INFO(">>>>>>>> Queue is Full >>>>>>>>\n");
 		// uni_queue_deq();
 		return;
 	} else if (q_elem >= 0 && q_elem < QUEUE_SIZE) {
 		queue_enqueue(rx_queue, rx_q);
 		q_elem++;
 	}
-	PRINTF("Queue is%s Empty\n",
+	LOG_INFO("Queue is%s Empty\n",
 	       queue_is_empty(rx_queue) ? "" : " not");
 
 
-	PRINTF("Queue Peek datalen: %u\n", ((rx_mpckts_t *)queue_peek(rx_queue))->datalen);
+	LOG_INFO("Queue Peek datalen: %u\n", ((rx_mpckts_t *)queue_peek(rx_queue))->datalen);
 
-	PRINTF("Enqueue is Complete\n");
+	LOG_INFO("Enqueue is Complete\n");
 
 	// uni_queue_deq();
 	// process_start(&queue_proc, NULL);

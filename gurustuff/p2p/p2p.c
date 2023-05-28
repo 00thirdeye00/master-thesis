@@ -41,6 +41,27 @@
 
 #include "p2p.h"
 
+// #define BYTES_1024 //BYTES_1024
+// #define BYTES_4000 //BYTES_4000
+#define BYTES_4096	//BYTES_4096
+// #define BYTES_4000 //BYTES_8000
+
+#ifdef BYTES_1024
+#include "data_1024B.h"
+#endif
+
+#ifdef BYTES_4000
+#include "data_4000B.h"
+#endif
+
+#ifdef BYTES_4096
+#include "data_4096B.h"
+#endif
+
+#ifdef BYTES_8000
+#include "data_8000B.h"
+#endif
+
 #define WITH_SERVER_REPLY  1
 #define UDP_PORT	8765
 #define UDP_PORT_2	7654
@@ -53,25 +74,25 @@
 uint8_t node_upload_nbr = 0;
 uint8_t node_download_nbr = 0;
 
-bool chunk_cnt[DATA_TOTAL_CHUNKS];
+// bool chunk_cnt[DATA_TOTAL_CHUNKS];
 nnode_state_t nbr_list[NEIGHBORS_LIST];
 
-static const char seq_idd[] = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100"
-                      "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou101"
-                      "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g102"
-                      "3hSAFpT2dLgVxoo2ZCHhNSE0rm2I5OBVhdklMnzBgDDW5gdpOm7389BaNgqdA103"
-                      "47oUilXORLjy7kDu86GHSNLzAJjXUxxEc7PeJfPLyC0khgSy4aYUhlFsenbK4104"
-                      "5DSZ5YS33eoOeiTze2onUl7PfPz8No6W7AHYW7S34vUADHDOcABcEkDlpxQho105"
-                      "6pM1ksIrfHSbpfCJhoqqh9w9kjITgdDrqbp9aHTzjZOScTCtzpMFACJalZNRz106"
-                      "7AY301mZjr2KD8pVrhkNfNxQyg1nmm7QJSXN4lDj0dIawEflfSVXLGShl0vxc107"
-                      "8sxK5w6msIvzeRDgaYAJ5zmMWg42S4Ap7WA1eHYepIrlwmn1TdwSEPPcMx6Tj108"
-                      "9Ilj3gU7JfgoItY5FqNQJgYy6Vw0NPdwwPcnfPmtLhH5nl55eJFwwpB6UgZan109"
-                      "10dgiEiFy8GoGIaOjXC387ihvfvaiGA2sBgh3k87i7Eb7QTNrthpZSdlIk8PE110"
-                      "11qwCORP6psr9r8BBTnJqYpuayMhQD8vuxp9aBXaMLWmBAYo2EAtB45YeXEGU111"
-                      "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5112"
-                      "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu113"
-                      "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0114"
-                      "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN115"; 
+// static const char seq_idd[] = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100"
+//                       "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou101"
+//                       "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g102"
+//                       "3hSAFpT2dLgVxoo2ZCHhNSE0rm2I5OBVhdklMnzBgDDW5gdpOm7389BaNgqdA103"
+//                       "47oUilXORLjy7kDu86GHSNLzAJjXUxxEc7PeJfPLyC0khgSy4aYUhlFsenbK4104"
+//                       "5DSZ5YS33eoOeiTze2onUl7PfPz8No6W7AHYW7S34vUADHDOcABcEkDlpxQho105"
+//                       "6pM1ksIrfHSbpfCJhoqqh9w9kjITgdDrqbp9aHTzjZOScTCtzpMFACJalZNRz106"
+//                       "7AY301mZjr2KD8pVrhkNfNxQyg1nmm7QJSXN4lDj0dIawEflfSVXLGShl0vxc107"
+//                       "8sxK5w6msIvzeRDgaYAJ5zmMWg42S4Ap7WA1eHYepIrlwmn1TdwSEPPcMx6Tj108"
+//                       "9Ilj3gU7JfgoItY5FqNQJgYy6Vw0NPdwwPcnfPmtLhH5nl55eJFwwpB6UgZan109"
+//                       "10dgiEiFy8GoGIaOjXC387ihvfvaiGA2sBgh3k87i7Eb7QTNrthpZSdlIk8PE110"
+//                       "11qwCORP6psr9r8BBTnJqYpuayMhQD8vuxp9aBXaMLWmBAYo2EAtB45YeXEGU111"
+//                       "12BUgN9AgmDERPzcyeOYG0ExpDE5cVY8OL5pNXM43MNAt7jkJAFnSRNKw6Qq5112"
+//                       "13bFRN69XbWj5t4HkcFMiVwIOLQARBNmcimSzlnhipF8bPY2P1QfsSqCfsnsu113"
+//                       "14uqVbPvrWTSGIrfVveI01YwiIWOeXjeMdh78Ruq9zy9xbkNkwOLcAiXzlrF0114"
+//                       "15YVCvYVKtzRSOCtCh5KPrTw0D2H5gvFFRgAH1ZgYFt6UWvv1ht65ptE7KOeN115"; 
 
 
 
@@ -167,13 +188,17 @@ void callback_interest_informing (void *ptr_a) {
 
 	nnode_state_t *ptr = (nnode_state_t *)ptr_a;
 
-	LOG_DBG("FUNC: callback_interest_informing enter\n");
+	LOG_INFO("FUNC: callback_interest_informing enter\n");
 	
 	if (ctimer_expired(&ptr->c_timer)) {
 		ctimer_stop(&ptr->c_timer);
 
+		LOG_INFO("inside callback_interest_informing\n");
+		LOG_INFO("control message: %d\n", ptr->nnode_ctrlmsg);
+
 		switch (ptr->nnode_ctrlmsg) {
 		case UNCHOKE_CTRL_MSG:
+			LOG_INFO("switch callback_interest_informing\n");
 			ptr->nnode_state = INTEREST_INFORMED_STATE;
 			break;
 		case CHOKE_CTRL_MSG:
@@ -265,7 +290,9 @@ void callback_request (void *ptr_a) {
  *
  */
 uint8_t create_ctrl_msg(ctrl_msg_t cm_type) {
-	uint8_t new_ctrl_msg = (1 << cm_type);
+	// uint8_t new_ctrl_msg = (1 << cm_type);
+	uint8_t new_ctrl_msg = (cm_type);
+
 	return new_ctrl_msg;
 }
 
@@ -281,28 +308,43 @@ uint8_t create_ctrl_msg(ctrl_msg_t cm_type) {
  *
  */
 
-void prepare_handshake(msg_pckt_t *d_pckt) {
+void prepare_handshake(msg_pckt_t *d_pckt, ctrl_msg_t hs_ack_hs) {
 	msg_pckt_t *pckt_msg_hs = d_pckt;
+
+	// LOG_INFO("none %d\n", NONE_CTRL_MSG);
+	// LOG_INFO("Handshake %d\n", HANDSHAKE_CTRL_MSG);
+	// LOG_INFO("ack handshake %d\n", ACKHANDSHAKE_CTRL_MSG);
+	// LOG_INFO("interest %d\n", INTEREST_CTRL_MSG);
+	// LOG_INFO("choke %d\n", CHOKE_CTRL_MSG);
+	// LOG_INFO("unchoke %d\n", UNCHOKE_CTRL_MSG);
+	// LOG_INFO("request %d\n", REQUEST_CTRL_MSG);
+	// LOG_INFO("last %d\n", LAST_CTRL_MSG);
 
 
 	memset(pckt_msg_hs, 0, sizeof(msg_pckt_t));
+
+	LOG_INFO("size of msg_pckt_t: %ld\n", sizeof(msg_pckt_t));
 
 	LOG_INFO("hand shake prep check: %u\n", pckt_msg_hs->chunk_type.self_chunks);
 
 	// convert chunk_cnt from bool to uint 32bit to send in the data packet
 	for (int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
 
-		LOG_INFO("handshake preparation: %u\n", pckt_msg_hs->chunk_type.self_chunks);
+		// LOG_INFO("handshake preparation: %u\n", pckt_msg_hs->chunk_type.self_chunks);
 		// pckt_msg_hs.chunk_type.self_chunks = ((chunk_cnt[i] == true) ?	
 		//                                       (pckt_msg_hs.chunk_type.self_chunks |= (1 << i)) :	
 		//                                       (pckt_msg_hs.chunk_type.self_chunks));
 		pckt_msg_hs->chunk_type.self_chunks |= (chunk_cnt[i] == true) ? (1 << i) : 0;
 
 	}
+	if(hs_ack_hs == ACKHANDSHAKE_CTRL_MSG)
+		LOG_INFO("prepared ack handshake: %u\n", pckt_msg_hs->chunk_type.self_chunks);
+	else
+		LOG_INFO("prepared handshake: %u\n", pckt_msg_hs->chunk_type.self_chunks);
 
-	LOG_INFO("prepared ack handshake: %u\n", pckt_msg_hs->chunk_type.self_chunks);
+	pckt_msg_hs->ctrl_msg = create_ctrl_msg(hs_ack_hs);
 
-	pckt_msg_hs->ctrl_msg = create_ctrl_msg(HANDSHAKE_CTRL_MSG);
+	LOG_INFO("prepared handshake ctrl msg %d\n", pckt_msg_hs->ctrl_msg);
 
 	memset(pckt_msg_hs->data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
 
@@ -324,12 +366,17 @@ void prepare_handshake(msg_pckt_t *d_pckt) {
 void prepare_interest(msg_pckt_t *d_pckt, const uint8_t chunk) {
 	msg_pckt_t *pckt_msg_in = d_pckt;
 
+	LOG_INFO("prepare interest\n");
 
 	pckt_msg_in->ctrl_msg = create_ctrl_msg(INTEREST_CTRL_MSG);
 
 	memset(pckt_msg_in->data, 0, sizeof(uint8_t) * MAX_PAYLOAD_LEN);
 
 	pckt_msg_in->data[0] = chunk;
+
+	for(int i = 0; i < 32; i++){
+		LOG_INFO("data check [%d]: %d\n", i, pckt_msg_in->data[i]);
+	}
 
 
 	// return (pckt_msg_in);
@@ -440,10 +487,10 @@ uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr)
 	for (int i = 0; i < NEIGHBORS_LIST; i++) {
 
 		if (uip_ipaddr_cmp(&nbr_list[i].nnode_addr, nbr_addr)) {
-			return 0;
+			return 1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 
@@ -570,14 +617,14 @@ void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	} else {
 
 		msg_pckt_t data_packet;
-		prepare_handshake(&data_packet);
+		prepare_handshake(&data_packet, HANDSHAKE_CTRL_MSG);
 
 		unicast_send(&data_packet, n_addr);
 
 		nbr_list[n_idx].nnode_state = HANDSHAKING_STATE;
 
 		if (ctimer_expired(t))
-			ctimer_set(t, CLOCK_SECOND * 3, callback_ack_handshake, cb_data);
+			ctimer_set(t, CLOCK_SECOND * 1000, callback_ack_handshake, cb_data);
 		else
 			// LOG_ERR(“HANDSHAKE TIMER CANNOT START: NODE:(%u)”, n_idx);
 			PRINTF((“HANDSHAKE TIMER CANNOT START: NODE:(%u)”, n_idx));
@@ -605,7 +652,7 @@ void node_ack_handshake(const uip_ipaddr_t *sender_addr) {
 
 	// memset(&data_packet, 0, sizeof(msg_pckt_t));
 	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
-	prepare_handshake(&data_packet);
+	prepare_handshake(&data_packet, ACKHANDSHAKE_CTRL_MSG);
 	unicast_send(&data_packet, sender_addr);	// send packet
 	// nbr[i].nnode_state = handshaking;
 	// }
@@ -651,9 +698,11 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 				nbr_list[n_idx].chunk_requested = chunk;
 				nbr_list[n_idx].nnode_state = INTEREST_INFORMING_STATE;
 
+				LOG_INFO("node interest informing state: %d", nbr_list[n_idx].nnode_state);
+
 
 				if (ctimer_expired(t))
-					ctimer_set(t, CLOCK_SECOND * 3, callback_interest_informing, cb_data);
+					ctimer_set(t, CLOCK_SECOND * 1000, callback_interest_informing, cb_data);
 				else
 					// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
 					PRINTF(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
@@ -958,14 +1007,15 @@ void nbr_list_print(void) {
 	// PRINTF("nbr list print\n");
 	// printf("nbr list print\n");
 
-	for (int i = 0; i < NEIGHBORS_LIST && !uip_is_addr_unspecified(&nbr_list[i].nnode_addr); i++) {
+	// for (int i = 0; i < NEIGHBORS_LIST && !uip_is_addr_unspecified(&nbr_list[i].nnode_addr); i++) {
+	for (int i = 0; i < NEIGHBORS_LIST; i++) {
 		// if(!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)){
 			LOG_INFO("node : %d\n", i);
 			LOG_INFO("	node nbr address: ");
 			// LOG_INFO("	node nbr address		: %x\n", nbr_list[i].nnode_addr);
 			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
-			// LOG_INFO("\n");
-			PRINTF("\n");
+			LOG_INFO("\n");
+			// PRINTF("\n");
 			LOG_INFO("	node state 				: %d\n", nbr_list[i].nnode_state);
 			LOG_INFO("	node ctrl msg 			: %d\n", nbr_list[i].nnode_ctrlmsg);
 			LOG_INFO("	node interest 			: %d\n", nbr_list[i].nnode_interest);
@@ -1011,17 +1061,6 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 		sys_mode = MODE_LEECHER;
 		break;
 	case MODE_LEECHER:
-		// for (int i = 0; i < NEIGHBORS_LIST; i++) {
-		// 	if ((system_next_state_dl < LAST_COMM_STATE) &&
-		// 	        (new_ctrl_msg_dl < LAST_CTRL_MSG) &&
-		// 	        sm_download[system_next_state_dl].ctrl_msg == new_ctrl_msg_dl &&
-		// 	        sm_download[system_next_state_dl].curr_state == system_next_state_dl &&
-		// 	        sm_download[system_next_state_dl].sm_handler_dl != NULL) {
-
-		// 		system_next_state_dl = (*sm_download[system_next_state_dl].sm_handler_dl)();
-
-		// 	}
-		// }
 
 		for (int i = 0; i < NEIGHBORS_LIST; i++) {
 			if ((nbr_list[i].nnode_state < LAST_COMM_STATE) &&
@@ -1030,9 +1069,9 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 			        sm_download[nbr_list[i].nnode_state].ctrl_msg == nbr_list[i].nnode_ctrlmsg &&
 			        sm_download[nbr_list[i].nnode_state].sm_handler_dl != NULL) {
 
-				// LOG_INFO("in state machine: ");
-				// LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
-				// LOG_INFO("\n");
+				LOG_INFO("in state machine: ");
+				LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
+				LOG_INFO("\n");
 
 				(*sm_download[nbr_list[i].nnode_state].sm_handler_dl)(&nbr_list[i].nnode_addr, i);
 			}
@@ -1040,39 +1079,9 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 
 			if (sm_download[nbr_list[i].nnode_state].curr_state == HANDSHAKED_STATE) {
 				if (nbr_list[i].nnode_interest == INTEREST_FALSE) {
-
-#if 0 // we can call node_interest() function here
-					node_interest(&nbr_list[i].nnode_addr, i);
-
-#else // or we can modify the nnode_interest so state machine calls the 
-					// node_interest() function in next iteration
-
 					nbr_list[i].nnode_interest = ACKHANDSHAKE_CTRL_MSG;
-#endif
-				}
-#if 0 // handled in the timer callback function check_interest_informing()
-				else {
-					// wait for 5 seconds before sending messages to same node again
-					if (WAIT_FALSE == node_choke_wait()) {
-						// TODO
-						// can send messages again
-						// node_interest(); // to send interest again
-					}
-				}
-#endif // handled in the timer callback function check_interest_informing()
-
-			}
-#if 0 // handled in the timer callback function check_interest_informing()
-			else if (sm_download[nbr_list[i].nnode_state].curr_state == INTEREST_INFORMING_STATE) {
-				if (nbr_list[i].nnode_ctrlmsg == UNCHOKE) {
-					nbr_list[i].nnode_state = INTEREST_INFORMED_STATE;
-					nbr_list[i].nnode_ctrlmsg = NONE_CTRL_MSG; // to comply with state machine
-				} else {
-					nbr_list[i].nnode_state = HANDSHAKED_STATE;
-					nbr_list[i].nnode_interest = INTEREST_FALSE;
 				}
 			}
-#endif // handled in the timer callback function check_interest_informing()
 		}
 
 		/*
@@ -1100,7 +1109,7 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 		*  should never come here
 		*
 		*/
-
+		sys_mode = MODE_IDLE;
 		break;
 	}
 	return sys_mode;

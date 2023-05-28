@@ -13,29 +13,34 @@
 /* Configuration */
 /*---------------------------------------------------------------------------*/
 
-#define BYTES_1024 //BYTES_1024
-// #define BYTES_4000 //BYTES_4000
-// #define BYTES_4000 //BYTES_8000
+// // #define BYTES_1024 //BYTES_1024
+// // #define BYTES_4000 //BYTES_4000
+// #define BYTES_4096	//BYTES_4096
+// // #define BYTES_4000 //BYTES_8000
 
-#ifdef BYTES_1024
-#include "data_1024B.h"
-#endif
+// #ifdef BYTES_1024
+// #include "data_1024B.h"
+// #endif
 
-#ifdef BYTES_4000
-#include "data_4000B.h"
-#endif
+// #ifdef BYTES_4000
+// #include "data_4000B.h"
+// #endif
 
-#ifdef BYTES_8000
-#include "data_8000B.h"
-#endif
+// #ifdef BYTES_4096
+// #include "data_4096B.h"
+// #endif
+
+// #ifdef BYTES_8000
+// #include "data_8000B.h"
+// #endif
 
 
-#define NODES_MAX 			4 				// M is the max number of neighbor nodes a node 
+#define NODES_MAX 			1 				// M is the max number of neighbor nodes a node 
 // can comm at a time
 #define NODES_MAX_DL_UL		2 // max uploading nodes = 2 and max downloading nodes = 2
 
 #define NUM_OF_NEIGHBORS	NODES_MAX // num of nodes to comm at at time from the ref paper
-#define NEIGHBORS_LIST		2 // num of neighbors in the list
+#define NEIGHBORS_LIST		1 // num of neighbors in the list
 #define NODES_UPLOAD		2 // in the leecher mode
 #define NODES_DOWNLOAD		2 // in the leecher mode
 
@@ -51,7 +56,9 @@
 #define DATA_CHUNK_ONE		( DATA_CHUNK_SIZE / NUM_OF_BLOCKS )
 
 
-#define MAX_PAYLOAD_LEN DATA_CHUNK_ONE	// block or 32 bytes of payload in each packet
+#define MAX_PAYLOAD_LEN 	DATA_CHUNK_ONE	// block or 32 bytes of payload in each packet
+// #define MAX_PAYLOAD_LEN		32	/* for testing */ //block or 32 bytes of payload in each packet
+
 
 #define LEECHER_UPLOAD		2
 #define LEECHER_DOWNLOAD	2
@@ -155,26 +162,6 @@ typedef struct  {
 	uint8_t *data;
 } process_post_data_t;
 
-#pragma pack(pop)
-
-/* state machine handler function pointer */
-typedef void (*downloading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
-typedef void (*uploading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
-
-/* state machine - download */
-typedef struct {
-	comm_states_t curr_state;					// current state
-	ctrl_msg_t ctrl_msg;						// control message
-	downloading_state_handler sm_handler_dl;	// handler function sm_handler_dl returns next state
-} state_machine_download;
-
-/* state machine - upload */
-typedef struct {
-	ctrl_msg_t ctrl_msg;
-	uploading_state_handler sm_handler_dl;
-} state_machine_upload;
-
-
 /*--------------------------------------------*/
 
 //ctrl and data msg frame
@@ -203,6 +190,26 @@ typedef struct {
 	uint8_t data[32];		// 32 bytes in a block
 } msg_pckt_t;
 
+#pragma pack(pop)
+
+/* state machine handler function pointer */
+typedef void (*downloading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
+typedef void (*uploading_state_handler)(const uip_ipaddr_t *n_addr, const uint8_t node_idx);
+
+/* state machine - download */
+typedef struct {
+	comm_states_t curr_state;					// current state
+	ctrl_msg_t ctrl_msg;						// control message
+	downloading_state_handler sm_handler_dl;	// handler function sm_handler_dl returns next state
+} state_machine_download;
+
+/* state machine - upload */
+typedef struct {
+	ctrl_msg_t ctrl_msg;
+	uploading_state_handler sm_handler_dl;
+} state_machine_upload;
+
+
 extern struct simple_udp_connection p2p_socket;
 /*--------------------------------------------*/
 
@@ -220,7 +227,7 @@ extern nnode_state_t nbr_list[NEIGHBORS_LIST];
 /*------------------------------------------------------------------*/
 
 
-void prepare_handshake(msg_pckt_t *d_pckt);
+void prepare_handshake(msg_pckt_t *d_pckt, ctrl_msg_t hs_ack_hs);
 void prepare_interest(msg_pckt_t *d_pckt, const uint8_t chunk);
 void prepare_request(msg_pckt_t *d_pckt);
 uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr);

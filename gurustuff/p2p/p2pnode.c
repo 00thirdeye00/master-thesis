@@ -30,6 +30,8 @@
 
 #define SEND_INTERVAL		  (60 * CLOCK_SECOND)
 
+bool chunk_cnt[DATA_TOTAL_CHUNKS];
+
 
 // static struct process_post_comm post_comm_process;
 
@@ -87,20 +89,19 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 		this = (msg_pckt_t *)data;
 
-		// PRINTF("ctrl msg: %d\n", (uint8_t)this->ctrl_msg);
+		LOG_INFO("ctrl msg callback: %d\n", this->ctrl_msg);
 
 		if (this->ctrl_msg == LAST_CTRL_MSG) {
 
-			uint8_t chunk_num;
-			uint8_t block_num;
+			static uint8_t chunk_num;
+			static uint8_t block_num;
 
 			chunk_num = (this->chunk_type.req_chunk_block & 0x00ff);
 			block_num = (this->chunk_type.req_chunk_block & 0x0f00) >> 8;
 
-
-
 			// print data since it is uint8_t
-			LOG_INFO("Received response '%.*s' from ", 32, (char *) this->data);
+			LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data);
+			// LOG_INFO("Received response '%.*s' from ", 16, (char *) this->data);
 
 			if ((chunk_num == nbr_list[node_idx].chunk_requested) &&
 			        !(nbr_list[node_idx].chunk_block > block_num) &&
@@ -115,68 +116,16 @@ udp_rx_callback(struct simple_udp_connection *c,
 					nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
 				}
 			}
-
 		} else {
 			queue_enq(sender_addr, datalen, data);
 		}
-
-
-
-		// msg_pckt_t *this;
-
-		// // These are not safe constructions. I started to change them but you need to refactory the code here.
-		// // sender_addr and data are only available in the callback. In addition
-		// // if you post the data you need to have memory where you store data post_data is lost
-		// // once you leave the callback.
-		// process_post_data_t post_data;
-		// post_data.sender_addr = sender_addr;
-		// post_data.data = (uint8_t *)data; //
-
-
-		// this = (msg_pckt_t *)data;
-
-		// // TODO: populate nbr node based on the ctrl_msg
-		// // nbr_list[node_idx].node_addr = sender_addr;
-		// if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
-		// 	nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
-		// 	nbr_list[node_idx].data_chunks = this->self_chunks;
-		// } else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
-		// 	process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
-		// } else if (this->ctrl_msg == INTEREST_CTRL_MSG) {
-		// 	process_post(&node_comm_process, INTEREST_EVENT, &post_data);
-		// } else if (this->ctrl_msg == REQUEST_CTRL_MSG) {
-		// 	process_post(&node_comm_process, REQUEST_EVENT, &post_data);
-		// } else if (this->ctrl_msg == LAST_CTRL_MSG) {
-
-		// 	LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data);
-		// 	recv_block_count++;
-
-		// 	if (recv_block_count >= 4)
-		// 		recv_block_count = 0;
-		// }
-		// // else if (this->ctrl_msg == UNCHOKE_CTRL_MSG) {
-		// // 	nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
-		// // } else if (this->ctrl_msg == CHOKE_CTRL_MSG) {
-		// // 	// TODO: set timer for 5 seconds
-		// // 	nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
-		// // }
-		// else {
-		// 	nbr_list[node_idx].nnode_ctrlmsg = this->ctrl_msg;
-		// }
-
 	}
-
-
 
 	// LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
 	LOG_INFO("In node callback\n");
 	LOG_INFO("Received message from: ");
 	LOG_INFO_6ADDR(sender_addr);
-// #if LLSEC802154_CONF_ENABLED
-	// LOG_INFO_(" LLSEC LV:%d", uipbuf_get_attr(UIPBUF_ATTR_LLSEC_LEVEL));
-// #endif
 	LOG_INFO_("\n");
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -188,7 +137,7 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 	node_idx = check_index(&post_data->sender_addr);
 	if (-1 == node_idx) {
 		// LOG_ERR("NODE DOES NOT EXIST IN NODE LIST\n");
-		PRINTF("NODE DOES NOT EXIST IN NODE LIST\n");
+		LOG_ERR("NODE DOES NOT EXIST IN NODE LIST\n");
 		return;
 	} else {
 		switch (ev) {
@@ -208,7 +157,6 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 	}
 }
 
-
 /*---------------------------------------------------------------------------*/
 static void
 node_coordinator_data(uint8_t chunk_init){
@@ -222,8 +170,13 @@ node_coordinator_data(uint8_t chunk_init){
 static void
 node_data_check(void){
 	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
-		PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+		// PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+		if(chunk_cnt[i] == 0)
+			continue;
+		else
+			return;
 	}
+	LOG_INFO("node data checked\n");
 }
 
 
@@ -231,14 +184,9 @@ node_data_check(void){
 PROCESS_THREAD(node_comm_process, ev, data)
 {
 	static struct etimer periodic_timer;
-	// static unsigned count;
-	// static char str[32];
-	// static msg_pckt_t data_pckt;
-	// static uip_ipaddr_t dest_ipaddr;
-	chunk_cnt[DATA_TOTAL_CHUNKS] = 0;
-
-
-	static int is_coordinator;
+	static uint8_t is_coordinator;
+	// In threads and processes variables need to be static
+	static system_mode_t system_mode = MODE_IDLE;
 
   	PROCESS_BEGIN();
 
@@ -251,14 +199,12 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	node_coordinator_data(0);
 
 	if(is_coordinator) {
-	NETSTACK_ROUTING.root_start();
-	node_coordinator_data(1);
+		NETSTACK_ROUTING.root_start();
+		node_coordinator_data(1);
 	}
 
 	node_data_check();
 
-	// In threads and processes variables need to be static
-	static system_mode_t system_mode = MODE_IDLE;
 
 	LOG_ERR("MAIN PROCESS\n");
 
@@ -267,7 +213,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	                    P2P_PORT, udp_rx_callback);
 
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-	etimer_set(&periodic_timer, 120 * SEND_INTERVAL);
+	etimer_set(&periodic_timer, 60 * SEND_INTERVAL);
 
 	while (1) {
 
@@ -276,17 +222,15 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		// You never sleep. This will not work.
 		#if (UIP_MAX_ROUTES != 0)
         PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
-      	#endif
+    #endif
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer) ||
 		                         !is_queue_empty());
-
-
-		// PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 
 		LOG_INFO("Enter: In while after clock\n");
 
 		if (!is_queue_empty()) {
 			queue_deq();
+			nbr_list_print();
 		}
 
 		// if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
@@ -296,12 +240,11 @@ PROCESS_THREAD(node_comm_process, ev, data)
 			// Here you are passing system mode as a value not pointer. If it is an integer or similar
 			// It is fine. If it is a complex type you should use pointers.
 
-			// nbr_list_print();
-			system_mode = system_mode_pp(system_mode);
+			// if(!is_coordinator){
+				system_mode = system_mode_pp(system_mode);
+			// }
 
-			// upload_event_handler(ev, post_data);
-
-			etimer_set(&periodic_timer, 10 * 60 * CLOCK_SECOND);
+			etimer_set(&periodic_timer, 30 * 60 * CLOCK_SECOND);
 		}
 	}
 
@@ -312,20 +255,52 @@ PROCESS_THREAD(node_comm_process, ev, data)
 
 void nbr_construction(const uip_ipaddr_t *ipaddr) {
 
-	static uint8_t nbr_index;
+	static uint8_t nbr_index = 0;
 
-	if (ipaddr != NULL && check_nbr_exist(ipaddr)) {
-		if (!uip_ipaddr_cmp(&nbr_list[nbr_index].nnode_addr, ipaddr)) {
+	if (ipaddr != NULL) {
+		if(check_nbr_exist(ipaddr)) {
+			LOG_INFO("neighbor exists\n");
+		} else if (nbr_index >= NEIGHBORS_LIST) {
+			LOG_ERR("nbr list full\n");
+		} else {
 			uip_ipaddr_copy(&nbr_list[nbr_index].nnode_addr, ipaddr);
-			LOG_INFO("new neighbor added:\n");
-			// LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
-			// LOG_INFO("\n");
+			LOG_INFO("new neighbor added to list\n");
+			LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
+			LOG_INFO("\n");
 			nnode_init(nbr_index);
 			nbr_index++;
 		}
+	} else {
+		LOG_ERR("ipaddr empty\n");
 	}
 
 	nbr_list_print();
+
+
+
+	/******** old neighbor construction *********/
+	// if (ipaddr != NULL && !check_nbr_exist(ipaddr) && nbr_index < NEIGHBORS_LIST) {
+	// 	LOG_INFO("check nbr exists %d\n", check_nbr_exist(ipaddr));
+	// 	if (!uip_ipaddr_cmp(&nbr_list[nbr_index].nnode_addr, ipaddr)) {
+	// 		LOG_INFO("nbr construction: \n");
+	// 		// LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
+	// 		// LOG_INFO("added \n");
+	// 		uip_ipaddr_copy(&nbr_list[nbr_index].nnode_addr, ipaddr);
+	// 		LOG_INFO("new neighbor added:\n");
+	// 		LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
+	// 		LOG_INFO("\n");
+	// 		nnode_init(nbr_index);
+	// 		nbr_index++;
+	// 	}
+	// } else {
+	// 	if(nbr_index >= NEIGHBORS_LIST){
+	// 		LOG_ERR("nbr list full\n");
+	// 	} else if(check_nbr_exist(ipaddr)){
+	// 		LOG_ERR("nbr exists\n");
+	// 	}
+	// }
+
+	// nbr_list_print();
 
 }
 
