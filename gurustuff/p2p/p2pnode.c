@@ -16,6 +16,7 @@
 #include "random.h"
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
+#include "dev/leds.h"
 #include "p2p.h"
 #include "rxqueue.h"
 
@@ -60,7 +61,20 @@ void nbr_construction(const uip_ipaddr_t *ipaddr);
 
 
 
-
+/*---------------------------------------------------------------------------*/
+bool
+node_data_check(void){
+	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+		// PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+		if(chunk_cnt[i] == 1){
+			PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+			continue;
+		} else
+				return false;
+	}
+	LOG_INFO("node data checked\n");
+	return true;
+}
 
 
 /*---------------------------------------------------------------------------*/
@@ -99,8 +113,20 @@ udp_rx_callback(struct simple_udp_connection *c,
 			chunk_num = (this->chunk_type.req_chunk_block & 0x00ff);
 			block_num = (this->chunk_type.req_chunk_block & 0x0f00) >> 8;
 
+			LOG_INFO("Received message from: ");
+			LOG_INFO_6ADDR(sender_addr);
+			LOG_INFO_("\n");
+			PRINTF("chunk number: %d\n", chunk_num);
+			PRINTF("block number: %d\n", block_num);
+			PRINTF("ctrl message: %d\n", this->ctrl_msg);
+			LOG_INFO("data received: '%.*s' \n", 32, (char *)this->data);
+			// for (int i = 0; i < 32; i++) {
+			// 	PRINTF("data[%d]: %u\n", i, this->data[i]);
+			// }
+			// PRINTF("\n");
+
 			// print data since it is uint8_t
-			LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data);
+			// LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data);
 			// LOG_INFO("Received response '%.*s' from ", 16, (char *) this->data);
 
 			if ((chunk_num == nbr_list[node_idx].chunk_requested) &&
@@ -114,6 +140,10 @@ udp_rx_callback(struct simple_udp_connection *c,
 					node_download_nbr--;
 					nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
 					nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
+
+					nbr_list_print();	// tesing
+					node_data_check(); // testing
+
 				}
 			}
 		} else {
@@ -133,22 +163,34 @@ void
 upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 {
 
+	msg_pckt_t *this;
+	this = (msg_pckt_t *) post_data;
+
+	// if(ev == INTEREST_EVENT){
+	// 	LOG_INFO("upload_event_handler: self chunks: %d\n", this->chunk_type.self_chunks);
+	// 	LOG_INFO("upload_event_handler: ctrl msg: %d\n", this->ctrl_msg);
+	// 	LOG_INFO("upload_event_handler: chunk: %d\n", this->data[0]);
+	// }
+
 	static int8_t node_idx = -1;
 	node_idx = check_index(&post_data->sender_addr);
 	if (-1 == node_idx) {
-		// LOG_ERR("NODE DOES NOT EXIST IN NODE LIST\n");
 		LOG_ERR("NODE DOES NOT EXIST IN NODE LIST\n");
 		return;
 	} else {
 		switch (ev) {
 		case HANDSHAKE_EVENT:
+			LOG_INFO("handshake event handler to ack handshake\n");
 			node_ack_handshake(&post_data->sender_addr);
 			break;
 		case INTEREST_EVENT:
-			nbr_list[node_idx].chunk_interested = post_data->data[0];
+			LOG_INFO("interest event handler to choke/unchoke\n");
+			LOG_INFO("chunk interested in: %d\n", this->data[0]);
+			nbr_list[node_idx].chunk_interested = this->data[0];
 			nbr_list[node_idx].nnode_choke = node_choke_unchoke(&post_data->sender_addr);
 			break;
 		case REQUEST_EVENT:
+			LOG_INFO("request event handler to upload\n");
 			nbr_list[node_idx].nnode_state = UPLOADING_STATE;
 			node_upload(nbr_list[node_idx].chunk_interested, &post_data->sender_addr);
 			nbr_list[node_idx].num_upload += 4;
@@ -167,17 +209,18 @@ node_coordinator_data(uint8_t chunk_init){
 }
 
 /*---------------------------------------------------------------------------*/
-static void
-node_data_check(void){
-	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
-		// PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
-		if(chunk_cnt[i] == 0)
-			continue;
-		else
-			return;
-	}
-	LOG_INFO("node data checked\n");
-}
+// bool
+// node_data_check(void){
+// 	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
+// 		PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
+// 		if(chunk_cnt[i] == 1)
+// 			continue;
+// 		else
+// 			return false;
+// 	}
+// 	LOG_INFO("node data checked\n");
+// 	return true;
+// }
 
 
 /*---------------------------------------------------------------------------*/
@@ -203,7 +246,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		node_coordinator_data(1);
 	}
 
-	node_data_check();
+	// node_data_check();
 
 
 	LOG_ERR("MAIN PROCESS\n");
@@ -241,8 +284,38 @@ PROCESS_THREAD(node_comm_process, ev, data)
 			// It is fine. If it is a complex type you should use pointers.
 
 			// if(!is_coordinator){
+			if(node_data_check() == true)
+				system_mode = system_mode_pp(MODE_SEEDER);
+			else
 				system_mode = system_mode_pp(system_mode);
-			// }
+
+
+			if(system_mode == MODE_IDLE){
+				leds_off(LEDS_ALL);
+				leds_single_on(0x02);	// red led
+			} else if(system_mode == MODE_LEECHER){
+				leds_off(LEDS_ALL);
+				leds_single_on(0x01);	// blue led
+			} else if(system_mode == MODE_SEEDER){
+				leds_off(LEDS_ALL);
+				leds_single_on(0x00);	// green led
+			} else{
+				leds_on(LEDS_ALL);
+				// leds_single_on(0x00);
+			}
+				
+
+				/* testing */
+				// leds_off(LEDS_ALL);
+				// leds_single_on(0x00); // green
+				// leds_off(LEDS_ALL);
+				// leds_single_on(0x01); // blue
+				// leds_off(LEDS_ALL);
+				// leds_single_on(0x02); // red
+				// leds_off(LEDS_ALL);
+				// leds_single_on(0x03);
+				// leds_off(LEDS_ALL);
+
 
 			etimer_set(&periodic_timer, 30 * 60 * CLOCK_SECOND);
 		}

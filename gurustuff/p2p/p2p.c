@@ -188,6 +188,11 @@ void callback_interest_informing (void *ptr_a) {
 
 	nnode_state_t *ptr = (nnode_state_t *)ptr_a;
 
+	if(ptr->nnode_state == UPLOADING_STATE){
+		LOG_INFO("return callback_interest_informing if state changed\n");
+		return;
+	}
+
 	LOG_INFO("FUNC: callback_interest_informing enter\n");
 	
 	if (ctimer_expired(&ptr->c_timer)) {
@@ -205,7 +210,7 @@ void callback_interest_informing (void *ptr_a) {
 			static struct ctimer t;
 			if (ctimer_expired(&t)) {
 				ptr->nnode_ctrlmsg = NONE_CTRL_MSG;
-				ctimer_set(&t, CLOCK_SECOND * 5, callback_interest_informing, ptr);
+				ctimer_set(&t, CLOCK_SECOND * 500, callback_interest_informing, ptr);
 			}
 			else
 				// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
@@ -236,6 +241,8 @@ void callback_interest_informing (void *ptr_a) {
 
 void callback_request (void *ptr_a) {
 
+	LOG_INFO("enter: callback request\n");
+
 	nnode_state_t *ptr = (nnode_state_t *)ptr_a;
 
 	if (ctimer_expired(&ptr->c_timer)) {
@@ -244,9 +251,14 @@ void callback_request (void *ptr_a) {
 		if (chunk_cnt[ptr->chunk_block] >= 0x01) {
 			/* nothing to do */
 		} else {
-			ptr->failed_dlreq++;
-			ptr->nnode_state = HANDSHAKED_STATE;
-			ptr->nnode_interest = INTEREST_FALSE;
+			if(ptr->nnode_state == DOWNLOADING_STATE){
+				LOG_INFO("node state: %d\n", ptr->nnode_state);
+				/* do nothing */
+			} else {
+				ptr->failed_dlreq = 1;
+				ptr->nnode_state = HANDSHAKED_STATE;
+				ptr->nnode_interest = INTEREST_FALSE;
+			}
 		}
 
 		// FIX: for now "node_download_nbr" is reduced in the receive callback
@@ -256,6 +268,8 @@ void callback_request (void *ptr_a) {
 		// }
 
 	}
+
+	LOG_INFO("exit: callback request\n");
 
 }
 
@@ -374,9 +388,9 @@ void prepare_interest(msg_pckt_t *d_pckt, const uint8_t chunk) {
 
 	pckt_msg_in->data[0] = chunk;
 
-	for(int i = 0; i < 32; i++){
-		LOG_INFO("data check [%d]: %d\n", i, pckt_msg_in->data[i]);
-	}
+	// for(int i = 0; i < 32; i++){
+		LOG_INFO("data check [%d]: %d\n", 0, pckt_msg_in->data[0]);
+	// }
 
 
 	// return (pckt_msg_in);
@@ -558,10 +572,10 @@ void nnode_init(int node_i) {
 	nbr_list[node_i].nnode_interest = INTEREST_NONE;
 	nbr_list[node_i].nnode_choke = CHOKE_NONE;
 	nbr_list[node_i].data_chunks = 0;
-	nbr_list[node_i].chunk_interested = 0xff;	// to avoid init with 0 bug, where 0 can be chunk
+	nbr_list[node_i].chunk_requested = 0xFF;	// to avoid init with 0 bug, where 0 can be chunk
 	nbr_list[node_i].chunk_block = 0;
 	nbr_list[node_i].failed_dlreq = 0;
-	nbr_list[node_i].chunk_interested = 0;
+	nbr_list[node_i].chunk_interested = 0xFF;
 	nbr_list[node_i].num_upload = 0;
 
 	LOG_INFO("Exit: node init\n");
@@ -686,8 +700,10 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 	if (node_download_nbr < NODES_DOWNLOAD) {
 		uint8_t chunk = missing_random_chunk();
+		LOG_INFO("missing random chunk %d\n", chunk);
 		// for (int i = 0; i < NUM_OF_NEIGHBORS && nbr_list[i].nnode_addr != NULL; i++) {
 		for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
+			LOG_INFO("for loop: %d\n", i);
 			if (nbr_list[i].data_chunks & (1 << chunk)) {
 
 				msg_pckt_t data_packet;
@@ -702,7 +718,7 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 
 				if (ctimer_expired(t))
-					ctimer_set(t, CLOCK_SECOND * 1000, callback_interest_informing, cb_data);
+					ctimer_set(t, CLOCK_SECOND * 3, callback_interest_informing, cb_data);
 				else
 					// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
 					PRINTF(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
@@ -812,10 +828,11 @@ void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 		node_download_nbr++;
 
 		if (ctimer_expired(t))
-			ctimer_set(t, CLOCK_SECOND * 3, callback_request, cb_data);
+			ctimer_set(t, CLOCK_SECOND * 30, callback_request, cb_data);
 		else
 			// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
-			PRINTF(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
+			// PRINTF(“INTEREST TIMER CANNOT START - NODE: (%u)\n”, n_idx);
+			LOG_INFO("INTEREST TIMER CANNOT START - NODE: (%u)\n", n_idx);
 	}
 	// node_received();
 	// to check if the requested piece is received
@@ -875,25 +892,38 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 	LOG_INFO("Enter: node upload\n");
 
 	node_upload_nbr += 1;
-	msg_pckt_t *data_packet = NULL;
+	msg_pckt_t data_packet;
 
+	memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 
-	memset(data_packet->data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+	for (int i = 0, j = 0, k = 0, l = 1; i < 132; i++) { // DATA_CHUNK_SIZE // 132 for testing
 
-	for (int i = 0, j = 0, k = 0, l = 1; i < DATA_CHUNK_SIZE; i++) {
+		/* to run for loop 128 times and 4 times else condition */
 
-		data_packet->ctrl_msg = create_ctrl_msg(LAST_CTRL_MSG);
+		data_packet.ctrl_msg = create_ctrl_msg(LAST_CTRL_MSG);
+
+		LOG_INFO("upload: max payload len: %lu\n", MAX_PAYLOAD_LEN);
+		LOG_INFO("upload: data chunk size: %lu\n", DATA_CHUNK_SIZE);
 
 		if (j < MAX_PAYLOAD_LEN) {
-			data_packet->data[j] = seq_idd[(chunk * DATA_CHUNK_SIZE) + k + j];
+			data_packet.data[j] = seq_idd[(chunk * DATA_CHUNK_SIZE) + k + j];
 			j++;
-		} else {
-			l |= l << k / 32;
-			data_packet->chunk_type.req_chunk_block |= l;
-			data_packet->chunk_type.req_chunk_block <<= 8;
-			data_packet->chunk_type.req_chunk_block |= chunk;
-			unicast_send(data_packet, sender_addr);
-			memset(data_packet->data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+		} 
+		else {
+			LOG_INFO("j value: %d\n", j);
+			LOG_INFO("i value: %d\n", i);
+			l = l << (k / 32);	// 
+			// l |= k / 32;	// 32, 64, 96, 128
+			LOG_INFO("k value: %u\n", k/32);
+			LOG_INFO("l value: %u\n", l);
+			LOG_INFO("chunk num: %u\n", chunk);
+			data_packet.chunk_type.req_chunk_block |= l;
+			data_packet.chunk_type.req_chunk_block <<= 8;
+			data_packet.chunk_type.req_chunk_block |= chunk;
+			unicast_send(&data_packet, sender_addr);
+			LOG_INFO("data sent: '%.*s'", 32, data_packet.data);
+			memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
+			l = 1;
 			k += j;
 			j = 0;
 		}
@@ -1016,17 +1046,17 @@ void nbr_list_print(void) {
 			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
 			LOG_INFO("\n");
 			// PRINTF("\n");
-			LOG_INFO("	node state 				: %d\n", nbr_list[i].nnode_state);
-			LOG_INFO("	node ctrl msg 			: %d\n", nbr_list[i].nnode_ctrlmsg);
-			LOG_INFO("	node interest 			: %d\n", nbr_list[i].nnode_interest);
+			LOG_INFO("	node state 					: %d\n", nbr_list[i].nnode_state);
+			LOG_INFO("	node ctrl msg 				: %d\n", nbr_list[i].nnode_ctrlmsg);
+			LOG_INFO("	node interest 				: %d\n", nbr_list[i].nnode_interest);
 
-			LOG_INFO("	node choke 				: %d\n", nbr_list[i].nnode_choke);
-			LOG_INFO("	node chunks 			: %d\n", nbr_list[i].data_chunks);
-			LOG_INFO("	node chunk req 			: %d\n", nbr_list[i].chunk_requested);
-			LOG_INFO("	node block 				: %d\n", nbr_list[i].chunk_block);
-			LOG_INFO("	node failed req 		: %u\n", nbr_list[i].failed_dlreq);
-			LOG_INFO("	node chunk interested 	: %d\n", nbr_list[i].chunk_interested);
-			LOG_INFO("	node num upload 		: %d\n", nbr_list[i].num_upload);
+			LOG_INFO("	node choke 					: %d\n", nbr_list[i].nnode_choke);
+			LOG_INFO("	node chunks 				: 0x%x\n", nbr_list[i].data_chunks);
+			LOG_INFO("	node chunk req 				: %d\n", nbr_list[i].chunk_requested);
+			LOG_INFO("	node block 					: %d\n", nbr_list[i].chunk_block);
+			LOG_INFO("	node failed req 			: %u\n", nbr_list[i].failed_dlreq);
+			LOG_INFO("	node chunk interested 		: %d\n", nbr_list[i].chunk_interested);
+			LOG_INFO("	node num of blocks upload	: %d\n", nbr_list[i].num_upload);
 		// } else {
 		// 	LOG_INFO("nbr list exit\n");
 		// }
@@ -1101,7 +1131,7 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 		*  when no one is requesting for chunks
 		*
 		*/
-		sys_mode = MODE_IDLE;
+		sys_mode = MODE_SEEDER;
 		break;
 	default:
 

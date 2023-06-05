@@ -20,7 +20,7 @@
 #include "p2p.h"
 
 
-#define QUEUE_SIZE		20
+#define QUEUE_SIZE	20
 
 enum {
 	HANDSHAKE_EVENT,

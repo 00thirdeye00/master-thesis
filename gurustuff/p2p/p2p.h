@@ -153,7 +153,7 @@ typedef struct {
 	uint8_t chunk_interested;		// nbr is interested in chunk
 	// ctrl_msg_t nnode_interest;
 	// ctrl_msg_t nnode_choke;
-	uint8_t num_upload;
+	uint8_t num_upload;				// number of blocks upload
 } nnode_state_t;
 
 // See comment in udp callback

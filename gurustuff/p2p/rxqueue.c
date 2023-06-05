@@ -91,7 +91,8 @@ queue_deq(void) {
 
 			// LOG_INFO("control message: %d\n", dq->ctrl_msg);
 
-			LOG_INFO("control message received:  %d\n", this->ctrl_msg);
+			LOG_INFO("control message received dequed:  %d\n", this->ctrl_msg);
+			LOG_INFO("post data: %d\n", post_data.data[0]);
 
 			// TODO: populate nbr node based on the ctrl_msg
 			// nbr_list[node_index].node_addr = sender_addr;
@@ -99,6 +100,7 @@ queue_deq(void) {
 				LOG_INFO("Acknowledgement received\n");
 				nbr_list[node_index].nnode_state = HANDSHAKED_STATE;
 				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
+				LOG_INFO("self chunks 0x%x\n", this->chunk_type.self_chunks);
 				nbr_list[node_index].data_chunks = this->chunk_type.self_chunks;
 			} else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
 				LOG_INFO("Handshake received\n");
@@ -192,9 +194,17 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	LOG_INFO("\n");
 
 	LOG_INFO("Printing from Queue Created: \n");
-	for (int i = 0; i < rx_q->datalen; i++) {
-		PRINTF(" %u", rx_q->data[i]);
-	}
+
+	msg_pckt_t *rq;
+	rq = (msg_pckt_t *) rx_q->data;
+
+	LOG_INFO("self chunks: %x\n", rq->chunk_type.self_chunks);
+	LOG_INFO("ctrl msg enq: %d\n", rq->ctrl_msg);
+	LOG_INFO("data msg enq: %d\n", rq->data[0]);
+
+	// for (int i = 0; i < rx_q->datalen; i++) {
+	// 	PRINTF(" %u", rx_q->data[i]);
+	// }
 	PRINTF("\n");
 	LOG_INFO("\nPrinting from Queue Created Complete \n");
 
