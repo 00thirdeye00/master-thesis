@@ -70,11 +70,11 @@ queue_deq(void) {
 			node_index = check_index(&dq->send_addr);
 			LOG_INFO("Dequeued datalen: %u\n", dq->datalen);
 			LOG_INFO("Dequeue data: \n");
-			// for (int i = 0; i < dq->datalen; i++) {
-			// 	PRINTF(" %u", dq->data[i]);
-			// 	unicast_send(dq->data[i], dq->send_addr);
-			// 	// PRINTF("")
-			// }
+			for (int i = 0; i < dq->datalen; i++) {
+				PRINTF(" %u", dq->data[i]);
+				// unicast_send(dq->data[i], dq->send_addr);
+				// PRINTF("")
+			}
 
 			msg_pckt_t *this;
 
@@ -91,8 +91,9 @@ queue_deq(void) {
 
 			// LOG_INFO("control message: %d\n", dq->ctrl_msg);
 
-			LOG_INFO("control message received dequed:  %d\n", this->ctrl_msg);
+			LOG_INFO("\ncontrol message received dequed:  %d\n", this->ctrl_msg);
 			LOG_INFO("post data: %d\n", post_data.data[0]);
+			LOG_INFO("data interest: %d\n", this->data[0]);
 
 			// TODO: populate nbr node based on the ctrl_msg
 			// nbr_list[node_index].node_addr = sender_addr;

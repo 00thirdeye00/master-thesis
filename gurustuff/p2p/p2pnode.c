@@ -78,6 +78,16 @@ node_data_check(void){
 
 
 /*---------------------------------------------------------------------------*/
+// void 
+// nbr_list_init(void){
+// 	for(int nbr_idx = 0; nbr_idx < NEIGHBORS_LIST; nbr_idx++){
+// 		nbr_list[nbr_idx].nnode_addr = NULL;
+// 		// uip_ipaddr_copy(&nbr_list[nbr_idx].nnode_addr, NULL);
+// 	}
+// }
+
+
+/*---------------------------------------------------------------------------*/
 
 // As you say I think you should have this in p2p.c. p2p.[ch] provides the api for a main process
 // that would like to use the p2p implementation. Internal data structures should not be exposed to the
@@ -118,8 +128,20 @@ udp_rx_callback(struct simple_udp_connection *c,
 			LOG_INFO_("\n");
 			PRINTF("chunk number: %d\n", chunk_num);
 			PRINTF("block number: %d\n", block_num);
+			PRINTF("block number check: %d\n", (this->chunk_type.req_chunk_block & 0x0f00));
 			PRINTF("ctrl message: %d\n", this->ctrl_msg);
 			LOG_INFO("data received: '%.*s' \n", 32, (char *)this->data);
+
+			if(chunk_cnt[chunk_num] == true) {
+				LOG_INFO("DUPLICATE: chunk duplicate received\n");
+				if(node_download_nbr > 0)
+					node_download_nbr--;
+				// (node_download_nbr > 0) ? node_download_nbr-- : LOG_INFO("node dlnbr: %d\n", node_download_nbr);
+				nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
+				nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
+				return;
+			}
+
 			// for (int i = 0; i < 32; i++) {
 			// 	PRINTF("data[%d]: %u\n", i, this->data[i]);
 			// }
@@ -131,15 +153,23 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 			if ((chunk_num == nbr_list[node_idx].chunk_requested) &&
 			        !(nbr_list[node_idx].chunk_block > block_num) &&
-			        (nbr_list[node_idx].chunk_block < 0x0f)) {
+			        (nbr_list[node_idx].chunk_block <= 0x0f)) {
 
 				nbr_list[node_idx].chunk_block |= block_num;
 
-				if (nbr_list[node_idx].chunk_block == 0x0f) {
+				if(nbr_list[node_idx].chunk_block == 0x0f) {
+
+					LOG_INFO("chunk block: %d\n", nbr_list[node_idx].chunk_block);
+					LOG_INFO("chunk requested: %d\n", chunk_cnt[nbr_list[node_idx].chunk_requested]);
+
 					chunk_cnt[nbr_list[node_idx].chunk_requested] = true;
-					node_download_nbr--;
-					nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
-					nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
+					node_download_nbr -= (node_download_nbr > 0) ? 1 : 0;
+					// nbr_list[node_idx].nnode_ctrlmsg = ACKHANDSHAKE_CTRL_MSG;
+					// nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
+					// nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
+
+					chunk_num = 0;
+					block_num = 0;
 
 					nbr_list_print();	// tesing
 					node_data_check(); // testing
@@ -163,14 +193,24 @@ void
 upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 {
 
+	// LOG_INFO("event handler testing:\n");
+	// LOG_INFO_6ADDR(&post_data->sender_addr);
+	// LOG_INFO("\n");
+	// msg_pckt_t *this_t;
+	// this_t = (msg_pckt_t *)post_data->data;
+	// LOG_INFO("control message:  %d\n", this_t->ctrl_msg);
+	// LOG_INFO("chunk interested in: %d\n", this_t->data[0]);
+
+
 	msg_pckt_t *this;
-	this = (msg_pckt_t *) post_data;
+	this = (msg_pckt_t *) post_data->data;
 
 	// if(ev == INTEREST_EVENT){
 	// 	LOG_INFO("upload_event_handler: self chunks: %d\n", this->chunk_type.self_chunks);
 	// 	LOG_INFO("upload_event_handler: ctrl msg: %d\n", this->ctrl_msg);
 	// 	LOG_INFO("upload_event_handler: chunk: %d\n", this->data[0]);
 	// }
+
 
 	static int8_t node_idx = -1;
 	node_idx = check_index(&post_data->sender_addr);
@@ -185,6 +225,8 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 			break;
 		case INTEREST_EVENT:
 			LOG_INFO("interest event handler to choke/unchoke\n");
+			LOG_INFO_6ADDR(&post_data->sender_addr);
+			LOG_INFO("control message:  %d\n", this->ctrl_msg);
 			LOG_INFO("chunk interested in: %d\n", this->data[0]);
 			nbr_list[node_idx].chunk_interested = this->data[0];
 			nbr_list[node_idx].nnode_choke = node_choke_unchoke(&post_data->sender_addr);
@@ -251,12 +293,15 @@ PROCESS_THREAD(node_comm_process, ev, data)
 
 	LOG_ERR("MAIN PROCESS\n");
 
+	// init nbr_list addresses to null
+	// nbr_list_init();
+
 	/* Initialize UDP connection */
 	simple_udp_register(&p2p_socket, P2P_PORT, NULL,
 	                    P2P_PORT, udp_rx_callback);
 
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-	etimer_set(&periodic_timer, 60 * SEND_INTERVAL);
+	etimer_set(&periodic_timer, 60 * SEND_INTERVAL); // 120 to 60 minutes
 
 	while (1) {
 
@@ -284,7 +329,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 			// It is fine. If it is a complex type you should use pointers.
 
 			// if(!is_coordinator){
-			if(node_data_check() == true)
+			if(is_coordinator || node_data_check() == true)
 				system_mode = system_mode_pp(MODE_SEEDER);
 			else
 				system_mode = system_mode_pp(system_mode);
@@ -317,7 +362,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				// leds_off(LEDS_ALL);
 
 
-			etimer_set(&periodic_timer, 30 * 60 * CLOCK_SECOND);
+			etimer_set(&periodic_timer, 15 * 60 * CLOCK_SECOND); // 30 to 15 minutes
 		}
 	}
 

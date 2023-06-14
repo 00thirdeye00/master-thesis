@@ -35,12 +35,12 @@
 // #endif
 
 
-#define NODES_MAX 			1 				// M is the max number of neighbor nodes a node 
+#define NODES_MAX 			4 // M is the max number of neighbor nodes a node can have
 // can comm at a time
 #define NODES_MAX_DL_UL		2 // max uploading nodes = 2 and max downloading nodes = 2
 
 #define NUM_OF_NEIGHBORS	NODES_MAX // num of nodes to comm at at time from the ref paper
-#define NEIGHBORS_LIST		1 // num of neighbors in the list
+#define NEIGHBORS_LIST		NODES_MAX // num of neighbors in the list
 #define NODES_UPLOAD		2 // in the leecher mode
 #define NODES_DOWNLOAD		2 // in the leecher mode
 
@@ -88,29 +88,29 @@ typedef enum {
 
 // control message for communication
 typedef enum {
-	NONE_CTRL_MSG,
-	HANDSHAKE_CTRL_MSG,
-	ACKHANDSHAKE_CTRL_MSG,
-	INTEREST_CTRL_MSG,
-	CHOKE_CTRL_MSG,
-	UNCHOKE_CTRL_MSG,
-	REQUEST_CTRL_MSG,
-	LAST_CTRL_MSG,
+	NONE_CTRL_MSG = 0,
+	HANDSHAKE_CTRL_MSG = 1,
+	ACKHANDSHAKE_CTRL_MSG = 2,
+	INTEREST_CTRL_MSG = 3,
+	CHOKE_CTRL_MSG = 4,
+	UNCHOKE_CTRL_MSG = 5,
+	REQUEST_CTRL_MSG =6,
+	LAST_CTRL_MSG = 7,
 } ctrl_msg_t;
 
 
 // communication state of a node
 typedef enum {
-	IDLE_STATE,
-	HANDSHAKING_STATE,
-	HANDSHAKED_STATE,
-	INTEREST_INFORMING_STATE,
+	IDLE_STATE = 0,
+	HANDSHAKING_STATE = 1,
+	HANDSHAKED_STATE = 2,
+	INTEREST_INFORMING_STATE = 3,
 	// INTEREST_INFORMING_C_STATE,
 	// INTEREST_INFORMING_UC_STATE,
-	INTEREST_INFORMED_STATE,
-	DOWNLOADING_STATE,
-	UPLOADING_STATE,
-	LAST_COMM_STATE,
+	INTEREST_INFORMED_STATE = 4,
+	DOWNLOADING_STATE = 5,
+	UPLOADING_STATE = 6,
+	LAST_COMM_STATE = 7,
 } comm_states_t;
 
 // interest state of a node
@@ -231,6 +231,7 @@ void prepare_handshake(msg_pckt_t *d_pckt, ctrl_msg_t hs_ack_hs);
 void prepare_interest(msg_pckt_t *d_pckt, const uint8_t chunk);
 void prepare_request(msg_pckt_t *d_pckt);
 uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr);
+
 uint8_t missing_random_chunk(void);
 void nnode_init(int node_i);
 

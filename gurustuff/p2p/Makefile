@@ -2,11 +2,16 @@ CONTIKI_PROJECT = p2pnode
 PROJECT_SOURCEFILES += rxqueue.c p2p.c
 # PROJECT_SOURCEFILES += rxqueue.c
 all: $(CONTIKI_PROJECT)
+ 
 
 # nrf52dk only supports slave mode, i.e., with no routing
 PLATFORMS_EXCLUDE = nrf52dk
 # does not fit on sky and z1 motes
 PLATFORMS_EXCLUDE += sky z1
+
+
+# CFLAGS appended with -g for debug with gdb
+CFLAGS += -g 
 
 CONTIKI = /home/sony/thesis/osnew/contiki-ng
 
@@ -99,3 +104,8 @@ ifeq ($(MAKE_WITH_STORING_ROUTING),1)
 endif
 
 include $(CONTIKI)/Makefile.include
+
+# to test -g flag is set in CFLAGS
+$(info "hello")
+$(info $(CFLAGS))
+
