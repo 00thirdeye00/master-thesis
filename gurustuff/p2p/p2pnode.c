@@ -34,17 +34,10 @@
 bool chunk_cnt[DATA_TOTAL_CHUNKS];
 
 
-// static struct process_post_comm post_comm_process;
-
 // TODO: check the socket
 struct simple_udp_connection p2p_socket;
-// process_event_t node_comm_upload_event;
-// enum {
-// 	HANDSHAKE_EVENT,
-// 	INTEREST_EVENT,
-// 	REQUEST_EVENT
-// };
-
+// main process timer
+uint8_t process_timer = PROCESS_WAIT_TIME_DEFAULT;
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(p2p_content_distribution);
@@ -142,15 +135,6 @@ udp_rx_callback(struct simple_udp_connection *c,
 				return;
 			}
 
-			// for (int i = 0; i < 32; i++) {
-			// 	PRINTF("data[%d]: %u\n", i, this->data[i]);
-			// }
-			// PRINTF("\n");
-
-			// print data since it is uint8_t
-			// LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data);
-			// LOG_INFO("Received response '%.*s' from ", 16, (char *) this->data);
-
 			if ((chunk_num == nbr_list[node_idx].chunk_requested) &&
 			        !(nbr_list[node_idx].chunk_block > block_num) &&
 			        (nbr_list[node_idx].chunk_block <= 0x0f)) {
@@ -193,24 +177,8 @@ void
 upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 {
 
-	// LOG_INFO("event handler testing:\n");
-	// LOG_INFO_6ADDR(&post_data->sender_addr);
-	// LOG_INFO("\n");
-	// msg_pckt_t *this_t;
-	// this_t = (msg_pckt_t *)post_data->data;
-	// LOG_INFO("control message:  %d\n", this_t->ctrl_msg);
-	// LOG_INFO("chunk interested in: %d\n", this_t->data[0]);
-
-
 	msg_pckt_t *this;
 	this = (msg_pckt_t *) post_data->data;
-
-	// if(ev == INTEREST_EVENT){
-	// 	LOG_INFO("upload_event_handler: self chunks: %d\n", this->chunk_type.self_chunks);
-	// 	LOG_INFO("upload_event_handler: ctrl msg: %d\n", this->ctrl_msg);
-	// 	LOG_INFO("upload_event_handler: chunk: %d\n", this->data[0]);
-	// }
-
 
 	static int8_t node_idx = -1;
 	node_idx = check_index(&post_data->sender_addr);
@@ -249,20 +217,6 @@ node_coordinator_data(uint8_t chunk_init){
 		chunk_cnt[i] = chunk_init;
 	}
 }
-
-/*---------------------------------------------------------------------------*/
-// bool
-// node_data_check(void){
-// 	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
-// 		PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
-// 		if(chunk_cnt[i] == 1)
-// 			continue;
-// 		else
-// 			return false;
-// 	}
-// 	LOG_INFO("node data checked\n");
-// 	return true;
-// }
 
 
 /*---------------------------------------------------------------------------*/
@@ -325,10 +279,8 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		if (etimer_expired(&periodic_timer)) {
 			LOG_INFO("In main while:\n");
 
-			// Here you are passing system mode as a value not pointer. If it is an integer or similar
-			// It is fine. If it is a complex type you should use pointers.
+			// process_timer = PROCESS_WAIT_TIME_DEFAULT;
 
-			// if(!is_coordinator){
 			if(is_coordinator || node_data_check() == true)
 				system_mode = system_mode_pp(MODE_SEEDER);
 			else
@@ -348,21 +300,9 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				leds_on(LEDS_ALL);
 				// leds_single_on(0x00);
 			}
-				
-
-				/* testing */
-				// leds_off(LEDS_ALL);
-				// leds_single_on(0x00); // green
-				// leds_off(LEDS_ALL);
-				// leds_single_on(0x01); // blue
-				// leds_off(LEDS_ALL);
-				// leds_single_on(0x02); // red
-				// leds_off(LEDS_ALL);
-				// leds_single_on(0x03);
-				// leds_off(LEDS_ALL);
 
 
-			etimer_set(&periodic_timer, 15 * 60 * CLOCK_SECOND); // 30 to 15 minutes
+			etimer_set(&periodic_timer, process_timer * 60 * CLOCK_SECOND); // 30 to 15 minutes
 		}
 	}
 
@@ -394,100 +334,115 @@ void nbr_construction(const uip_ipaddr_t *ipaddr) {
 
 	nbr_list_print();
 
-
-
-	/******** old neighbor construction *********/
-	// if (ipaddr != NULL && !check_nbr_exist(ipaddr) && nbr_index < NEIGHBORS_LIST) {
-	// 	LOG_INFO("check nbr exists %d\n", check_nbr_exist(ipaddr));
-	// 	if (!uip_ipaddr_cmp(&nbr_list[nbr_index].nnode_addr, ipaddr)) {
-	// 		LOG_INFO("nbr construction: \n");
-	// 		// LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
-	// 		// LOG_INFO("added \n");
-	// 		uip_ipaddr_copy(&nbr_list[nbr_index].nnode_addr, ipaddr);
-	// 		LOG_INFO("new neighbor added:\n");
-	// 		LOG_INFO_6ADDR(&nbr_list[nbr_index].nnode_addr);
-	// 		LOG_INFO("\n");
-	// 		nnode_init(nbr_index);
-	// 		nbr_index++;
-	// 	}
-	// } else {
-	// 	if(nbr_index >= NEIGHBORS_LIST){
-	// 		LOG_ERR("nbr list full\n");
-	// 	} else if(check_nbr_exist(ipaddr)){
-	// 		LOG_ERR("nbr exists\n");
-	// 	}
-	// }
-
-	// nbr_list_print();
-
 }
 
 
 /*---------------------------------------------------------------------------*/
 
 
+/*--------------------------------notes--------------------------------------*/
+
+/*
+	kill crashed applications graphically in linux
+
+ 	in a terminal, run
+ $xkill
+	
+
+*/
 
 
 
-// PROCESS_THREAD(nbr_construction_process, ev, data)
-// {
-// 	static struct etimer periodic_timer;
-// 	static uint8_t i;
-// 	static uip_ds6_nbr_t *nbr;
+/* gradle run */
 
-// 	PROCESS_BEGIN();
+/*
+	
+	$./gradlew run --scan
 
-// 	etimer_set(&periodic_timer, 10 * SEND_INTERVAL);
+	$./gradlew run --stacktrace
 
-// 	LOG_INFO("Enter: nbr construction process\n");
+	$./gradlew run --info
 
-// 	while (1) {
-
-// 		i = 0;
-
-// 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-// 		// This process does not sleep. It should sleep until an en event occur or timer expire.
-// 		// Here you are adding new nb but how do you make sure that nbr_list and uip_ds6_nbr are consistent.
-// 		// For example if a nb goes away should the state be maintained and should timers be cleared, i.e.
-// 		// is there not a need for add, delete reset functions. Now it is only add.
+*/
 
 
-// 		LOG_INFO("Enter: nbr construction process in while after clock\n");
+/* debugging */
+/*
 
-// 		if (!uip_is_addr_unspecified(&nbr_list[i].nnode_addr)) {
-// 			LOG_INFO("nbr continue\n");
-// 			LOG_INFO("Address specified node %d: ", i);
-// 			LOG_INFO_6ADDR(&nbr_list[i].nnode_addr);
-// 			PRINTF("\n");
-// 			i++;
-// 			// continue;
-// 		} else {
+make -j$(CPUS) p2pnode.cooja TARGET=cooja
 
-// 			LOG_INFO("nbr else\n");
+- to run cooja 
+	$ ./gradlew run --stacktrace
 
-// 			nbr = uip_ds6_nbr_head();
+- to execute java application with unlimited coredump memory
+	$ ulimit -c unlimited
 
-// 			for (; i < NEIGHBORS_LIST; i++) {
-// 				// nbr = uip_ds6_nbr_next(nbr);
-// 				if (nbr != NULL && check_nbr_exist(&nbr->ipaddr)) {
-// 					if (!uip_ipaddr_cmp(&nbr_list[i].nnode_addr, &nbr->ipaddr)) {
-// 						uip_ipaddr_copy(&nbr_list[i].nnode_addr, &nbr->ipaddr);
-// 						nnode_init(i);
-// 					}
-// 				}
-// 				nbr = uip_ds6_nbr_next(nbr);
-// 			}
-// 		}
+- for apport log 
+	-> cat /var/log/apport.log
 
-// 		LOG_INFO("check\n");
+- for core dump
+	-> cd /var/crash/
 
-// 		nbr_list_print();
+- for javatoolchains
+	-> $ gradle javaToolchains --scan
 
-// 		etimer_set(&periodic_timer, (10 * 60 * CLOCK_SECOND));
+- if program is not installed package
+	-> create file named "~/.config/apport/settings" with content
+		[main]
+		unpackaged=true
 
-// 	}
+- /var/crash file *.1000.crash cannot be read by gdb. to make it 
+	readable by gdb
+	-> apport-unpack <location_of_report> <target_directory>
+	$ apport-unpack _home_sony_.gradle_jdks_eclipse_adoptium-17-amd64-linux_jdk-17.0.7+7_bin_java.1000.crash ~/thesis/osnew/contiki-ng/tools/cooja/coredump
 
 
-// 	PROCESS_END();
-// }
-/*---------------------------------------------------------------------------*/
+- to debug
+ gdb -c '/home/sony/thesis/osnew/contiki-ng/tools/cooja/coredump/CoreDump' '/home/sony/thesis/osnew/contiki-ng/examples/p2p/build/cooja/mtype488261898.cooja' 
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

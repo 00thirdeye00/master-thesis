@@ -148,13 +148,12 @@ static state_machine_download sm_download[] = {
 /**
  * brief: handshake time out callback
  *
- * params: neighbor
+ * params: void pointer to neighbor address
  *
  * return: void
  *
  *
  */
-
 void callback_ack_handshake (void *ptr_a) {
 
 	nnode_state_t *ptr = (nnode_state_t *)ptr_a;
@@ -172,7 +171,6 @@ void callback_ack_handshake (void *ptr_a) {
 
 
 
-
 /*------------------------------------------------------------------*/
 /**
  * brief: interest informing time out callback
@@ -186,9 +184,9 @@ void callback_ack_handshake (void *ptr_a) {
 
 void callback_interest_informing (void *ptr_a) {
 
-	nnode_state_t *ptr = (nnode_state_t *)ptr_a;
+	nnode_state_t *ptr = (nnode_state_t *)ptr_a; // pointer to the nbr node
 
-	if(ptr->nnode_state == UPLOADING_STATE){
+	if(ptr->nnode_state == UPLOADING_STATE){ // return if node state is set to UPLOADING_STATE
 		LOG_INFO("return callback_interest_informing if state changed\n");
 		return;
 	}
@@ -232,7 +230,7 @@ void callback_interest_informing (void *ptr_a) {
 /**
  * brief: request to download timeout callback
  *
- * params: neighbor
+ * params: pointer to neighbor
  *
  * return: void
  *
@@ -525,11 +523,12 @@ uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr)
 
 
 
-
 /*------------------------------------------------------------------*/
 /**
  * brief: select a random missing chunk and return
- *
+ * 
+ * NOTE: not random right now
+ * TODO: use random number function to pick chunk number
  *
  * params: void
  *
@@ -556,7 +555,7 @@ uint8_t missing_random_chunk(void) {
 
 /*------------------------------------------------------------------*/
 /**
- * brief: initialize function to populate each neighbor with its
+ * brief: initialize function to populate each neighbor with
  * 			default values
  *
  * params: neighbor number
@@ -573,6 +572,11 @@ void nnode_init(int node_i) {
 	// 		nbr[i].node_addr = uip_ds6_nbr_head();
 	// 	else if (uip_ds6_nbr_next(nbr[i - 1]) != NULL)
 	// 		nbr[i].node_addr = uip_ds6_nbr_next(nbr[i - 1]);
+
+	for(int i = node_i + 1; i < NEIGHBORS_LIST; i++){
+		// uip_ip6addr_copy(&nbr_list[i].nnode_addr, &uip_ip6addr_unspecified);
+		memset(&nbr_list[i].nnode_addr, 0, sizeof(uip_ipaddr_t));
+	}
 
 	LOG_INFO("Enter: node init\n");
 
@@ -720,7 +724,9 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 		uint8_t chunk = missing_random_chunk();
 		LOG_INFO("missing random chunk %d\n", chunk);
 		// for (int i = 0; i < NUM_OF_NEIGHBORS && nbr_list[i].nnode_addr != NULL; i++) {
-		for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
+		for (int i = 0; i < NUM_OF_NEIGHBORS && 
+			!uip_is_addr_unspecified(&nbr_list[i].nnode_addr); 
+			i++) {
 			LOG_INFO("for loop: %d\n", i);
 			if (nbr_list[i].data_chunks & (1 << chunk)) {
 
@@ -742,6 +748,8 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 					PRINTF(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
 
 			} else {
+				// nnode_init(i);	// reset node to init states to send the handshake again
+				// process_timer = PROCESS_WAIT_TIME_NO_CHUNKS; // set process timer to 60 mins
 				continue;
 			}
 		}
@@ -910,7 +918,9 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 
 	LOG_INFO("Enter: node upload\n");
 
+
 	node_upload_nbr += 1;
+
 	msg_pckt_t data_packet;
 
 	memset(data_packet.data, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
@@ -951,7 +961,7 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 		}
 	}
 
-	node_upload_nbr -= 1;
+	node_upload_nbr -= (node_upload_nbr > 0)? 1:0;
 
 	LOG_INFO("Exit: node upload\n");
 
@@ -1083,14 +1093,8 @@ void nbr_list_print(void) {
 			LOG_INFO("	node chunk interested 		: %d\n", nbr_list[i].chunk_interested);
 			LOG_INFO("	node num of blocks upload	: %d\n", nbr_list[i].num_upload);
 		}
-		// } else {
-		// 	LOG_INFO("nbr list exit\n");
-		// }
-
 	}
-
 	LOG_INFO("Exit: node nbr list print\n");
-
 }
 
 /*------------------------------------------------------------------*/
@@ -1172,6 +1176,7 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 }
 
 
+/*------------------------------------------------------------------*/
 
 
 
@@ -1186,117 +1191,6 @@ system_mode_t system_mode_pp(system_mode_t system_mode) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-#if 0
-
-
-----------------------process_1 comm task------------start
-
-// triggering is simulated as time until the minimum required
-// network is formed
-// ex: 60 of 64 nodes formed network at root so root starts
-// dissemination
-PROCESS_THREAD(udp_server_process, ev, data)
-{
-	PROCESS_BEGIN();
-
-	/* Initialize DAG root */
-	NETSTACK_ROUTING.root_start();
-
-	/* Initialize UDP connection */
-	simple_udp_register(&udp_conn, UDP_SERVER_PORT, NULL,
-	                    UDP_CLIENT_PORT, udp_rx_callback);
-
-
-	while (1) {
-
-
-
-
-
-
-
-
-		// downloading
-		comm_states_t system_next_state_dl = IDLE;
-
-		// get newctlmsg from callback
-		ctrl_msg_t new_ctrl_msg_dl = get_from_callback();
-		if ((system_next_state_dl < LAST_COMM_STATE) && (new_ctrl_msg_dl < LAST_CTRL_MSG) &&
-		        sm_download[system_next_state_dl].ctrl_msg == new_ctrl_msg_dl &&
-		        sm_download[system_next_state_dl].curr_state == system_next_state_dl &&
-		        sm_download[system_next_state_dl].sm_handler_dl != NULL) {
-
-			system_next_state_dl = (*sm_download[system_next_state_dl].sm_handler_dl)();
-
-		}
-
-
-
-		// uploading
-		ctrl_msg_t new_ctrl_msg_up = get_from_callback();
-		if ((new_ctrl_msg_up < LAST_CTRL_MSG) &&
-		        sm_upload[new_ctrl_msg_up].ctrl_msg == new_ctrl_msg_up) {
-
-			(*sm_upload[new_ctrl_msg_up].sm_handler_up)();
-		}
-
-
-	}
-
-
-	PROCESS_END();
-}
-
-
-
-
-
-
-
-
-
-
-
-
--------------------- -process_1 comm task---------- -end
-
-
-
--------------------- -process_2 neighbor building---------- -start
-
-// while (1) {
-
-// 	nnode_state_t nbr_list[NEIGHBORS_LIST];
-// 	for (nbr = uip_ds6_nbr_head(); nbr != NULL; nr = uip_ds6_nbr_next(nbr)) {
-// 		nbr_new.node_addr = nbr;
-// 	}
-
-
-// }
-
--------------------- -process_2 neighbor building---------- -end
-
--------------------- -process_3 optimistic unchoking---------- -start
-
-
-
-
-
--------------------- -process_3 optimistic unchoking---------- -end
-
-
-
-#endif
 
 
 

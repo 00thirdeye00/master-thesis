@@ -14,9 +14,6 @@
 
 static uint8_t q_elem;
 
-// static rx_mpckts_t *rx_q;
-
-
 QUEUE(rx_queue);
 
 /*------------------------------------------------------------------*/
@@ -61,7 +58,6 @@ queue_deq(void) {
 	if (!queue_is_empty(rx_queue)) {
 		LOG_INFO("Queue is not Empty\n");
 		dq = queue_dequeue(rx_queue);
-		// if(q_elem > 0) q_elem--;
 		if (dq == NULL) {
 			PRINTF("Queue Underflow \n");
 			return 0;
@@ -105,32 +101,18 @@ queue_deq(void) {
 				nbr_list[node_index].data_chunks = this->chunk_type.self_chunks;
 			} else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
 				LOG_INFO("Handshake received\n");
-				// process_post(&node_comm_process, HANDSHAKE_EVENT, &post_data);
 				upload_event_handler(HANDSHAKE_EVENT, &post_data);
 			} else if (this->ctrl_msg == INTEREST_CTRL_MSG) {
 				LOG_INFO("Interest received\n");
-				// process_post(&node_comm_process, INTEREST_EVENT, &post_data);
 				upload_event_handler(INTEREST_EVENT, &post_data);
 			} else if (this->ctrl_msg == UNCHOKE_CTRL_MSG) {
 				LOG_INFO("Unchoke received\n");
-				// nbr_list[node_index].nnode_state = HANDSHAKED_STATE;
 				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
 				nbr_list[node_index].nnode_state = INTEREST_INFORMED_STATE;
 			} else if (this->ctrl_msg == REQUEST_CTRL_MSG) {
 				LOG_INFO("Request received\n");
-				// process_post(&node_comm_process, REQUEST_EVENT, &post_data);
 				upload_event_handler(REQUEST_EVENT, &post_data);
-			}
-			// else if (this->ctrl_msg == LAST_CTRL_MSG) {
-
-			// 	// print data since it is uint8_t
-			// 	LOG_INFO("Received response '%.*s' from ", datalen, (char *) this->data[0]);
-			// 	recv_block_count++;
-
-			// 	if (recv_block_count >= 4)
-			// 		recv_block_count = 0;
-			// }
-			else {
+			} else {
 				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
 			}
 
@@ -138,6 +120,7 @@ queue_deq(void) {
 			heapmem_free(dq->data);
 			heapmem_free(dq);
 
+			node_index = -1;
 			LOG_INFO("\n");
 
 			return 1;
@@ -164,20 +147,18 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	LOG_INFO("Enqueue in Progress\n");
 
 	msg_pckt_t *this;
-	this = (msg_pckt_t *)data;
+	rx_mpckts_t *rx_q;
 
+	this = (msg_pckt_t *)data;
 	LOG_INFO("self chunks: %d\n", this->chunk_type.self_chunks);
 	LOG_INFO("ctrl msg: %d\n", this->ctrl_msg);
 	// PRINTF("self chunks: %d", this->self_chunks);
-
-
-	rx_mpckts_t *rx_q;
 
 	rx_q = (rx_mpckts_t *)heapmem_alloc(sizeof(rx_mpckts_t));
 
 	if (rx_q == NULL) {
 		LOG_INFO("Failed to Allocate Memory\n");
-		// return 0;
+		return;
 	}
 
 	rx_q->next = NULL;
@@ -185,6 +166,14 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	uip_ipaddr_copy(&rx_q->send_addr, sender_addr);
 
 	rx_q->data = (uint8_t *)heapmem_alloc(dlen * sizeof(uint8_t));
+
+	if (rx_q->data == NULL) {
+		if(rx_q != NULL){
+			heapmem_free(rx_q);
+		}
+		LOG_INFO("Failed to Allocate Memory\n");
+		return;
+	}
 
 	memcpy(rx_q->data, data, dlen);
 

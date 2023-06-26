@@ -41,32 +41,30 @@
 
 #define NUM_OF_NEIGHBORS	NODES_MAX // num of nodes to comm at at time from the ref paper
 #define NEIGHBORS_LIST		NODES_MAX // num of neighbors in the list
-#define NODES_UPLOAD		2 // in the leecher mode
-#define NODES_DOWNLOAD		2 // in the leecher mode
+#define NODES_UPLOAD		(NODES_MAX / 2) // in the leecher mode
+#define NODES_DOWNLOAD		(NODES_MAX / 2) // in the leecher mode
 
 
-#define TOTAL_DATA_S		(sizeof(seq_idd))	// 1kb of data
+#define TOTAL_DATA_S		(sizeof(seq_idd))	// 4kb of data
 #define NUM_CHUNKS_X		32					// constant number of chunks
 #define NUM_OF_BLOCKS		4 					// each chunk split into blocks of 4
 
 
 #define DATA_IN_BYTES 		TOTAL_DATA_S
 #define DATA_TOTAL_CHUNKS	NUM_CHUNKS_X
-#define DATA_CHUNK_SIZE		( TOTAL_DATA_S / NUM_CHUNKS_X )
-#define DATA_CHUNK_ONE		( DATA_CHUNK_SIZE / NUM_OF_BLOCKS )
+#define DATA_CHUNK_SIZE		(DATA_IN_BYTES / DATA_TOTAL_CHUNKS)
+#define DATA_CHUNK_ONE		(DATA_CHUNK_SIZE / NUM_OF_BLOCKS)
 
 
 #define MAX_PAYLOAD_LEN 	DATA_CHUNK_ONE	// block or 32 bytes of payload in each packet
 // #define MAX_PAYLOAD_LEN		32	/* for testing */ //block or 32 bytes of payload in each packet
 
 
-#define LEECHER_UPLOAD		2
-#define LEECHER_DOWNLOAD	2
-
-
 #define NUM_OF_NODES		1 	// no. of nodes in network
 
-
+#define PROCESS_WAIT_TIME_DEFAULT			30	// set 30 minutes timer for process
+#define PROCESS_WAIT_TIME_NO_CHUNKS 		60	// wait 30 minutes if the nbr has no chunks
+#define PROCESS_WAIT_TIME_PARTIAL_CHUNKS 	30	// wait 15 minutes if the nbr has some chunks
 
 /*--------------------------------------------*/
 
@@ -209,49 +207,210 @@ typedef struct {
 	uploading_state_handler sm_handler_dl;
 } state_machine_upload;
 
-
+/* p2p_socket defined in p2pnode.c */
 extern struct simple_udp_connection p2p_socket;
+/* main process timer */
+extern uint8_t process_timer;
 /*--------------------------------------------*/
 
-extern uint8_t node_upload_nbr;
-extern uint8_t node_download_nbr;
 
-extern bool chunk_cnt[DATA_TOTAL_CHUNKS];
+extern uint8_t node_upload_nbr;	// to keep track of neighbors this node uploading to
+extern uint8_t node_download_nbr; // to keep track of neighbors this node downloading from	
+
+extern bool chunk_cnt[DATA_TOTAL_CHUNKS]; // total number of chunks this node contains
 
 // nbr_list, consider whether it should be static, meaning it is only available for p2p.c code.
 // Not external code if external modules should access the data structure it should be via functions.
 // That would give a cleaner structure.
-extern nnode_state_t nbr_list[NEIGHBORS_LIST];
+extern nnode_state_t nbr_list[NEIGHBORS_LIST]; // total number of neighbors for this node
 
 
 /*------------------------------------------------------------------*/
 
-
+/*------------------------------------------------------------------*/
+/**
+ * brief: function to prepare handshake
+ *
+ * params: pointer to message packet, control message
+ *
+ * return: void
+ *
+ */
 void prepare_handshake(msg_pckt_t *d_pckt, ctrl_msg_t hs_ack_hs);
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: function to prepare interest
+ *
+ * params: pointer to message packet, chunk number
+ * 			
+ * return: void
+ *
+ */
 void prepare_interest(msg_pckt_t *d_pckt, const uint8_t chunk);
+
+/**
+ * brief: function to prepare request
+ *
+ * params: pointer to message packet
+ *
+ * return: void
+ *
+ */
 void prepare_request(msg_pckt_t *d_pckt);
+
+/**
+ * brief: function to check if the neighbor exists
+ *
+ * params: pointer to neighbor address
+ *
+ * return: 1 if neighbor exists, 0 if neighbor doesn't exists
+ *
+ */
 uint8_t check_nbr_exist(const uip_ipaddr_t *nbr_addr);
 
+/**
+ * brief: function to return missing random chunk
+ *
+ * params: void
+ *
+ * return: chunk number
+ *
+ */
 uint8_t missing_random_chunk(void);
+
+/**
+ * brief: function to initialize neighbor nodes
+ *
+ * params: neighbor number
+ *
+ * return: void
+ *
+ */
 void nnode_init(int node_i);
 
-int8_t check_index(const uip_ipaddr_t *n_addr); // check node index at callback
+/**
+ * brief: check node index in the receive callback
+ *
+ * params: pointer to neighbor address
+ *
+ * return: neighbor index
+ *
+ */
+int8_t check_index(const uip_ipaddr_t *n_addr);
 
-void node_statechange(void);	// changes state based on the current situation
+/**
+ * brief: change state based on the current situation
+ *
+ * params: void
+ *
+ * return: void
+ *
+ */
+void node_statechange(void);
+
+/**
+ * brief: function to initiate handshake
+ *
+ * params: pointer to neighbor address, neighbor index
+ *
+ * return: void
+ *
+ */
 void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t node_idx);		// set HANDSHAKING_STATE with that neighbor
+
+/**
+ * brief: function to acknowledge received handshake
+ *
+ * params: pointer to address the handshake received from
+ *
+ * return: void
+ *
+ */
 void node_ack_handshake(const uip_ipaddr_t *sender_addr);	// set HANDSHAKED_STATE with that neighbor
+
+/**
+ * brief: function to initialize interest
+ *
+ * params: pointer to neighbor address, neighbor index
+ *
+ * return: void
+ *
+ */
 void node_interest(const uip_ipaddr_t *n_addr, const uint8_t node_idx);		// set INTEREST_INFORMING with that neighbor
 // void node_choke_wait(void);			// wait for 5 seconds
+
+/**
+ * brief: function to handle choke/unchoke
+ *
+ * params: pointer to address choke/unchoke received from
+ *
+ * return: choke_state_t
+ *
+ */
 choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr);	// refer point 2
+
+/**
+ * brief: function to request for chunk(ready to download and set to download state)
+ *
+ * params: pointer to address choke/unchoke received from
+ *
+ * return: void
+ *
+ */
 void node_request(const uip_ipaddr_t *n_addr, const uint8_t node_idx);			// set DOWNLOADING_STATE with that neighbor
+
+/**
+ * brief: function to check if the chunk is received
+ *
+ * params: pointer to neighbor address, neighbor index
+ *
+ * return: void
+ *
+ */
 void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx);		//
+
+/**
+ * brief: function to upload chunk
+ *
+ * params: chunk, pointer to address of node
+ *
+ * return: void
+ *
+ */
 void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr);			// set UPLOADING_STATE with that neighbor
+
+/**
+ * brief: function to check if all the chunks are received
+ *
+ * params: void
+ *
+ * return: bool
+ *
+ */
 bool node_chunk_check(void);	//
 
 
 // uip_ipaddr_t *nbr_list_nnode_addr(uint8_t node_idx);
+
+/**
+ * brief: function to print neighbor list with its states
+ *
+ * params: void
+ *
+ * return: void
+ *
+ */
 void nbr_list_print(void);
 
+/**
+ * brief: function to switch between system modes
+ *
+ * params: system mode
+ *
+ * return: system mode
+ *
+ */
 system_mode_t system_mode_pp(system_mode_t sys_mode);
 // extern void nbr_construction(const uip_ipaddr_t *ipaddr);
 
