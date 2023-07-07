@@ -1,3 +1,19 @@
+/**
+ * \addtogroup p2p
+ * @{
+ */
+/**
+ * \file
+ *    This file implements 'Peer to Peer' (p2p)
+ *
+ * \author
+ *    Guru Mehar Rachaputi
+ *	
+ * \reviewer
+ * 	  Anders Isberg
+ *
+ */
+
 CONTIKI_PROJECT = p2pnode
 PROJECT_SOURCEFILES += rxqueue.c p2p.c
 # PROJECT_SOURCEFILES += rxqueue.c

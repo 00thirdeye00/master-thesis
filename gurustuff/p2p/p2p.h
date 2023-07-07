@@ -1,4 +1,18 @@
-
+/**
+ * \addtogroup p2p
+ * @{
+ */
+/**
+ * \file
+ *    This file implements 'Peer to Peer' (p2p)
+ *
+ * \author
+ *    Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ * 	  Anders Isberg
+ * 
+ */
 
 #ifndef P2P_H_
 #define P2P_H_
@@ -60,11 +74,22 @@
 // #define MAX_PAYLOAD_LEN		32	/* for testing */ //block or 32 bytes of payload in each packet
 
 
-#define NUM_OF_NODES		1 	// no. of nodes in network
+#define NUM_OF_NODES		16 	// no. of nodes in network
 
-#define PROCESS_WAIT_TIME_DEFAULT			30	// set 30 minutes timer for process
+#define PROCESS_WAIT_TIME_DEFAULT			5	// set 30 minutes timer for process
 #define PROCESS_WAIT_TIME_NO_CHUNKS 		60	// wait 30 minutes if the nbr has no chunks
-#define PROCESS_WAIT_TIME_PARTIAL_CHUNKS 	30	// wait 15 minutes if the nbr has some chunks
+#define PROCESS_WAIT_TIME_NBR_RANK_LOW 		(6 * PROCESS_WAIT_TIME_NO_CHUNKS) // if all nbr's rank less/equal to my_rank
+#define PROCESS_WAIT_TIME_PARTIAL_CHUNKS 	PROCESS_WAIT_TIME_DEFAULT	// wait 15 minutes if the nbr has some chunks
+
+typedef enum{
+	RANK_0 = 0,
+	RANK_1 = 4, // highest rank
+	RANK_2 = 3,
+	RANK_3 = 2,
+	RANK_4 = 1,	// lowest rank
+} node_rank_t;
+
+
 
 /*--------------------------------------------*/
 
@@ -73,7 +98,7 @@ typedef enum {
 	MODE_NONE,
 	MODE_IDLE,		// node state at startup
 	MODE_LEECHER, 	// node doesn't have all pieces
-	MODE_SEEDER,		// node has all pieces
+	MODE_SEEDER,	// node has all pieces
 } system_mode_t;
 
 // node download state
@@ -143,15 +168,16 @@ typedef struct {
 	ctrl_msg_t nnode_ctrlmsg;			// neighbor node ctrl msg received
 	interest_state_t nnode_interest;	// neighbor node interest state
 	choke_state_t nnode_choke;			// neighbor node choke state
-	struct ctimer c_timer;		// ctimer for this node
-	uint32_t data_chunks;			// neighbor nodes data chunks
-	uint8_t chunk_requested;		// chunk requested to nbr
-	uint8_t	chunk_block;			// block number of the chunk
-	uint8_t failed_dlreq;			// failed download request attemp
-	uint8_t chunk_interested;		// nbr is interested in chunk
+	struct ctimer c_timer;				// ctimer for this node
+	node_rank_t nnode_rank;				// nbr node rank
+	uint32_t data_chunks;				// neighbor nodes data chunks
+	uint8_t chunk_requested;			// chunk requested to nbr
+	uint8_t	chunk_block;				// block number of the chunk
+	uint8_t failed_dlreq;				// failed download request attemp
+	uint8_t chunk_interested;			// nbr is interested in chunk
 	// ctrl_msg_t nnode_interest;
 	// ctrl_msg_t nnode_choke;
-	uint8_t num_upload;				// number of blocks upload
+	uint8_t num_upload;					// number of blocks upload
 } nnode_state_t;
 
 // See comment in udp callback
@@ -210,15 +236,15 @@ typedef struct {
 /* p2p_socket defined in p2pnode.c */
 extern struct simple_udp_connection p2p_socket;
 /* main process timer */
-extern uint8_t process_timer;
+extern uint32_t process_timer;
 /*--------------------------------------------*/
 
-
+extern uint8_t my_rank;			// my rank
 extern uint8_t node_upload_nbr;	// to keep track of neighbors this node uploading to
 extern uint8_t node_download_nbr; // to keep track of neighbors this node downloading from	
 
 extern bool chunk_cnt[DATA_TOTAL_CHUNKS]; // total number of chunks this node contains
-
+extern bool missing_chunk_req[DATA_TOTAL_CHUNKS]; // number of chunks requested
 // nbr_list, consider whether it should be static, meaning it is only available for p2p.c code.
 // Not external code if external modules should access the data structure it should be via functions.
 // That would give a cleaner structure.
@@ -288,6 +314,16 @@ uint8_t missing_random_chunk(void);
  *
  */
 void nnode_init(int node_i);
+
+/**
+ * brief: function to reset neighbor nodes
+ *
+ * params: void
+ *
+ * return: void
+ *
+ */
+void nnode_reset(void);
 
 /**
  * brief: check node index in the receive callback
@@ -379,6 +415,26 @@ void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx);		//
  *
  */
 void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr);			// set UPLOADING_STATE with that neighbor
+
+// /**
+//  * brief: function to check and node rank and return node rank
+//  *
+//  * params: void
+//  *
+//  * return: bool
+//  *
+//  */
+// node_rank_t node_rank_check(void);
+
+/**
+ * brief: function to return node rank
+ *
+ * params: void
+ *
+ * return: bool
+ *
+ */
+node_rank_t node_my_rank(void);
 
 /**
  * brief: function to check if all the chunks are received

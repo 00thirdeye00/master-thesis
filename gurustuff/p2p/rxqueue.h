@@ -1,4 +1,18 @@
-
+/**
+ * \addtogroup p2p
+ * @{
+ */
+/**
+ * \file
+ *    This file implements queue for 'Peer to Peer' (p2p)
+ *
+ * \author
+ *    Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ * 	  Anders Isberg
+ * 
+ */
 
 #ifndef RX_QUEUE_H_
 #define RX_QUEUE_H_
@@ -20,7 +34,7 @@
 #include "p2p.h"
 
 
-#define QUEUE_SIZE							10
+#define QUEUE_SIZE	10
 
 enum {
 	HANDSHAKE_EVENT,
@@ -42,12 +56,14 @@ typedef struct rx_mpckts_s {
 
 bool is_queue_empty(void);
 
+void queue_reset(void);
+
 void queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data);
 
 uint8_t queue_deq(void);
 
-extern void upload_event_handler(process_event_t ev, const process_post_data_t *post_data);
 
+extern void upload_event_handler(process_event_t ev, const process_post_data_t *post_data);
 
 
 

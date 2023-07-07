@@ -35,7 +35,11 @@
  *         example.
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Guru Mehar Rachaputi
+ *         
+ * \reviewer
+ *    Anders Isberg
+ * 
  */
 
 #ifndef PROJECT_CONF_H_
@@ -99,8 +103,10 @@
 // #define SICSLOWPAN_CONF_MAXAGE 60
 
 // Size of send queue, default is 8
-#define QUEUEBUF_CONF_NUM 64
+#define QUEUEBUF_CONF_NUM 128
 
+// size of buffer size
+#define UIP_CONF_BUFFER_SIZE 128
 
 /* Code/RAM footprint savings so that things will fit on our device */
 #ifndef NETSTACK_MAX_ROUTE_ENTRIES

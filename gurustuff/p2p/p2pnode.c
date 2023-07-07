@@ -8,6 +8,10 @@
  *
  * \author
  *    Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ * 	  Anders Isberg
+ * 
  */
 
 #include "contiki.h"
@@ -29,15 +33,17 @@
 // #define UDP_SERVER_PORT	5678
 #define P2P_PORT 5432
 
-#define SEND_INTERVAL		  (60 * CLOCK_SECOND)
+#define SEND_INTERVAL		  	(60 * CLOCK_SECOND)
+#define DELAY_CYCLE_COUNT	(60 / PROCESS_WAIT_TIME_DEFAULT)
 
 bool chunk_cnt[DATA_TOTAL_CHUNKS];
+bool missing_chunk_req[DATA_TOTAL_CHUNKS];
 
 
 // TODO: check the socket
 struct simple_udp_connection p2p_socket;
 // main process timer
-uint8_t process_timer = PROCESS_WAIT_TIME_DEFAULT;
+uint32_t process_timer = PROCESS_WAIT_TIME_DEFAULT;
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(p2p_content_distribution);
@@ -57,6 +63,7 @@ void nbr_construction(const uip_ipaddr_t *ipaddr);
 /*---------------------------------------------------------------------------*/
 bool
 node_data_check(void){
+	LOG_INFO("node data check\n");
 	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
 		// PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
 		if(chunk_cnt[i] == 1){
@@ -69,6 +76,36 @@ node_data_check(void){
 	return true;
 }
 
+/*---------------------------------------------------------------------------*/
+bool
+is_nbr_rank_high(void) {
+
+	LOG_INFO("is nbr rank high check\n");
+
+	for(int i = 0; i < NEIGHBORS_LIST && 
+		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr); // &&
+		// nbr_list[i].nnode_state == HANDSHAKED_STATE;
+		i++){
+
+		if(nbr_list[i].nnode_state == HANDSHAKING_STATE || 
+			nbr_list[i].nnode_state == IDLE_STATE){
+			LOG_INFO("check 1\n");
+			return true;
+		}
+
+		if((nbr_list[i].nnode_state >= HANDSHAKED_STATE) && 
+			(nbr_list[i].nnode_rank > my_rank)){
+			LOG_INFO("check 2\n");
+			return true;
+		}
+
+		LOG_INFO("node id: %d\n", i);
+		LOG_INFO("node state: %d\n", nbr_list[i].nnode_state);
+		LOG_INFO("node rank: %d\n", nbr_list[i].nnode_rank);
+
+	}
+	return false;
+}
 
 /*---------------------------------------------------------------------------*/
 // void 
@@ -218,6 +255,14 @@ node_coordinator_data(uint8_t chunk_init){
 	}
 }
 
+/*---------------------------------------------------------------------------*/
+// init function
+static void
+node_chunk_req(void){
+	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++){
+		missing_chunk_req[i] = false;
+	}
+}
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_comm_process, ev, data)
@@ -226,6 +271,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	static uint8_t is_coordinator;
 	// In threads and processes variables need to be static
 	static system_mode_t system_mode = MODE_IDLE;
+	static uint8_t delay_cycle = 0;
 
   	PROCESS_BEGIN();
 
@@ -242,10 +288,11 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		node_coordinator_data(1);
 	}
 
+	node_chunk_req();	// init missing data requested array to avoid duplicates
 	// node_data_check();
 
 
-	LOG_ERR("MAIN PROCESS\n");
+	LOG_INFO("MAIN PROCESS\n");
 
 	// init nbr_list addresses to null
 	// nbr_list_init();
@@ -255,19 +302,22 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	                    P2P_PORT, udp_rx_callback);
 
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-	etimer_set(&periodic_timer, 60 * SEND_INTERVAL); // 120 to 60 minutes
+	etimer_set(&periodic_timer, 30 * SEND_INTERVAL); // 120 to 60 minutes
 
 	while (1) {
 
 		LOG_INFO("Enter: In while\n");
 
+		// PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
 		// You never sleep. This will not work.
 		#if (UIP_MAX_ROUTES != 0)
         PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
     #endif
-		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer) ||
-		                         !is_queue_empty());
+		PROCESS_WAIT_EVENT_UNTIL(/*uip_ds6_route_num_routes() > NUM_OF_NODES && */
+														(etimer_expired(&periodic_timer) ||
+		                        !is_queue_empty()));
 
+		LOG_INFO("Routing entries: %u\n", uip_ds6_route_num_routes());
 		LOG_INFO("Enter: In while after clock\n");
 
 		if (!is_queue_empty()) {
@@ -279,13 +329,22 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		if (etimer_expired(&periodic_timer)) {
 			LOG_INFO("In main while:\n");
 
-			// process_timer = PROCESS_WAIT_TIME_DEFAULT;
+			node_my_rank();	// set my_rank variable
 
-			if(is_coordinator || node_data_check() == true)
-				system_mode = system_mode_pp(MODE_SEEDER);
-			else
-				system_mode = system_mode_pp(system_mode);
+			// if(is_coordinator || is_nbr_rank_high()) {
+				// process_timer = PROCESS_WAIT_TIME_DEFAULT;
 
+				if(system_mode != MODE_SEEDER && (is_coordinator || node_data_check() == true)) // test for print only once
+					system_mode = system_mode_pp(MODE_SEEDER);
+				else
+					system_mode = system_mode_pp(system_mode);
+
+				// process_timer = PROCESS_WAIT_TIME_DEFAULT;
+
+			// } else {
+
+			// 		process_timer = PROCESS_WAIT_TIME_NBR_RANK_LOW;
+			// }
 
 			if(system_mode == MODE_IDLE){
 				leds_off(LEDS_ALL);
@@ -301,6 +360,33 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				// leds_single_on(0x00);
 			}
 
+			if(!is_coordinator && my_rank != RANK_1 && is_nbr_rank_high() == false &&
+				 delay_cycle <= DELAY_CYCLE_COUNT) {
+				delay_cycle += 1;
+				LOG_INFO("is nbr rank high : %d\n", is_nbr_rank_high());
+				LOG_INFO("delay cycle : %d\n", delay_cycle);
+				if(delay_cycle >= DELAY_CYCLE_COUNT){
+					delay_cycle = 0;
+					process_timer = PROCESS_WAIT_TIME_DEFAULT * 10;
+					// queue_reset();
+					nnode_reset();
+					nbr_list_print();
+				}
+			} else {
+				process_timer = PROCESS_WAIT_TIME_DEFAULT;
+			}
+			// } else {
+			// 	// for(int i = 0; i < NEIGHBORS_LIST &&
+			// 	// 	!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
+			// 	// 	i++){
+			// 	// 	nnode_init(i);
+			// 	// }
+			// 	process_timer = PROCESS_WAIT_TIME_DEFAULT * 20;
+			// 	nnode_reset();
+			// }
+
+			// if(is_coordinator)
+			// 	process_timer = PROCESS_WAIT_TIME_DEFAULT * 6;
 
 			etimer_set(&periodic_timer, process_timer * 60 * CLOCK_SECOND); // 30 to 15 minutes
 		}

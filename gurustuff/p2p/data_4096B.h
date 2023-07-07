@@ -1,3 +1,15 @@
+/**
+ * \file
+ *    This is data file for 'Peer to Peer' (p2p) communication
+ *
+ * \author
+ *    Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ *    Anders Isberg
+ * 
+ */
+
 const char seq_idd[] = 	"0101lPLXsS0KbZcuAgXFqXIuhVFxT7Pb"
 					   	"01029Cif7gBC4ia4H0uQiccRRLOaj100"
                       	"01038BjcFF8aFtHLHZdRKNxliQEa8ozq"

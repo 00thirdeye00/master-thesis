@@ -1,3 +1,18 @@
+/**
+ * \addtogroup p2p
+ * @{
+ */
+/**
+ * \file
+ *    This file implements queue for 'Peer to Peer' (p2p)
+ *
+ * \author
+ *    Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ * 	  Anders Isberg
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -31,6 +46,74 @@ bool
 is_queue_empty(void) {
 	return q_elem > 0 ? false : true;
 }
+
+
+// node_rank_t
+// nnode_rank_set(uint32_t nnode_self_chunks){
+	
+// 	node_rank_t nnode_rank;
+// 	if(nnode_self_chunks > 0 && nnode_self_chunks <= 0xff)
+// 		nnode_rank = RANK_4;
+// 	else if((nnode_self_chunks >= (0xff + 1))  && nnode_self_chunks <= 0xffff)
+// 		nnode_rank = RANK_3;
+// 	else if((nnode_self_chunks >= (0xffff + 1)) && nnode_self_chunks <= 0xfffffffe)
+// 		nnode_rank = RANK_2;
+// 	else if(nnode_self_chunks > 0xfffffffe)
+// 		nnode_rank = RANK_1;
+// 	else
+// 		nnode_rank = RANK_0;
+
+// 	return nnode_rank;
+// }
+
+
+node_rank_t
+nnode_rank_set(uint32_t nnode_self_chunks){
+	
+	node_rank_t nnode_rank;
+	if(nnode_self_chunks >= 0xfffffffe)
+		nnode_rank = RANK_1;
+	else if(nnode_self_chunks >= 0xfffffff0)
+		nnode_rank = RANK_2;
+	else if(nnode_self_chunks >= 0xffff)
+		nnode_rank = RANK_3;
+	else if(nnode_self_chunks > 0xff)
+		nnode_rank = RANK_4;
+	else
+		nnode_rank = RANK_0;
+
+	return nnode_rank;
+}
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: dequeue element in the queue from rx callback
+ *
+ * params: void
+ *
+ * return: uint8_t
+ *
+ *
+ */
+void
+queue_reset(void){
+
+	rx_mpckts_t *q_rst;
+
+	LOG_INFO("queue reset\n");
+	while(!queue_is_empty(rx_queue)){
+
+		q_rst = queue_dequeue(rx_queue);
+
+		if(q_rst != NULL){
+			heapmem_free(q_rst->data);
+			heapmem_free(q_rst);
+		}
+	}
+}
+
+
+
 
 
 /*------------------------------------------------------------------*/
@@ -68,8 +151,6 @@ queue_deq(void) {
 			LOG_INFO("Dequeue data: \n");
 			for (int i = 0; i < dq->datalen; i++) {
 				PRINTF(" %u", dq->data[i]);
-				// unicast_send(dq->data[i], dq->send_addr);
-				// PRINTF("")
 			}
 
 			msg_pckt_t *this;
@@ -95,8 +176,16 @@ queue_deq(void) {
 			// nbr_list[node_index].node_addr = sender_addr;
 			if (this->ctrl_msg == ACKHANDSHAKE_CTRL_MSG) {
 				LOG_INFO("Acknowledgement received\n");
+
+				/* check the nnode rank is greater than my_rank,
+					-> if nnode_rank > my_rank then state = handshaked
+					-> else set nnode_rank and state = idle
+				 */
+				nbr_list[node_index].nnode_rank = nnode_rank_set(this->chunk_type.self_chunks);
+				// if(nbr_list[node_index].nnode_rank > my_rank) {
 				nbr_list[node_index].nnode_state = HANDSHAKED_STATE;
 				nbr_list[node_index].nnode_ctrlmsg = this->ctrl_msg;
+				// }
 				LOG_INFO("self chunks 0x%x\n", this->chunk_type.self_chunks);
 				nbr_list[node_index].data_chunks = this->chunk_type.self_chunks;
 			} else if (this->ctrl_msg == HANDSHAKE_CTRL_MSG) {
