@@ -4,13 +4,13 @@
  */
 /**
  * \file
- *    This file implements queue for 'Peer to Peer' (p2p)
+ *    		This file implements queue for 'Peer to Peer' (p2p)
  *
  * \author
- *    Guru Mehar Rachaputi
+ *    		Guru Mehar Rachaputi
  * 
  * \reviewer
- * 	  Anders Isberg
+ * 	  		Anders Isberg
  */
 
 #include <stdio.h>

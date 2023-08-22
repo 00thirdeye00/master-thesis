@@ -4,13 +4,14 @@
 # */
 #/**
 # * \file
-# *    This file implements 'Peer to Peer' (p2p)
+# *		This file implements 'Peer to Peer' (p2p)
 # *
 # * \author
-# *    Guru Mehar Rachaputi
+# *		Guru Mehar Rachaputi
+# *		Anders Isberg
 # *	
 # * \reviewer
-# * 	  Anders Isberg
+# * 	Anders Isberg
 # *
 # */
 
@@ -30,10 +31,6 @@ PLATFORMS_EXCLUDE += sky z1
 CFLAGS += -g 
 
 CONTIKI = /home/sony/thesis/osnew/contiki-ng
-
-# Set MCAST = (ESMRF | SMRF | MPL)
-# MCAST ?= SMRFCONTIKI = /home/sony/thesis/os/contiki-ng
-
 
 MAKE_MAC ?= MAKE_MAC_TSCH
 
@@ -56,21 +53,6 @@ MAKE_WITH_ORCHESTRA_ROOT_RULE ?= 0
 
 # Use the Orchestra Neighbor rule?
 MAKE_WITH_ORCHESTRA_NEIGHBOR_RULE ?= 1
-
-# ifeq ($(MCAST),ESMRF)
-#   # Storage based routing must be used
-# 	MAKE_WITH_STORING_ROUTING = 1
-# 	CFLAGS += -DRPL_CONF_MOP=RPL_MOP_STORING_MULTICAST
-# 	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_ESMRF
-# else ifeq ($(MCAST), SMRF)
-# 	# Storage based routing must be used
-# 	MAKE_WITH_STORING_ROUTING = 1
-# 	CFLAGS += -DRPL_CONF_MOP=RPL_MOP_STORING_MULTICAST
-# 	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_SMRF
-# else ifeq ($(MCAST), MPL)
-#   # Works for none and storage based routing
-# 	CFLAGS += -DUIP_MCAST6_CONF_ENGINE=UIP_MCAST6_ENGINE_MPL
-# endif
 
 include $(CONTIKI)/Makefile.dir-variables
 MODULES += $(CONTIKI_NG_SERVICES_DIR)/shell

@@ -1,3 +1,18 @@
+/**
+ * \addtogroup multicast
+ * @{
+ */
+/**
+ * \file
+ *    		Dependencies file for multicast
+ *
+ * \author
+ *    		Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ * 	  		Anders Isberg
+ * 
+ */
 #ifndef DEPENDENCIES_H
 #define DEPENDENCIES_H
 

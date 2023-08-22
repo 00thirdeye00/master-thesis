@@ -5,13 +5,13 @@
  */
 /**
  * \file
- *    This file implements 'Peer to Peer' (p2p)
+ *    		This file implements 'Peer to Peer' (p2p)
  *
  * \author
- *    Guru Mehar Rachaputi
+ *    		Guru Mehar Rachaputi
  * 
  * \reviewer
- * 	  Anders Isberg
+ * 	  		Anders Isberg
  * 
  */
 

@@ -1,3 +1,19 @@
+/**
+ * \addtogroup multicast
+ * @{
+ */
+/**
+ * \file
+ *          This is data file for multicast
+ *
+ * \author
+ *          Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ *          Anders Isberg
+ * 
+ */
+
 const char *seq_idd = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100"
                       "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou101"
                       "27lBkvtUauXX1V8oF4jT4CKIlbE03ghFBS2hTcnTiZ1Go5Ti1gVWRcUdHAh9g102"

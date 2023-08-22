@@ -30,14 +30,21 @@
  */
 
 /**
+ * \addtogroup multicast
+ * @{
+ */
+/**
  * \file
- *         This node is part of the RPL multicast example. It is a node that
- *         joins a multicast group and listens for messages. It also knows how
- *         to forward messages down the tree.
- *         For the example to work, we need one or more of those nodes.
+ *        Sink node for multicast for multicast. This node joins multicast group.
+ *        When there is a message intended to it, it propogates to upper layers as
+ *        well as forward the messages down the network.
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *        Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ *        Anders Isberg
+ * 
  */
 
 #include "contiki.h"

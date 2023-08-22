@@ -4,13 +4,13 @@
  */
 /**
  * \file
- *    This file implements 'Peer to Peer' (p2p)
+ *    		This file implements 'Peer to Peer' (p2p)
  *
  * \author
- *    Guru Mehar Rachaputi
+ *    		Guru Mehar Rachaputi
  * 
  * \reviewer
- * 	  Anders Isberg
+ * 	  		Anders Isberg
  * 
  */
 
@@ -33,6 +33,8 @@
 #define SEND_INTERVAL		  	(60 * CLOCK_SECOND)
 #define QUE_START_INTERVAL	SEND_INTERVAL
 #define DELAY_CYCLE_COUNT		20 //(60 / PROCESS_WAIT_TIME_DEFAULT)
+
+// #define TESTING // For log prints
 
 bool chunk_cnt[DATA_TOTAL_CHUNKS];
 bool missing_chunk_req[DATA_TOTAL_CHUNKS];
@@ -244,8 +246,10 @@ udp_rx_callback(struct simple_udp_connection *c,
 					chunk_num = 0;
 					block_num = 0;
 
-					nbr_list_print();	// tesing
-					node_data_check(); // testing
+					#ifdef TESTING
+						nbr_list_print();	// tesing
+						node_data_check(); // testing
+					#endif
 
 				}
 			}
@@ -301,7 +305,6 @@ upload_event_handler(process_event_t ev, const process_post_data_t *post_data)
 static void
 node_coordinator_data(uint8_t chunk_init){
 	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
-		// PRINTF("Data chunk %d:%d\n", i, chunk_cnt[i]);
 		chunk_cnt[i] = chunk_init;
 	}
 }
@@ -320,13 +323,9 @@ PROCESS_THREAD(node_comm_process, ev, data)
 {
 	static struct etimer periodic_timer;
 	static uint8_t is_coordinator;
-	// In threads and processes variables need to be static
 	static system_mode_t system_mode = MODE_IDLE;
 	static uint8_t delay_cycle = 0;
 	static uint32_t process_timer = PROCESS_WAIT_TIME_DEFAULT;
-	// static uint8_t process_skip_counter = 0;
-
-	// queue_event = process_alloc_event();
 
   	PROCESS_BEGIN();
 
@@ -344,34 +343,21 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	}
 	NETSTACK_MAC.on();
 
-	node_chunk_req();	// init missing data requested array to avoid duplicates
-	// node_data_check();
+	node_chunk_req();	// init missing data
 
 
 	LOG_INFO("MAIN PROCESS\n");
-
-	// init nbr_list addresses to null
-	// nbr_list_init();
 
 	/* Initialize UDP connection */
 	simple_udp_register(&p2p_socket, P2P_PORT, NULL,
 	                    P2P_PORT, udp_rx_callback);
 
-	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
 	etimer_set(&periodic_timer, 10 * SEND_INTERVAL); // 120 to 60 minutes
 
 	while (1) {
 
 		LOG_INFO("Enter: In while\n");
 
-		// queue_event_post();
-
-		// if(!queue_event_post()){
-		// 	process_post(&node_comm_process, queue_event, NULL);
-		// }
-
-		// PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
-		// You never sleep. This will not work.
 		#if (UIP_MAX_ROUTES != 0)
         PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
     #endif
@@ -383,43 +369,17 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		LOG_INFO("Routing entries: %u\n", uip_ds6_route_num_routes());
 		LOG_INFO("Enter: In while after clock\n");
 
-		// if (!is_queue_empty()) {
-		// 	queue_deq();
-		// 	nbr_list_print();
-		// } else {
-		// 	LOG_ERR("queue empty\n");
-		// }
-
-		// if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
 		if (etimer_expired(&periodic_timer)) {
-
-			
-			// if(process_skip_counter <= 20){
-			// 	process_skip_counter += 1;
-			// 	return;
-			// } else {
-			// 	process_skip_counter = 0;
-			// }
-
 
 			LOG_INFO("In main while:\n");
 
 			node_my_rank();	// set my_rank variable
-
-			// if(is_coordinator || is_nbr_rank_high()) {
-				// process_timer = PROCESS_WAIT_TIME_DEFAULT;
 
 				if(system_mode != MODE_SEEDER && (is_coordinator || node_data_check() == true)) // test for print only once
 					system_mode = system_mode_pp(MODE_SEEDER);
 				else
 					system_mode = system_mode_pp(system_mode);
 
-				// process_timer = PROCESS_WAIT_TIME_DEFAULT;
-
-			// } else {
-
-			// 		process_timer = PROCESS_WAIT_TIME_NBR_RANK_LOW;
-			// }
 
 			if(system_mode == MODE_IDLE){
 				leds_off(LEDS_ALL);
@@ -432,7 +392,6 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				leds_single_on(0x00);	// green led
 			} else{
 				leds_on(LEDS_ALL);
-				// leds_single_on(0x00);
 			}
 
 			if(!is_coordinator && my_rank < RANK_1 && is_nbr_handhaked(true) == true && 
@@ -443,11 +402,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				LOG_INFO("delay cycle : %d\n", delay_cycle);
 				if(delay_cycle >= DELAY_CYCLE_COUNT){
 					delay_cycle = 0;
-					// process_timer = PROCESS_WAIT_TIME_DEFAULT * 10;
 					process_timer = PROCESS_WAIT_TIME_DEFAULT;
-					// PROCESS_DELAY_FLAG = TRUE;
-					// process_skip_counter = 20;
-					// queue_reset();
 					nnode_reset_all();
 					nbr_list_print();
 				}
@@ -455,23 +410,6 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				delay_cycle = 0;
 				process_timer = PROCESS_WAIT_TIME_DEFAULT;
 			}
-
-			// if(system_mode == MODE_SEEDER)
-			// 	process_timer = PROCESS_WAIT_TIME_SEEDER;
-			
-
-			// } else {
-			// 	// for(int i = 0; i < NEIGHBORS_LIST &&
-			// 	// 	!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
-			// 	// 	i++){
-			// 	// 	nnode_init(i);
-			// 	// }
-			// 	process_timer = PROCESS_WAIT_TIME_DEFAULT * 20;
-			// 	nnode_reset();
-			// }
-
-			// if(is_coordinator)
-			// 	process_timer = PROCESS_WAIT_TIME_DEFAULT * 6;
 
 			etimer_set(&periodic_timer, process_timer * 60 * CLOCK_SECOND); // 30 to 15 minutes
 		}
@@ -501,8 +439,6 @@ PROCESS_THREAD(queue_proc, ev, data)
 
     etimer_set(&et_queue, 20 * CLOCK_SECOND);
   }
-
-  // printf("queue process\n");
 
   PROCESS_END();
 }

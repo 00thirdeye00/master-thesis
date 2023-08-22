@@ -1,12 +1,12 @@
 /**
  * \file
- *    This is data file for 'Peer to Peer' (p2p) communication
+ *          This is data file for 'Peer to Peer' (p2p) communication
  *
  * \author
- *    Guru Mehar Rachaputi
+ *          Guru Mehar Rachaputi
  * 
  * \reviewer
- *    Anders Isberg
+ *          Anders Isberg
  * 
  */
 

@@ -1,3 +1,20 @@
+#/**
+#* \addtogroup p2p
+# * @{
+# */
+#/**
+# * \file
+# *					This file implements 'Peer to Peer' (p2p)
+# *
+# * \author
+# *					Guru Mehar Rachaputi
+# *					Anders Isberg
+# *	
+# * \reviewer
+# * 				Anders Isberg
+# *
+# */
+
 CONTIKI_PROJECT = root intermediate sink
 all: $(CONTIKI_PROJECT)
 
@@ -8,7 +25,7 @@ PLATFORMS_EXCLUDE += sky z1
 
 CONTIKI = /home/sony/thesis/os/contiki-ng
 
-# Set MCAST = (ESMRF | SMRF | MPL)
+# Set MCAST = (ESMRF | SMRF | MPL) one of them to switch multicast engines
 MCAST ?= MPL
 
 MAKE_MAC ?= MAKE_MAC_TSCH

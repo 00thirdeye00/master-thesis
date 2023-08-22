@@ -31,11 +31,16 @@
 
 /**
  * \file
- *         Project specific configuration defines for the RPl multicast
- *         example.
+ *          Project specific configuration defines for the RPl multicast
+ *          example.
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *          Guru Mehar Rachaputi
+ *          Anders Isberg
+ *         
+ * \reviewer
+ *          Anders Isberg
+ * 
  */
 
 #ifndef PROJECT_CONF_H_
@@ -43,20 +48,7 @@
 
 #include "net/ipv6/multicast/uip-mcast6-engines.h"
 
-// UIP_MCAST6_ENGINE_NONE
-// UIP_MCAST6_ENGINE_SMRF
-// UIP_MCAST6_ENGINE_ROLL_TM
-// UIP_MCAST6_ENGINE_ESMRF
-// UIP_MCAST6_ENGINE_MPL
-
-
-/* Change this to switch engines. Engine codes in uip-mcast6-engines.h */
-// #ifndef UIP_MCAST6_CONF_ENGINE
-// #define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_SMRF
-// #endif
-
-// #define LOG_INFO false
-
+// Log level config
 #ifdef LOG_INFO
 #define LOG_CONF_LEVEL_IPV6                        LOG_LEVEL_WARN
 #define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_INFO
@@ -73,20 +65,19 @@
 #define LOG_CONF_LEVEL_FRAMER                      LOG_LEVEL_NONE
 #endif
 
-
-
+/* Length of various slot frames */
 #define ORCHESTRA_CONF_EBSF_PERIOD          397
 #define ORCHESTRA_CONF_UNICAST_PERIOD       17
 #define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 23
-
-
 
 /* For Imin: Use 16 over CSMA, 64 over Contiki MAC */
 #define ROLL_TM_CONF_IMIN_1         64
 #define MPL_CONF_DATA_MESSAGE_IMIN  64
 #define MPL_CONF_CONTROL_MESSAGE_IMIN  64
 
+/* Size of the multicast routing table */
 #define UIP_MCAST6_ROUTE_CONF_ROUTES 1
+/* Disable TCP */
 #define UIP_CONF_TCP 0
 
 // Enable Fragementation
@@ -107,12 +98,14 @@
 #define NETSTACK_MAX_ROUTE_ENTRIES   512
 #endif
 
+/* Number of entries in the neighbors table */
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 32
 #endif
 
-
-#define HEAPMEM_CONF_ARENA_SIZE 4096    //2048
+/* To use heap module we need to explicitly set this 
+macro since by default it is only 1 bytes */
+#define HEAPMEM_CONF_ARENA_SIZE 4096
 
 
 #endif /* PROJECT_CONF_H_ */

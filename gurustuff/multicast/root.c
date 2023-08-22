@@ -29,14 +29,22 @@
  * This file is part of the Contiki operating system.
  */
 
+
+/**
+ * \addtogroup multicast
+ * @{
+ */
 /**
  * \file
- *         This node is part of the RPL multicast example. It is an RPL root
- *         and sends a multicast message periodically. For the example to work,
- *         we need one of those nodes.
+ *        Root node for multicast for multicast. This node sends multicast 
+ *        messages in the network periodically.
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *        Guru Mehar Rachaputi
+ * 
+ * \reviewer
+ *        Anders Isberg
+ * 
  */
 
 #include "contiki.h"
