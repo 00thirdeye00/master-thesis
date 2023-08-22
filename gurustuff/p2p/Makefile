@@ -1,18 +1,18 @@
-/**
- * \addtogroup p2p
- * @{
- */
-/**
- * \file
- *    This file implements 'Peer to Peer' (p2p)
- *
- * \author
- *    Guru Mehar Rachaputi
- *	
- * \reviewer
- * 	  Anders Isberg
- *
- */
+#/**
+#* \addtogroup p2p
+# * @{
+# */
+#/**
+# * \file
+# *    This file implements 'Peer to Peer' (p2p)
+# *
+# * \author
+# *    Guru Mehar Rachaputi
+# *	
+# * \reviewer
+# * 	  Anders Isberg
+# *
+# */
 
 CONTIKI_PROJECT = p2pnode
 PROJECT_SOURCEFILES += rxqueue.c p2p.c
@@ -48,9 +48,9 @@ MODULES += $(CONTIKI_NG_SERVICES_DIR)/shell
 MAKE_WITH_ORCHESTRA ?= 1
 
 # RPL storing mode?
-MAKE_WITH_STORING_ROUTING ?= 0
+MAKE_WITH_STORING_ROUTING ?= 0 # 1 for classic
 # Orchestra link-based rule? (Works only if Orchestra & storing mode routing is enabled)
-MAKE_WITH_LINK_BASED_ORCHESTRA ?= 0
+MAKE_WITH_LINK_BASED_ORCHESTRA ?= 0 # 1 for classic
 # Use the Orchestra root rule?
 MAKE_WITH_ORCHESTRA_ROOT_RULE ?= 0
 
@@ -122,6 +122,6 @@ endif
 include $(CONTIKI)/Makefile.include
 
 # to test -g flag is set in CFLAGS
-$(info "hello")
-$(info $(CFLAGS))
+# $(info "hello")
+# $(info $(CFLAGS))
 

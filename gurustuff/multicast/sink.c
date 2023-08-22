@@ -70,9 +70,8 @@ static struct uip_udp_conn *sink_conn;
 static uint16_t count;
 static uint16_t count_u;
 
-static bool recv_cnt[1024];  // static bool recv_count[1024] = {};
-static uint8_t miss_pckt[1024]; //static int for missing packet reqst
-// static uint8_t *miss_pckt; //static int for missing packet reqst
+static bool recv_cnt[1024];     // static bool recv_count[1024] = {};
+static uint8_t miss_pckt[1024]; // static int for missing packet reqst
 static uint8_t prev_packet;
 static uint8_t total_chunks;
 
@@ -114,7 +113,11 @@ AUTOSTART_PROCESSES(&mcast_sink_process);
 
 
 /*
-  funtion: to send unicast request for missing packets
+
+function name   : uni_pckt_req
+Parameters      : missing chunk count
+return          : void
+description     : send request for missing packets
 
 */
 
@@ -124,69 +127,48 @@ uni_pckt_req(uint8_t mcnt)
   uni_req_flag = DATA_RSTFLAG;
   uip_ipaddr_t dest_ipaddr;
 
-  // PRINTF("SINK: Unicast Request\n");
-
-  // if (uni_req_flag != DATA_RECEIVED) {
-  //   uip_udp_packet_sendto(&sink_conn, pack_to_req, strlen(pack_to_req),
-  //                         &sink_conn->ripaddr, UIP_HTONS(sink_conn->rport));
-
-  // PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-  // uint8_t mpckt[mcnt];
-  // uint8_t mpckt[1024];
   uint8_t *mpckt;
-  // char *mpckt;
 
   mpckt = (uint8_t *)heapmem_alloc(mcnt * sizeof(uint8_t));
 
-  // memset(&mpckt, 0, sizeof(uint8_t)*1024);
   memset(mpckt, 0, sizeof(uint8_t)*mcnt);
 
   PRINTF("Missing Packets: ");
 
-  // uint8_t i = 0;
+  /*  */
   for(int i = 0; i < mcnt; i++){
-    // PRINTF("%u", miss_pckt[i]);
     mpckt[i] = miss_pckt[i];
-    // PRINTF("from miss_pckt: %u", miss_pckt[i]);
-    // PRINTF("from mpckt: %u", mpckt[i]);
     PRINTF(" %u", mpckt[i]);
   }
-  // mpckt[i] = '\0';
   
   PRINTF("\n");
-  // PRINTF("MISSING PACKETS IN SINK PACKED\n");
-
-
-  // mpckt = "hello";
-
 
   if (NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
     /* Send to DAG root */
     LOG_INFO("Sending request %u to ", count_u);
     LOG_INFO_6ADDR(&dest_ipaddr);
     LOG_INFO_("\n");
-    // snprintf(str, sizeof(str), "hello %d", count);
     PRINTF("Sending Missing Packets to Root\n");    
     simple_udp_sendto(&udp_conn, mpckt, mcnt, &dest_ipaddr);
     count_u++;
   } else {
     LOG_INFO("Root not reachable yet\n");
   }
-
-// }
 }
 
 
 /*---------------------------------------------------------------------------*/
 
+
 /*
-  funtion: unicast reception
+
+function name   : udp_rx_callback
+Parameters      : structure of udp connection, sender address, sender port,
+                  receiver address, receiver port, data, data length
+return          : void
+description     : receive callback
 
 */
-
-
-//   //settimer for (no_of_packets * packet_delay)
-
 
 static void
 udp_rx_callback(struct simple_udp_connection *c,
@@ -198,10 +180,7 @@ udp_rx_callback(struct simple_udp_connection *c,
                 uint16_t datalen)
 {
 
-  // PRINTF("received response for unicast request:\n");
-  // LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
-
-  PRINTF("Received Response for Missing Packets Requested: ");
+  PRINTF("Received Response for Missing Packets Requested:\n");
 
   packet_data *this;
 
@@ -212,23 +191,10 @@ udp_rx_callback(struct simple_udp_connection *c,
   PRINTF("datalen Received from Root: %u\n", datalen);
   PRINTF(" (msg= %s\n)", this->buf);
 
-
-  // PRINTF("data ptr check s %u \n", *data);
-  // PRINTF("data ptr check s %u \n", *(data+1));
-  // PRINTF("data ptr check s %u \n", *(data+2));
-  // PRINTF("data ptr check s %u \n", *(data+3));
-  // PRINTF("data ptr check s %u \n", *(data+4));
-  // PRINTF("data ptr check s %u \n", *(data+5));
-  // PRINTF("data ptr check s %u \n", *(data+6));
-  // PRINTF("data ptr check s %u \n", *(data+7));
-  // PRINTF("data ptr check s %u \n", *(data+8));
-
   PRINTF("seq_num: ");
 
-  for(int i = 0; i < datalen; i++){
-    // PRINTF("inside unicast sink for\n");
+  for(int i = 0; i < 1; i++){     // i < datalen corrected to 1
     if(recv_cnt[this->seq_num] != true){ //-|
-      // PRINTF("unicast response received for %u packet \n", data[i]);
       recv_cnt[this->seq_num] = true;    //-|- uncomment when data sent from root
     }                              //-|
     PRINTF(" %u", this->seq_num);
@@ -237,7 +203,6 @@ udp_rx_callback(struct simple_udp_connection *c,
   PRINTF(" from ");
 
   LOG_INFO_6ADDR(sender_addr);
-  // LOG_INFO_("\n");
 
 #if LLSEC802154_CONF_ENABLED
   LOG_INFO_(" LLSEC LV:%d", uipbuf_get_attr(UIPBUF_ATTR_LLSEC_LEVEL));
@@ -253,38 +218,32 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 /*
 
-function: check if all the packets are received
+function name   : recv_data_check
+Parameters      : total chunks
+return          : void
+description     : check if all the chunks are received
 
 */
-
 
 static void
 recv_data_check(uint8_t chnks)
 {
 
-  // static struct timer periodic_timer;
-  uint8_t cnt = 0;
+  uint8_t cnt = 0; // missing chunk counter
 
-  // timer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
-
-  // miss_pckt = heapmem_alloc(chnks);
   memset(miss_pckt, 0, sizeof(uint8_t)*chnks);
   
-  // memset(miss_pckt, 0, sizeof(uint8_t)*1024);
-  // memset(&mpckt, 0, sizeof(uint8_t)*1024);
-
-
-
-
-  // if(recv_cnt[chnks] == true){
   PRINTF("Missing Packet:");
 
-  for (int i = 0; i < chnks; i++) {
-    // PRINTF("Missing Packet:");
+  #ifdef UNIREQ_ALLDATA
+  chnks = DATA_CHNKS;
+  #endif
+
+  /* check for missing chunks */
+  for (int i = 0; i < chnks; i++) { 
     if (recv_cnt[i] != true) {
-      miss_pckt[cnt++] = i;
-      uni_req_flag = DATA_MISSING;  //data missing flag is set
-      // uni_pckt_req(i);
+      miss_pckt[cnt++] = i; 
+      uni_req_flag = DATA_MISSING;  // data missing flag is set
       PRINTF(" %u", i);
     }
   }
@@ -298,49 +257,40 @@ recv_data_check(uint8_t chnks)
   PRINTF("\n");
 
   (cnt > 0) ? (PRINTF(" --> cnt: %u\n", cnt)) : (PRINTF("All Packets Received\n"), system_state_flag = STATE_COMPLETED);
-    // PRINTF(" --> cnt: %u\n", cnt);
 
-  // #if (UIP_MAX_ROUTES != 0)
-  //   PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
-  // #endif
-
-  // }
-
-  // if(timer_expired(&periodic_timer)){
-    // PRINTF("recv timer expired \n");
     if (uni_req_flag == DATA_MISSING && mult_recv_flag == TIME_EXPD && cnt > 0) { //if the data missing flag is set
       mult_recv_flag = TIME_RSET;
       PRINTF("Data Missing Flag Checked \n");
       uni_pckt_req(cnt);
-      // timer_reset(&periodic_timer);
-      // heapmem_free(miss_pckt);
     }
-  // }
 
   return;
 
 }
 
 
-
-
-
-
 /*---------------------------------------------------------------------------*/
+/*
+
+function name   : tcpip_handler
+Parameters      : void
+return          : void
+description     : handle incomming data packets
+
+*/
+
+
 static void
 tcpip_handler(void)
 {
 
-  // static struct stimer periodic_timer;
-
-  // stimer_set(&periodic_timer, 30 * 60 * SEND_INTERVAL);
-  // static uint8_t total_chunks;
+PRINTF("inside tcpip handler\n");
 
   if (uip_newdata()) {
 
-    packet_data *packet_data_recv = (packet_data *)uip_appdata;
+    PRINTF("inside tcpip handler new data\n");
 
-    // PRINTF("test seq num: %u\n", packet_data_recv->seq_num);
+    packet_data *packet_data_recv = (packet_data *)uip_appdata;
 
     prev_packet = packet_data_recv->seq_num;
 
@@ -354,25 +304,9 @@ tcpip_handler(void)
       }
     } else {
       PRINTF("duplicate %u packet received \n", packet_data_recv->seq_num);
-      // return;
     }
 
-
-    // packet_data_recv->buf[MAX_PAYLOAD_LEN] = '\0';
-
-    // if (recv_cnt[packet_data_recv->seq_num]) {
-    //   PRINTF("seq num %u is set to %u\n", packet_data_recv->seq_num,
-    //          recv_cnt[packet_data_recv->seq_num]);
-    // }
-
-
-
     count++;
-    // PRINTF("In: [0x%08lx], TTL %u, total %u\n",
-    //     (unsigned long)uip_ntohl((unsigned long) *((uint32_t *)(uip_appdata))),
-    //     UIP_IP_BUF->ttl, count);
-
-    // PRINTF("In: %s, total %u\n", (char *)uip_appdata, count);
 
     PRINTF("%lu bytes\n", (unsigned long)sizeof(packet_data));
 
@@ -380,7 +314,6 @@ tcpip_handler(void)
     total_chunks = packet_data_recv->tot_chnks;
     PRINTF("total chunks: %u\n", packet_data_recv->tot_chnks);
     PRINTF("In: %s, total %u\n", packet_data_recv->buf, count);
-
   }
 
   return;
@@ -423,11 +356,6 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
 
   /* unicast connection */
   static struct etimer periodic_timer;
-  // static struct stimer periodic_timer;
-  // static unsigned count;
-  // static char str[32];
-  // uip_ipaddr_t dest_ipaddr;
-  /* unicast connection */
 
   system_state_flag = STATE_IDLE;
 
@@ -436,11 +364,6 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   // /* Initialize UDP connection for unicast */
   simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
                       UDP_SERVER_PORT, udp_rx_callback);
-
-
-  // for (int i = 0; i < 1024; i++) {
-  //   recv_cnt[i] = false;
-  // }
 
   PRINTF("Multicast Engine: '%s'\n", UIP_MCAST6.name);
 
@@ -465,7 +388,12 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
   PRINTF(" local/remote port %u/%u\n",
          UIP_HTONS(sink_conn->lport), UIP_HTONS(sink_conn->rport));
 
-  etimer_set(&periodic_timer, UNI_REQ_START_SEND_INTERVAL + ((random_rand() % node_id) + (random_rand() % NUM_OF_NODES)) * CLOCK_SECOND); //30 to 15 ((random_rand() % node_id) + 1) * CLOCK_SECOND)
+
+  // RANDOM_RAND_MAX is 65535U, so range is 0 - 65535
+
+  etimer_set(&periodic_timer, UNI_REQ_START_SEND_INTERVAL + 
+  ((random_rand() % node_id) + 
+  (random_rand() % NUM_OF_NODES)) * CLOCK_SECOND); //30 to 15 ((random_rand() % node_id) + 1) * CLOCK_SECOND)
   mult_recv_flag = TIME_RSET;
 
   while (1) {
@@ -486,7 +414,7 @@ PROCESS_THREAD(mcast_sink_process, ev, data)
 
     PROCESS_YIELD();
     if (ev == tcpip_event) {
-      // system_state_flag = STATE_DOWNLOADING;
+      PRINTF("calling tcpip handler\n");
       tcpip_handler();
     }
   }

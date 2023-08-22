@@ -12,3 +12,8 @@ p2pdesign/
 
 # ignore build/object files
 build/
+
+# ignore zip files
+*.zip
+
+

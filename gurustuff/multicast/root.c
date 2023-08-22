@@ -58,19 +58,7 @@
 // #include "net/routing/routing.h"
 
 
-// #define MAX_PAYLOAD_LEN 64
 #define MCAST_SINK_UDP_PORT 3001 /* Host byte order */
-// #define SEND_INTERVAL CLOCK_SECOND /* clock ticks */
-
-
-// #define DATA_LEN    (strlen(seq_idd))
-// #define DATA_CHNKS  (DATA_LEN / MAX_PAYLOAD_LEN)
-
-
-
-
-// #define ITERATIONS DATA_CHNKS /* messages */
-
 
 
 /* Start sending messages START_DELAY secs after we start so that routing can
@@ -98,16 +86,15 @@ typedef enum{
 
 mult_sendtim_t mult_send_flag;
 
-
-typedef struct ureq_mpckts_s{
-  struct ureq_mpckts_s *next;
-  struct ureq_mpckts_s *previous;
-  uip_ipaddr_t send_addr;
-  uint8_t *data;
-  uint16_t datalen;
+/* unicast request queue structure */
+typedef struct ureq_mpckts_s{ 
+  struct ureq_mpckts_s *next;       // next item
+  struct ureq_mpckts_s *previous;   // previous item
+  uip_ipaddr_t send_addr;           // requested node address
+  uint8_t *data;                    // missing data ID number's
+  uint16_t datalen;                 // data length
 } ureq_mpckts_t;
 
-// static ureq_mpckts_t *ureq_q;
 ureq_mpckts_t *ureq_q;
 
 
@@ -118,12 +105,6 @@ typedef struct demo_struct_s {
 } demo_struct_t;
 
 #define DATA_STRUCTURE_DEMO_ELEMENT_COUNT 4
-// static demo_struct_t elements[DATA_STRUCTURE_DEMO_ELEMENT_COUNT];
-// static demo_struct_t *elements;
-
-
-//"063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100fsffdasfas"
-
 
 
 // static char buf[MAX_PAYLOAD_LEN];
@@ -179,9 +160,8 @@ typedef struct demo_struct_s {
 
 
 
-// static uint32_t seq_id;
-static uint8_t seq_id;
-static uint8_t q_elem;
+static uint8_t seq_id;  // sequence id
+static uint8_t q_elem;  // queue elem counter
 
 
 
@@ -199,82 +179,16 @@ AUTOSTART_PROCESSES(&rpl_root_process, &queue_proc);
 /*---------------------------------------------------------------------------*/
 
 QUEUE(ureq_queue);
-QUEUE(demo_queue);
 
-
-/*
-
-function: unicast reception n/a
-brief: prepare missing packet data using sequence/packet num
-
-*/
-
-// static void
-// prepare_ucast(uint8_t pckt_num) {
-
-
-//   PRINTF("function to prepare ucast reception and response");
-
-//   //start_byte = seq_idd[MAX_PAYLOAD_LEN * pckt_num]
-//   //end_byte = seq_idd[MAX_PAYLOAD_LEN * pckt_num] + MAX_PAYLOAD_LEN
-// }
 
 /*---------------------------------------------------------------------------*/
 
 /*
-static void
-queue_check_enq(void){
 
-  demo_struct_t *elements;
-
-  printf("=====\n");
-  printf("Queue\n");
-
-  elements = (demo_struct_t *)heapmem_alloc(sizeof(demo_struct_t));
-
-  elements->next = NULL;
-  // elements->previous = NULL;
-  elements->value = 10;
-  queue_enqueue(demo_queue, elements);
-  printf("Enqueue: 0x%04x\n", elements->value);
-
-
-  printf("Peek: 0x%04x\n",
-         ((demo_struct_t *)queue_peek(demo_queue))->value);
-
-}
-
-
-
-static void
-queue_check_deq(void){
-
-  demo_struct_t *this;
-
-  if(!queue_is_empty(demo_queue)){
-  // for(int i = 0; i <= DATA_STRUCTURE_DEMO_ELEMENT_COUNT; i++) {
-    this = queue_dequeue(demo_queue);
-    printf("Dequeue: ");
-    if(this == NULL) {
-      printf("(queue underflow)\n");
-    } else {
-      printf("0x%04lx\n", (unsigned long)this->value);
-      heapmem_free(this);
-    }
-  }
-
-  printf("Queue is%s empty\n",
-         queue_is_empty(demo_queue) ? "" : " not");
-}
-
-*/
-
-/*---------------------------------------------------------------------------*/
-
-
-/*
-
-function: create data packet
+function name   : create_datapckt
+Parameters      : pointer to packet_data
+return          : chunk number
+description     : prepare data packet for missing chunk and return packet
 
 */
 
@@ -287,56 +201,61 @@ create_datapckt(uint8_t chnk){
   packet_data_send.seq_num = chnk;
   packet_data_send.tot_chnks = DATA_CHNKS;
 
-
-  // memset(buf, 0, MAX_PAYLOAD_LEN);
-
   memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 
-
-  // for(int i = 0; i < DATA_CHNKS; i++){
-  // for (int i = 0, k = chnk; seq_idd[k] != '\0' && k < (chnk+MAX_PAYLOAD_LEN); i++, k++) {
-  //   packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
-  // }
-
-  for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {
-    packet_data_send.buf[i] = seq_idd[k];
+  for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && 
+    k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {   // to calculate offset for a chunk
+    packet_data_send.buf[i] = seq_idd[k];         // copy data stream to packet buffer
   }  
 
-  // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
   PRINTF(" (msg= %s)", packet_data_send.buf);
 
   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send));
   PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
 
-  return (&packet_data_send);
+  return (&packet_data_send);     // return created data packet
 
 }
 
 
 /*---------------------------------------------------------------------------*/
+/*
 
+function name   : unicast_send
+Parameters      : void
+return          : chunk number, requested node address
+description     : send missing data
 
-
+*/
 
 static void
 unicast_send(uint8_t chnk, uip_ipaddr_t send_addr){
   
   static packet_data *packet_data_send_u;
 
-  packet_data_send_u = (void *)create_datapckt(chnk);
+  packet_data_send_u = (void *)create_datapckt(chnk);   // create missing data chunk packet
 
 
 #if WITH_SERVER_REPLY
   /* send back the same string to the client as an echo reply */
   LOG_INFO("Sending Response to Sink\n");
-  // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
   simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data), &send_addr);
 #endif /* WITH_SERVER_REPLY */
 
 }
 
+/*---------------------------------------------------------------------------*/
 
+/*
+
+function name   : uni_queue_deq
+Parameters      : void
+return          : void
+description     : unicast queue dequeue, to dequeue each item to process
+                  requested missing data
+
+*/
 
 static void
 uni_queue_deq(){
@@ -345,23 +264,19 @@ uni_queue_deq(){
 
   ureq_mpckts_t *dq;
 
-  // printf("queue peek datalen: %u\n", ((ureq_mpckts_t *)queue_peek(ureq_queue))->datalen);
 
-
-  if(!queue_is_empty(ureq_queue)){
+  if(!queue_is_empty(ureq_queue)){                    // if queue is not empty
     PRINTF("Queue is not Empty\n");
-    dq = queue_dequeue(ureq_queue);
-    // if(q_elem > 0) q_elem--;
+    dq = queue_dequeue(ureq_queue);                   // dequeue element
     if(dq == NULL){
       PRINTF("Queue Underflow \n");
     } else {
-      q_elem--;
+      q_elem--;                                       // decrement q_elem by 1
       PRINTF("Dequeued datalen: %u\n", dq->datalen);
       PRINTF("Dequeue data: ");
-      for(int i = 0; i < dq->datalen; i++){
-        PRINTF(" %u", dq->data[i]);
-        unicast_send(dq->data[i], dq->send_addr);
-        // PRINTF("")
+      for(int i = 0; i < dq->datalen; i++){           // loop for data length
+        PRINTF(" %u", dq->data[i]);             
+        unicast_send(dq->data[i], dq->send_addr);     // send missing chunk
       }
 
       heapmem_free(dq->data);
@@ -375,23 +290,32 @@ uni_queue_deq(){
 }
 
 
+/*-------------------------------------------------------------------------------*/
 
+/*
+
+function name   : uni_queue_enq
+Parameters      : senders address, data length, data
+return          : void
+description     : unicast queue enqueue, to enque missing data's seq number
+                  received from nodes
+
+*/
 
 static void
 uni_queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data){
   PRINTF("Enqueue in Progress\n");
 
-  // ureq_mpckts_t *ureq_q;
-
+  /* allocate memory for queue item size */
   ureq_q = (ureq_mpckts_t *)heapmem_alloc(sizeof(ureq_mpckts_t));
 
   if(ureq_q == NULL){
     PRINTF("Failed to Allocate Memory\n");
     // return 0;
   }
-
   ureq_q->next = NULL;
 
+  /* copy sender address to queue */
   uip_ipaddr_copy(&ureq_q->send_addr, sender_addr);
 
   ureq_q->data = (uint8_t *)heapmem_alloc(dlen * sizeof(uint8_t));
@@ -428,63 +352,19 @@ uni_queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *dat
 }
 
 
-
-
-/*---------------------------------------------------------------------------*/
-
+/*-------------------------------------------------------------------------------*/
 
 /*
 
-function: create data packet
-
+function name   : udp_rx_callback
+Parameters      : udp connection, sender address, sender port, received address,
+                  receiver port, data, datalen
+return          : void
+description     : callback is triggered when there is a udp data sent to root
+                  address and the received data is enqueued
 */
 
-
-// static packet_data*
-// create_datapckt(uint8_t chnk){
-
-//   static packet_data packet_data_send;
-
-//   packet_data_send.seq_num = chnk;
-//   packet_data_send.tot_chnks = DATA_CHNKS;
-
-
-//   // memset(buf, 0, MAX_PAYLOAD_LEN);
-
-//   memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
-
-
-//   // for(int i = 0; i < DATA_CHNKS; i++){
-//   // for (int i = 0, k = chnk; seq_idd[k] != '\0' && k < (chnk+MAX_PAYLOAD_LEN); i++, k++) {
-//   //   packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
-//   // }
-
-//   for (int i = 0, k = (chnk * MAX_PAYLOAD_LEN); i < MAX_PAYLOAD_LEN && k < ((chnk+1)*MAX_PAYLOAD_LEN); i++, k++) {
-//     packet_data_send.buf[i] = seq_idd[k];
-//   }  
-
-//   // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
-//   PRINTF(" (msg= %s)", packet_data_send.buf);
-
-//   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
-//   PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send));
-//   PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
-
-//   return (&packet_data_send);
-
-// }
-
-
-
-
-/*---------------------------------------------------------------------------*/
-
-
-/*
-
-function: unicast request receive and response
-
-*/
+/*-------------------------------------------------------------------------------*/
 
 static void
 udp_rx_callback(struct simple_udp_connection *c,
@@ -496,90 +376,24 @@ udp_rx_callback(struct simple_udp_connection *c,
                 uint16_t datalen)
 {
   
-  static uint8_t i;
-  // static packet_data *packet_data_send_u;
+  // static uint8_t i;
   
-
-// typedef struct ureq_mpckts_s{
-//   struct ureq_mpckts_s *next;
-//   struct ureq_mpckts_s *previous;
-//   uip_ipaddr_t send_addr;
-//   uint8_t *data;
-//   uint16_t datalen
-// }ureq_mpckts_t;
-
+  /* enque received item to unicast request queue  */
   uni_queue_enq(sender_addr, datalen, data);
-
-
-  // ureq_q = (ureq_mpckts_t *)heapmem_alloc(sizeof(ureq_mpckts_t));
-
-  // if(ureq_q == NULL){
-  //   PRINTF("failed to allocate memory\n");
-  //   // return 0;
-  // }
-
-  // ureq_q->next = NULL;
-
-  // uip_ipaddr_copy(&ureq_q->send_addr, sender_addr);
-
-  // // ureq_q->data = (uint8_t *)heapmem_alloc(datalen * sizeof(uint8_t));
-
-  // // memcpy(ureq_q->data, data, datalen);
-
-  // ureq_q->datalen = datalen;
-
-  // PRINTF("printing from queue created: \n");
-  // // for(int i = 0; i < ureq_q->datalen; i++){
-  // //   PRINTF(" %u", ureq_q->data[i]);
-  // // }
-
-  // PRINTF("\nprinting from queue created complete \n");
-
-  // queue_enqueue(ureq_queue, ureq_q);
-  // printf("Queue is%s empty\n",
-  //        queue_is_empty(ureq_queue) ? "" : " not");
-
-
-  // printf("queue peek datalen: %u\n", ((ureq_mpckts_t *)queue_peek(ureq_queue))->datalen);
-
-  // uni_queue_deq();
-
 
   PRINTF("Request at Root Received:\n");
   PRINTF("datelen Received at Root: %u \n", datalen);
 
-  // LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
+  /* print missing packets received from node */
   PRINTF("Missing Packets Received at Root:");
-  // PRINTF("%u", *data);
-
   for(int i = 0; i < datalen; i++){
-    // PRINTF("inside for \n");
     PRINTF(" %u", data[i]);
   }
-  // PRINTF("%s", (char *)data);
-
   PRINTF(" from ");
-
   LOG_INFO_6ADDR(sender_addr);
   LOG_INFO_("\n");
 
-
-
-//   packet_data_send_u = (void *)create_datapckt(ureq_q->data[0]);
-
-
-// #if WITH_SERVER_REPLY
-//   /* send back the same string to the client as an echo reply */
-//   LOG_INFO("Sending response to sink.\n");
-//   // simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
-//   simple_udp_sendto(&udp_conn, packet_data_send_u, sizeof(packet_data_send_u), sender_addr);
-// #endif /* WITH_SERVER_REPLY */
-
-
-
-  // heapmem_free(ureq_q->data);
-  // heapmem_free(ureq_q);
-  i++;
+  // i++;
 
 }
 
@@ -589,16 +403,10 @@ udp_rx_callback(struct simple_udp_connection *c,
 static void
 multicast_send(void)
 {
-  // // uint8_t id;
-  // uint8_t len;  //length of the data
-  // uint8_t chks; //number of chunks
-  // // uint8_t pkts; //number of packets
 
-  // len = strlen(seq_idd);
-
-  // chks = len/MAX_PAYLOAD_LEN;
-
-
+  #ifdef UNIREQ_ALLDATA
+    return;
+  #endif
 
   static uint8_t i;
   static packet_data packet_data_send;
@@ -609,15 +417,8 @@ multicast_send(void)
     packet_data_send.seq_num = seq_id;
     packet_data_send.tot_chnks = DATA_CHNKS;
 
-
-
-
-    // memset(buf, 0, MAX_PAYLOAD_LEN);
-
     memset(packet_data_send.buf, 0, sizeof(uint8_t)*MAX_PAYLOAD_LEN);
 
-
-    // for(int i = 0; i < DATA_CHNKS; i++){
     for (int k = 0; seq_idd[k] != '\0' && k < MAX_PAYLOAD_LEN; k++) {
       packet_data_send.buf[k] = seq_idd[k + (i * MAX_PAYLOAD_LEN)];
     }
@@ -626,7 +427,6 @@ multicast_send(void)
     PRINT6ADDR(&mcast_conn->ripaddr);
     PRINTF(" Local Port %u,", uip_ntohs(mcast_conn->lport));
     PRINTF(" Remote Port %u,", uip_ntohs(mcast_conn->rport));
-    // PRINTF(" (msg=0x%08"PRIx32")", uip_ntohl(*((uint32_t *)buf)));
     PRINTF(" (msg= %s)", packet_data_send.buf);
 
     PRINTF(" %lu bytes", (unsigned long)sizeof(packet_data_send.buf));
@@ -634,7 +434,10 @@ multicast_send(void)
     PRINTF(" %lu bytes\n", (unsigned long)sizeof(seq_id));
 
     seq_id++;
+
+    #ifndef UNIREQ_ALLDATA
     uip_udp_packet_send(mcast_conn, &packet_data_send, sizeof(packet_data_send));
+    #endif
 
     i++;
 
@@ -677,11 +480,11 @@ PROCESS_THREAD(rpl_root_process, ev, data)
   PROCESS_BEGIN();
 
   queue_init(ureq_queue);
-  queue_init(demo_queue);
 
   PRINTF("Multicast Engine: '%s'\n", UIP_MCAST6.name);
 
   NETSTACK_ROUTING.root_start();
+
 
   prepare_mcast();
 
@@ -694,18 +497,9 @@ PROCESS_THREAD(rpl_root_process, ev, data)
   etimer_set(&et, START_DELAY);
   while (1) {
 
-    // ureq_mpckts_t *this;
 
-
-    // PRINTF("in while \n");
-    // uni_queue_deq();
-
-    // queue_check_enq();
-    // queue_check_deq();
-
-    // PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
-
-    if((etimer_expired(&et) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) || mult_send_flag == TIME_SET){
+    if((etimer_expired(&et) && (uip_ds6_route_num_routes() > NUM_OF_NODES)) || 
+      mult_send_flag == TIME_SET){
       if(!(mult_send_flag == TIME_SET)){
         etimer_set(&et, SEND_INTERVAL);
         mult_send_flag = TIME_SET;
@@ -720,22 +514,13 @@ PROCESS_THREAD(rpl_root_process, ev, data)
     PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
 
     if (etimer_expired(&et) && mult_send_flag == TIME_SET) {
-      // if(uip_ds6_route_num_routes() == NUM_OF_NODES){ //wait until all the nodes are routed
-        // uni_queue_deq();
-        if (seq_id == ITERATIONS) {
-          mult_send_flag = TIME_RSET;
-          etimer_stop(&et);
-          // etimer_set(&et, (SEND_INTERVAL));
+        if (seq_id == ITERATIONS) {        
+          mult_send_flag = TIME_RSET;       
+          etimer_stop(&et);                 // stop timer
         } else {
-          // PRINTF("Routing Entries: %u\n", uip_ds6_route_num_routes());
-// #if 0
-          multicast_send();
-// #endif
-          etimer_set(&et, (SEND_INTERVAL));
+          multicast_send();                 // multicast data
+          etimer_set(&et, (SEND_INTERVAL)); // set timer interval
         }
-      // } else {
-        // etimer_set(&et, (SEND_INTERVAL));
-      // }
     }
   }
   PROCESS_END();
@@ -753,7 +538,6 @@ PROCESS_THREAD(queue_proc, ev, data)
   etimer_set(&et, QUE_START_INTERVAL);
   while(1){
 
-    // PRINTF("In Queue Process Yield\n");
     PROCESS_YIELD();
     if(etimer_expired(&et) && !queue_is_empty(ureq_queue))
     {
@@ -761,10 +545,8 @@ PROCESS_THREAD(queue_proc, ev, data)
       uni_queue_deq();
     }
 
-    etimer_set(&et, 500);
+    etimer_set(&et, 500); // queue timer set for 500ms
   }
-
-  // printf("queue process\n");
 
   PROCESS_END();
 }

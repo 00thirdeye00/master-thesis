@@ -205,8 +205,8 @@
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
-      <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.LEDVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <viewport>1.5672729161518115 0.0 0.0 1.5672729161518115 188.29199884547904 127.42579961059599</viewport>
     </plugin_config>
     <bounds x="1" y="1" height="512" width="647" />
@@ -214,11 +214,11 @@
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
-      <filter>orchestra</filter>
+      <filter>ID:5$</filter>
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="514" y="160" height="464" width="819" z="1" />
+    <bounds x="513" y="157" height="638" width="821" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Notes

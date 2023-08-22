@@ -51,9 +51,9 @@
 
 
 /* Change this to switch engines. Engine codes in uip-mcast6-engines.h */
-#ifndef UIP_MCAST6_CONF_ENGINE
-#define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_MPL
-#endif
+// #ifndef UIP_MCAST6_CONF_ENGINE
+// #define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_SMRF
+// #endif
 
 // #define LOG_INFO false
 

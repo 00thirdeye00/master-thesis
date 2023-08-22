@@ -367,9 +367,9 @@
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.LEDVisualizerSkin</skin>
-      <viewport>1.5785316174906976 0.0 0.0 1.5785316174906976 223.6215558102036 166.6772528077571</viewport>
+      <viewport>1.6449108957646654 0.0 0.0 1.6449108957646654 182.74615456735063 148.88829625916023</viewport>
     </plugin_config>
-    <bounds x="1" y="1" height="520" width="597" />
+    <bounds x="1" y="1" height="490" width="520" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -378,7 +378,7 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="496" y="160" height="502" width="837" z="2" />
+    <bounds x="496" y="110" height="681" width="837" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Notes
@@ -386,7 +386,7 @@
       <notes>Enter notes here</notes>
       <decorations>true</decorations>
     </plugin_config>
-    <bounds x="680" y="0" height="160" width="653" z="3" />
+    <bounds x="680" y="0" height="160" width="653" z="2" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.RadioLogger
@@ -395,6 +395,6 @@
       <formatted_time />
       <analyzers name="6lowpan-pcap" />
     </plugin_config>
-    <bounds x="32" y="495" height="300" width="500" z="1" />
+    <bounds x="32" y="495" height="300" width="500" z="3" />
   </plugin>
 </simconf>

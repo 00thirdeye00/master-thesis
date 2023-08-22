@@ -128,24 +128,7 @@
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="516" y="160" height="440" width="817" z="1" />
-  </plugin>
-  <plugin>
-    org.contikios.cooja.plugins.TimeLine
-    <plugin_config>
-      <mote>0</mote>
-      <mote>1</mote>
-      <mote>2</mote>
-      <mote>3</mote>
-      <mote>4</mote>
-      <mote>5</mote>
-      <mote>6</mote>
-      <showRadioRXTX />
-      <showRadioHW />
-      <showLEDs />
-      <zoomfactor>500.0</zoomfactor>
-    </plugin_config>
-    <bounds x="0" y="663" height="166" width="1333" z="3" />
+    <bounds x="516" y="160" height="623" width="817" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Notes

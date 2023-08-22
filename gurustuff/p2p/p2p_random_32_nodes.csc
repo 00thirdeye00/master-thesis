@@ -2,7 +2,7 @@
 <simconf version="2022112801">
   <simulation>
     <title>p2p_random_32_nodes</title>
-    <randomseed>123456</randomseed>
+    <randomseed>123458</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       org.contikios.cooja.radiomediums.UDGM
@@ -99,7 +99,7 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="74.21972210133383" y="167.21393707283795" z="82.28795036665102" />
+          <pos x="71.95955914124441" y="167.21393707283795" z="82.28795036665102" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
@@ -179,7 +179,7 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="193.26740973364315" y="150.21276116431554" z="73.43033316946543" />
+          <pos x="203.43814305404555" y="153.6030056044497" z="73.43033316946543" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
@@ -289,7 +289,7 @@
       <mote>
         <interface_config>
           org.contikios.cooja.interfaces.Position
-          <pos x="158.59758974679917" y="59.49841924995235" z="89.83585785379049" />
+          <pos x="161.42279344691096" y="53.848011849728785" z="89.83585785379049" />
         </interface_config>
         <interface_config>
           org.contikios.cooja.contikimote.interfaces.ContikiMoteID
@@ -367,18 +367,18 @@
       <skin>org.contikios.cooja.plugins.skins.TrafficVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.LEDVisualizerSkin</skin>
-      <viewport>1.769783891972876 0.0 0.0 1.769783891972876 62.2016829261102 18.783172252589072</viewport>
+      <viewport>1.82847981670853 0.0 0.0 1.82847981670853 45.47575734306239 17.359262999126884</viewport>
     </plugin_config>
-    <bounds x="1" y="1" height="481" width="543" />
+    <bounds x="1" y="1" height="493" width="522" z="2" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
-      <filter>Routing</filter>
+      <filter>Data chunk</filter>
       <formatted_time />
       <coloring />
     </plugin_config>
-    <bounds x="486" y="160" height="476" width="847" z="1" />
+    <bounds x="486" y="60" height="719" width="847" z="1" />
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Notes
@@ -386,6 +386,15 @@
       <notes>Enter notes here</notes>
       <decorations>true</decorations>
     </plugin_config>
-    <bounds x="680" y="0" height="160" width="653" z="2" />
+    <bounds x="680" y="0" height="160" width="653" z="3" />
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.RadioLogger
+    <plugin_config>
+      <split>150</split>
+      <formatted_time />
+      <analyzers name="6lowpan-pcap" />
+    </plugin_config>
+    <bounds x="54" y="452" height="300" width="500" />
   </plugin>
 </simconf>

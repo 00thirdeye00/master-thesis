@@ -74,6 +74,7 @@
 #define UDP_PORT_3	5432
 #define UDP_PORT_4	5678
 
+#define CALLBACK_TIMER	30
 // static uint8_t node_upload_nbr;
 // static uint8_t node_download_nbr;
 
@@ -85,7 +86,7 @@ uint8_t my_rank = RANK_0;
 nnode_state_t nbr_list[NEIGHBORS_LIST];
 
 extern int tsch_queue_global_packet_count(void);
-extern bool is_nbr_rank_high(void);
+// extern bool is_nbr_rank_high(void);
 
 // static const char seq_idd[] = "063lPLXusS0KbZcuAgXFqXIuhVFxT7PbPdA9CifI7gBC4ia4H0uQiccRRLOaj100"
 //                       "1Yo8BjcgFF8aFtHLHZdRKNxliQEa8ozq38YP8dSXIwbAw2fMx46f8Xc3CmMou101"
@@ -209,6 +210,9 @@ static void callback_interest_informing (void *ptr_a) {
 		LOG_INFO("inside callback_interest_informing\n");
 		LOG_INFO("control message: %d\n", ptr->nnode_ctrlmsg);
 
+		// if(ptr->nnode_ctrlmsg == ACKHANDSHAKE_CTRL_MSG)
+		// 	return;
+
 		switch (ptr->nnode_ctrlmsg) {
 		case UNCHOKE_CTRL_MSG:
 			LOG_INFO("switch callback_interest_informing\n");
@@ -218,11 +222,12 @@ static void callback_interest_informing (void *ptr_a) {
 			static struct ctimer t;
 			if (ctimer_expired(&t)) {
 				ptr->nnode_ctrlmsg = NONE_CTRL_MSG;
-				ctimer_set(&t, CLOCK_SECOND * 500, callback_interest_informing, ptr);
+				ctimer_set(&t, CLOCK_SECOND * CALLBACK_TIMER, callback_interest_informing, ptr);
 			}
 			else
 				// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
 				PRINTF(“INTEREST TIMER CANNOT START: NODE: %u\n”, n_idx);
+			break;
 		default:
 			ptr->nnode_state = HANDSHAKED_STATE;
 			ptr->nnode_interest = INTEREST_FALSE;
@@ -267,13 +272,15 @@ static void callback_request (void *ptr_a) {
 			if (ptr->nnode_state == DOWNLOADING_STATE && 
 				ptr->chunk_block == 0x0f) {
 				LOG_INFO("node state: %d\n", ptr->nnode_state);
+				LOG_INFO("chunk block: %d\n", ptr->chunk_block);
 				if(chunk_cnt[ptr->chunk_requested] != true){
 					chunk_cnt[ptr->chunk_requested] = true;
 				}
 				node_download_nbr -= (node_download_nbr > 0) ? 1 : 0;	// if node_download_nbr > 0 then -1 otherwise -0
 				/* do nothing */
 			} else {
-				ptr->failed_dlreq = 1;
+				ptr->failed_dlreq += 1;
+				node_download_nbr -= (node_download_nbr > 0) ? 1 : 0;
 				// ptr->nnode_state = HANDSHAKED_STATE;
 				// ptr->nnode_interest = INTEREST_FALSE;
 			}
@@ -495,13 +502,24 @@ void prepare_request(msg_pckt_t *d_pckt) {
  *
  *
  */
+
+// data_message? sizeof(msg_pckt_t) : 5;
+
 static bool
 unicast_send(const msg_pckt_t *pckt, const uip_ipaddr_t *send_addr) {
+
+
 	if (pckt != NULL && send_addr != NULL) {
 
 		if(tsch_queue_global_packet_count() < (QUEUEBUF_CONF_NUM - (sizeof(msg_pckt_t)/80 + 1))) {
+			msg_pckt_t *this;
+			this = (msg_pckt_t *)pckt;
+
+			uint8_t datalen = (this->ctrl_msg == LAST_CTRL_MSG)? sizeof(msg_pckt_t) : 6;
+
 			PRINTF("tsch queue %u\n", tsch_queue_global_packet_count());
-			simple_udp_sendto(&p2p_socket, (void *)pckt, sizeof(msg_pckt_t), send_addr);
+			// simple_udp_sendto(&p2p_socket, (void *)pckt, sizeof(msg_pckt_t), send_addr);
+			simple_udp_sendto(&p2p_socket, (void *)pckt, datalen, send_addr);
 			return true;
 		} else {
 			LOG_ERR("tsch queue reset\n");
@@ -604,7 +622,6 @@ uint8_t missing_random_chunk(void) {
  *
  *
  */
-
 void nnode_init(int node_i) {
 
 	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
@@ -644,6 +661,47 @@ void nnode_init(int node_i) {
 	LOG_INFO("Exit: node init\n");
 }
 
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: initialize function to populate each neighbor with
+ * 			default values
+ *
+ * params: neighbor number
+ *
+ * return: void
+ *
+ *
+ */
+// void nnode_reset_init(uint8_t node_i){
+
+// 	LOG_INFO("Enter: node reset init\n");
+
+// 	LOG_INFO("nbr node %d: ", node_i);
+
+// 	LOG_INFO_6ADDR(&nbr_list[node_i].nnode_addr);
+
+// 	LOG_INFO(" initialized\n");
+
+
+// 	nbr_list[node_i].nnode_state = IDLE_STATE;
+// 	nbr_list[node_i].nnode_ctrlmsg = NONE_CTRL_MSG;
+// 	nbr_list[node_i].nnode_interest = INTEREST_NONE;
+// 	nbr_list[node_i].nnode_choke = CHOKE_NONE;
+// 	nbr_list[node_i].nnode_rank = RANK_0;	// set default rank to zero
+// 	nbr_list[node_i].data_chunks = 0;
+// 	nbr_list[node_i].chunk_requested = 0xFF;	// to avoid init with 0 bug, where 0 can be chunk
+// 	nbr_list[node_i].chunk_block = 0;
+// 	nbr_list[node_i].failed_dlreq = 0;
+// 	nbr_list[node_i].chunk_interested = 0xFF;
+// 	nbr_list[node_i].num_upload = 0;
+
+// 	LOG_INFO("Exit: node reset init\n");
+
+// }
+
+
 /*------------------------------------------------------------------*/
 /**
  * brief: this function to reset the neighbor node to initial state
@@ -654,7 +712,7 @@ void nnode_init(int node_i) {
  *
  *
  */
-void nnode_reset(void){
+void nnode_reset_all(void){
 	for(int i = 0; i < NEIGHBORS_LIST && 
 		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
 		i++){
@@ -664,11 +722,25 @@ void nnode_reset(void){
 	node_upload_nbr = 0;
 }
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: this function to reset the neighbor node to initial state
+ *
+ * params: void
+ *
+ * return: void
+ *
+ *
+ */
+void nnode_reset_lowrank(uint8_t nbr_idx){
+	if(!uip_is_addr_unspecified(&nbr_list[nbr_idx].nnode_addr))
+		nnode_init(nbr_idx);
+}
 
 /*------------------------------------------------------------------*/
 /**
  * brief: this function, node sends handshake i.e its own info about
- * 			which pieces it possess to its neighbor nodes
+ * 		  which pieces of data it possess to its neighbor nodes
  *
  * params: sender address
  *
@@ -678,7 +750,6 @@ void nnode_reset(void){
  */
 
 void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
-	// Good to actually test value of n_addr. If it is NULL what should happen
 
 	LOG_INFO("Enter: node handshake\n");
 	LOG_INFO("to send to: ");
@@ -707,9 +778,8 @@ void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 		nbr_list[n_idx].nnode_state = HANDSHAKING_STATE;
 
 		if (ctimer_expired(t))
-			ctimer_set(t, CLOCK_SECOND * 1000, callback_ack_handshake, cb_data);
+			ctimer_set(t, CLOCK_SECOND * CALLBACK_TIMER, callback_ack_handshake, cb_data);
 		else
-			// LOG_ERR(“HANDSHAKE TIMER CANNOT START: NODE:(%u)”, n_idx);
 			PRINTF((“HANDSHAKE TIMER CANNOT START: NODE:(%u)”, n_idx));
 	}
 
@@ -720,8 +790,8 @@ void node_handshake(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 /*------------------------------------------------------------------*/
 /**
  * brief: this function is response to the handshake and same as
- * 			handshake, sends its own info about which pieces it
- * 			possess to node as response
+ * 		  handshake, sends its own info about which pieces it
+ * 		  possess to node as response
  *
  * params: void
  *
@@ -733,8 +803,6 @@ void node_ack_handshake(const uip_ipaddr_t *sender_addr) {
 	LOG_INFO("Enter: node ack handshake\n");
 	msg_pckt_t data_packet;
 
-	// memset(&data_packet, 0, sizeof(msg_pckt_t));
-	// for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
 	prepare_handshake(&data_packet, ACKHANDSHAKE_CTRL_MSG);
 	if(unicast_send(&data_packet, sender_addr)){
 		LOG_INFO("node ack handshake send successful\n");
@@ -742,9 +810,6 @@ void node_ack_handshake(const uip_ipaddr_t *sender_addr) {
 		LOG_ERR("node ack handshake tsch send error\n");
 		return;
 	}
-	// unicast_send(&data_packet, sender_addr);	// send packet
-	// nbr[i].nnode_state = handshaking;
-	// }
 	LOG_INFO("Exit: node ack handshake\n");
 }
 
@@ -754,7 +819,7 @@ void node_ack_handshake(const uip_ipaddr_t *sender_addr) {
 /*------------------------------------------------------------------*/
 /**
  * brief: node informs to its neighbors that it is interested in
- * 			downloading a piece
+ * 		  downloading a piece
  *
  * params: void
  *
@@ -778,12 +843,7 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 	if (node_download_nbr < NODES_DOWNLOAD) {
 		uint8_t chunk = missing_random_chunk();
 		LOG_INFO("missing random chunk %d\n", chunk);
-		// for (int i = 0; i < NUM_OF_NEIGHBORS && nbr_list[i].nnode_addr != NULL; i++) {
-		// for (int i = 0; i < NUM_OF_NEIGHBORS && 
-		// 	!uip_is_addr_unspecified(&nbr_list[i].nnode_addr) &&
-		// 	nbr_list[i].nnode_rank > my_rank;
-		// 	i++) {
-		// 	LOG_INFO("for loop: %d\n", i);
+
 			if ((nbr_list[n_idx].data_chunks & (1 << chunk)) &&
 				nbr_list[n_idx].nnode_rank > my_rank) {
 
@@ -805,21 +865,14 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 
 				if (ctimer_expired(t))
-					ctimer_set(t, CLOCK_SECOND * 3, callback_interest_informing, cb_data);
+					ctimer_set(t, CLOCK_SECOND * CALLBACK_TIMER, callback_interest_informing, cb_data);
 				else
-					// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
 					PRINTF(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
-
-				// break;
 			} else {
+
 				LOG_INFO("node rank or chunk does not meet requirements\n");
+				LOG_INFO("nbr node rank: %d my rank: %d\n", nbr_list[n_idx].nnode_rank, my_rank);
 			}
-			// } else {
-			// 	// nnode_init(i);	// reset node to init states to send the handshake again
-			// 	// process_timer = PROCESS_WAIT_TIME_NO_CHUNKS; // set process timer to 60 mins
-			// 	continue;
-			// }
-		// }
 	}
 	LOG_INFO("Exit: node interest\n");
 }
@@ -835,7 +888,6 @@ void node_interest(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
  *
  */
 
-// Note uip_ipaddr_t is a neighbor not an address. This will not work for unicast send.
 choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
 	LOG_INFO("Enter: node choke unchoke\n");
 	msg_pckt_t data_packet;
@@ -852,7 +904,6 @@ choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
 			return CHOKE_FALSE;
 		}
 
-		// unicast_send(&data_packet, sender_addr);	// send packet
 		ch_uch_state = CHOKE_FALSE;
 
 	} else if (node_upload_nbr < NODES_UPLOAD) {
@@ -865,7 +916,6 @@ choke_state_t node_choke_unchoke(const uip_ipaddr_t *sender_addr) {
 			return CHOKE_FALSE;
 		}
 
-		// unicast_send(&data_packet, sender_addr);	// send packet
 		ch_uch_state = CHOKE_FALSE;
 	}
 
@@ -940,16 +990,12 @@ void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 			return;
 		}
 
-		// unicast_send(&data_packet, n_addr);
-
 		nbr_list[n_idx].nnode_state = DOWNLOADING_STATE;
 		node_download_nbr++;
 
 		if (ctimer_expired(t))
-			ctimer_set(t, CLOCK_SECOND * 60, callback_request, cb_data);
+			ctimer_set(t, CLOCK_SECOND * CALLBACK_TIMER, callback_request, cb_data);
 		else
-			// LOG_ERR(“INTEREST TIMER CANNOT START: NODE: (%u)”, n_idx);
-			// PRINTF(“INTEREST TIMER CANNOT START - NODE: (%u)\n”, n_idx);
 			LOG_INFO("INTEREST TIMER CANNOT START - NODE: (%u)\n", n_idx);
 	}
 	// node_received();
@@ -963,15 +1009,13 @@ void node_request(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
 /*------------------------------------------------------------------*/
 /**
- * brief: request to start downloading
+ * brief: check if the chunk is received
  *
- * params: void
+ * params: neighbor address, neighbor index
  *
  * return: void
  *
  */
-
-// n_addr not an IP-address
 
 void node_received(const uip_ipaddr_t *n_addr, const uint8_t n_idx) {
 
@@ -1048,7 +1092,8 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 				LOG_INFO("node upload send successful\n");
 			} else {
 				LOG_ERR("node upload tsch send error\n");
-				return;
+				goto REDUCE_UPLOAD_NBR;
+				// return;
 			}
 
 			// unicast_send(&data_packet, sender_addr);
@@ -1060,6 +1105,7 @@ void node_upload(const uint8_t chunk, const uip_ipaddr_t *sender_addr) {
 		}
 	}
 
+REDUCE_UPLOAD_NBR:
 	node_upload_nbr -= (node_upload_nbr > 0)? 1:0;
 
 	LOG_INFO("Exit: node upload\n");

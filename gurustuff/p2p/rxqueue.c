@@ -71,9 +71,9 @@ node_rank_t
 nnode_rank_set(uint32_t nnode_self_chunks){
 	
 	node_rank_t nnode_rank;
-	if(nnode_self_chunks >= 0xfffffffe)
+	if(nnode_self_chunks >=  0xffffffff)
 		nnode_rank = RANK_1;
-	else if(nnode_self_chunks >= 0xfffffff0)
+	else if(nnode_self_chunks >= 0xfffffff)
 		nnode_rank = RANK_2;
 	else if(nnode_self_chunks >= 0xffff)
 		nnode_rank = RANK_3;
@@ -111,10 +111,6 @@ queue_reset(void){
 		}
 	}
 }
-
-
-
-
 
 /*------------------------------------------------------------------*/
 /**
@@ -155,18 +151,12 @@ queue_deq(void) {
 
 			msg_pckt_t *this;
 
-			// These are not safe constructions. I started to change them but you need to refactory the code here.
-			// sender_addr and data are only available in the callback. In addition
-			// if you post the data you need to have memory where you store data post_data is lost
-			// once you leave the callback.
 			process_post_data_t post_data;
 			post_data.sender_addr = dq->send_addr;
 			post_data.data = (uint8_t *)dq->data;
 
 
 			this = (msg_pckt_t *)dq->data;
-
-			// LOG_INFO("control message: %d\n", dq->ctrl_msg);
 
 			LOG_INFO("\ncontrol message received dequed:  %d\n", this->ctrl_msg);
 			LOG_INFO("post data: %d\n", post_data.data[0]);
@@ -206,8 +196,12 @@ queue_deq(void) {
 			}
 
 
-			heapmem_free(dq->data);
-			heapmem_free(dq);
+			if(heapmem_free(dq->data)){
+				LOG_INFO("memory free dq->data successful\n");
+			}
+			if(heapmem_free(dq)){
+				LOG_INFO("memory free dq successful\n");
+			}
 
 			node_index = -1;
 			LOG_INFO("\n");
@@ -216,7 +210,6 @@ queue_deq(void) {
 
 		}
 	}
-	// PRINTF("Deque is Complete\n");
 	return 0;
 }
 
@@ -257,9 +250,9 @@ queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data) {
 	rx_q->data = (uint8_t *)heapmem_alloc(dlen * sizeof(uint8_t));
 
 	if (rx_q->data == NULL) {
-		if(rx_q != NULL){
-			heapmem_free(rx_q);
-		}
+		// if(rx_q != NULL){
+		heapmem_free(rx_q);
+		// }
 		LOG_INFO("Failed to Allocate Memory\n");
 		return;
 	}

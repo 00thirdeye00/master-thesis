@@ -28,29 +28,22 @@
 #define LOG_MODULE "p2pnode"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
-// #define WITH_SERVER_REPLY  1
-// #define UDP_CLIENT_PORT	8765
-// #define UDP_SERVER_PORT	5678
 #define P2P_PORT 5432
 
 #define SEND_INTERVAL		  	(60 * CLOCK_SECOND)
-#define DELAY_CYCLE_COUNT	(60 / PROCESS_WAIT_TIME_DEFAULT)
+#define QUE_START_INTERVAL	SEND_INTERVAL
+#define DELAY_CYCLE_COUNT		20 //(60 / PROCESS_WAIT_TIME_DEFAULT)
 
 bool chunk_cnt[DATA_TOTAL_CHUNKS];
 bool missing_chunk_req[DATA_TOTAL_CHUNKS];
 
-
-// TODO: check the socket
 struct simple_udp_connection p2p_socket;
-// main process timer
-uint32_t process_timer = PROCESS_WAIT_TIME_DEFAULT;
 
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(p2p_content_distribution);
 PROCESS(node_comm_process, "UDP client");
-// PROCESS(nbr_construction_process, "Neighbor construction");
-// AUTOSTART_PROCESSES(&node_comm_process, &nbr_construction_process);
-AUTOSTART_PROCESSES(&node_comm_process);
+PROCESS(queue_proc, "queue process");
+AUTOSTART_PROCESSES(&node_comm_process, &queue_proc);
 
 /*---------------------------------------------------------------------------*/
 
@@ -61,7 +54,7 @@ void nbr_construction(const uip_ipaddr_t *ipaddr);
 
 
 /*---------------------------------------------------------------------------*/
-bool
+static bool
 node_data_check(void){
 	LOG_INFO("node data check\n");
 	for(int i = 0; i < DATA_TOTAL_CHUNKS; i++) {
@@ -75,53 +68,114 @@ node_data_check(void){
 	LOG_INFO("node data checked\n");
 	return true;
 }
+/*---------------------------------------------------------------------------*/
+static uint8_t
+nbr_count(void){
+
+	static uint8_t nbr_count;
+	nbr_count = 0;
+	for(int i = 0; i < NEIGHBORS_LIST && 
+		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
+		i++){
+		nbr_count += 1;
+	}
+	return nbr_count;
+}
 
 /*---------------------------------------------------------------------------*/
-bool
+static bool
+is_nbr_handhaked(bool ret_type) {
+	static uint8_t nbr_hs_count;
+
+	LOG_INFO("is nbr handshake check\n");
+
+	nbr_hs_count = 0;
+
+	for(int i = 0; i < NEIGHBORS_LIST &&
+		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
+		i++){
+
+		if(nbr_list[i].nnode_state >= HANDSHAKED_STATE &&
+			nbr_list[i].nnode_rank <= my_rank &&
+			my_rank < RANK_1){
+			nnode_reset_lowrank(i);
+		}
+
+		if(nbr_list[i].nnode_state == HANDSHAKING_STATE ||
+			nbr_list[i].nnode_state == IDLE_STATE) {
+			LOG_INFO("nbr handshaking progress\n");
+			nbr_hs_count++;
+		}
+	}
+	if(nbr_hs_count > nbr_count()/2){
+		return (ret_type)? false : nbr_hs_count;
+	}
+
+	return (ret_type)? true : nbr_hs_count;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool
+is_nbr_rank_low(void){
+
+	static uint8_t nbr_rank_low_num;
+	
+	nbr_rank_low_num = 0;
+
+	for(int i = 0; i < NEIGHBORS_LIST && 
+		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr) &&
+		nbr_list[i].nnode_rank <= my_rank;
+		i++){
+		nbr_rank_low_num += 1;
+	}
+
+	if(nbr_rank_low_num == nbr_count())
+		return true;
+
+	return false;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool
 is_nbr_rank_high(void) {
+	static bool rank_high_flag;
+	static uint8_t rank_high_count;
 
 	LOG_INFO("is nbr rank high check\n");
 
+	rank_high_flag = false;
+	rank_high_count = 0;
+	// rank_high_freq = 0;
 	for(int i = 0; i < NEIGHBORS_LIST && 
-		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr); // &&
-		// nbr_list[i].nnode_state == HANDSHAKED_STATE;
+		!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
 		i++){
 
-		if(nbr_list[i].nnode_state == HANDSHAKING_STATE || 
-			nbr_list[i].nnode_state == IDLE_STATE){
-			LOG_INFO("check 1\n");
-			return true;
-		}
-
-		if((nbr_list[i].nnode_state >= HANDSHAKED_STATE) && 
-			(nbr_list[i].nnode_rank > my_rank)){
-			LOG_INFO("check 2\n");
-			return true;
+		if(nbr_list[i].nnode_state >= HANDSHAKED_STATE){
+			
+			if(nbr_list[i].nnode_rank > my_rank && 
+				nbr_list[i].failed_dlreq <= 2)
+				rank_high_count += 1;
 		}
 
 		LOG_INFO("node id: %d\n", i);
 		LOG_INFO("node state: %d\n", nbr_list[i].nnode_state);
 		LOG_INFO("node rank: %d\n", nbr_list[i].nnode_rank);
-
 	}
-	return false;
+
+	if(rank_high_count >= 1)
+		rank_high_flag = true;
+	else
+		rank_high_flag = false;
+
+
+	nbr_list_print();
+	return rank_high_flag;
 }
 
 /*---------------------------------------------------------------------------*/
-// void 
-// nbr_list_init(void){
-// 	for(int nbr_idx = 0; nbr_idx < NEIGHBORS_LIST; nbr_idx++){
-// 		nbr_list[nbr_idx].nnode_addr = NULL;
-// 		// uip_ipaddr_copy(&nbr_list[nbr_idx].nnode_addr, NULL);
-// 	}
-// }
 
-
-/*---------------------------------------------------------------------------*/
-
-// As you say I think you should have this in p2p.c. p2p.[ch] provides the api for a main process
-// that would like to use the p2p implementation. Internal data structures should not be exposed to the
-// main program only the api. Understand that the process post needs to know where to post data.
 static void
 udp_rx_callback(struct simple_udp_connection *c,
                 const uip_ipaddr_t *sender_addr,
@@ -134,6 +188,8 @@ udp_rx_callback(struct simple_udp_connection *c,
 	static int8_t node_idx = -1;
 
 	node_idx = check_index(sender_addr);
+
+	LOG_INFO("rx call back node idx: %d", node_idx);
 
 	if ((0 > node_idx) && (node_idx >= NEIGHBORS_LIST)) {
 		LOG_ERR("Node doesn't exists in the node list");
@@ -166,7 +222,6 @@ udp_rx_callback(struct simple_udp_connection *c,
 				LOG_INFO("DUPLICATE: chunk duplicate received\n");
 				if(node_download_nbr > 0)
 					node_download_nbr--;
-				// (node_download_nbr > 0) ? node_download_nbr-- : LOG_INFO("node dlnbr: %d\n", node_download_nbr);
 				nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
 				nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
 				return;
@@ -185,9 +240,6 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 					chunk_cnt[nbr_list[node_idx].chunk_requested] = true;
 					node_download_nbr -= (node_download_nbr > 0) ? 1 : 0;
-					// nbr_list[node_idx].nnode_ctrlmsg = ACKHANDSHAKE_CTRL_MSG;
-					// nbr_list[node_idx].nnode_state = HANDSHAKED_STATE;
-					// nbr_list[node_idx].nnode_interest = INTEREST_FALSE;
 
 					chunk_num = 0;
 					block_num = 0;
@@ -202,7 +254,6 @@ udp_rx_callback(struct simple_udp_connection *c,
 		}
 	}
 
-	// LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
 	LOG_INFO("In node callback\n");
 	LOG_INFO("Received message from: ");
 	LOG_INFO_6ADDR(sender_addr);
@@ -272,6 +323,10 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	// In threads and processes variables need to be static
 	static system_mode_t system_mode = MODE_IDLE;
 	static uint8_t delay_cycle = 0;
+	static uint32_t process_timer = PROCESS_WAIT_TIME_DEFAULT;
+	// static uint8_t process_skip_counter = 0;
+
+	// queue_event = process_alloc_event();
 
   	PROCESS_BEGIN();
 
@@ -287,6 +342,7 @@ PROCESS_THREAD(node_comm_process, ev, data)
 		NETSTACK_ROUTING.root_start();
 		node_coordinator_data(1);
 	}
+	NETSTACK_MAC.on();
 
 	node_chunk_req();	// init missing data requested array to avoid duplicates
 	// node_data_check();
@@ -302,11 +358,17 @@ PROCESS_THREAD(node_comm_process, ev, data)
 	                    P2P_PORT, udp_rx_callback);
 
 	// etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
-	etimer_set(&periodic_timer, 30 * SEND_INTERVAL); // 120 to 60 minutes
+	etimer_set(&periodic_timer, 10 * SEND_INTERVAL); // 120 to 60 minutes
 
 	while (1) {
 
 		LOG_INFO("Enter: In while\n");
+
+		// queue_event_post();
+
+		// if(!queue_event_post()){
+		// 	process_post(&node_comm_process, queue_event, NULL);
+		// }
 
 		// PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
 		// You never sleep. This will not work.
@@ -314,19 +376,32 @@ PROCESS_THREAD(node_comm_process, ev, data)
         PRINTF("Routing entries: %u\n", uip_ds6_route_num_routes());
     #endif
 		PROCESS_WAIT_EVENT_UNTIL(/*uip_ds6_route_num_routes() > NUM_OF_NODES && */
-														(etimer_expired(&periodic_timer) ||
-		                        !is_queue_empty()));
+														/*(ev == queue_event ||*/
+														!is_queue_empty() || 
+														etimer_expired(&periodic_timer));
 
 		LOG_INFO("Routing entries: %u\n", uip_ds6_route_num_routes());
 		LOG_INFO("Enter: In while after clock\n");
 
-		if (!is_queue_empty()) {
-			queue_deq();
-			nbr_list_print();
-		}
+		// if (!is_queue_empty()) {
+		// 	queue_deq();
+		// 	nbr_list_print();
+		// } else {
+		// 	LOG_ERR("queue empty\n");
+		// }
 
 		// if ((etimer_expired(&periodic_timer) && (uip_ds6_route_num_routes() > NUM_OF_NODES))) {
 		if (etimer_expired(&periodic_timer)) {
+
+			
+			// if(process_skip_counter <= 20){
+			// 	process_skip_counter += 1;
+			// 	return;
+			// } else {
+			// 	process_skip_counter = 0;
+			// }
+
+
 			LOG_INFO("In main while:\n");
 
 			node_my_rank();	// set my_rank variable
@@ -360,21 +435,31 @@ PROCESS_THREAD(node_comm_process, ev, data)
 				// leds_single_on(0x00);
 			}
 
-			if(!is_coordinator && my_rank != RANK_1 && is_nbr_rank_high() == false &&
-				 delay_cycle <= DELAY_CYCLE_COUNT) {
+			if(!is_coordinator && my_rank < RANK_1 && is_nbr_handhaked(true) == true && 
+				(is_nbr_rank_low() == true || is_nbr_rank_high() == false) &&
+				delay_cycle <= DELAY_CYCLE_COUNT) {
 				delay_cycle += 1;
 				LOG_INFO("is nbr rank high : %d\n", is_nbr_rank_high());
 				LOG_INFO("delay cycle : %d\n", delay_cycle);
 				if(delay_cycle >= DELAY_CYCLE_COUNT){
 					delay_cycle = 0;
-					process_timer = PROCESS_WAIT_TIME_DEFAULT * 10;
+					// process_timer = PROCESS_WAIT_TIME_DEFAULT * 10;
+					process_timer = PROCESS_WAIT_TIME_DEFAULT;
+					// PROCESS_DELAY_FLAG = TRUE;
+					// process_skip_counter = 20;
 					// queue_reset();
-					nnode_reset();
+					nnode_reset_all();
 					nbr_list_print();
 				}
 			} else {
+				delay_cycle = 0;
 				process_timer = PROCESS_WAIT_TIME_DEFAULT;
 			}
+
+			// if(system_mode == MODE_SEEDER)
+			// 	process_timer = PROCESS_WAIT_TIME_SEEDER;
+			
+
 			// } else {
 			// 	// for(int i = 0; i < NEIGHBORS_LIST &&
 			// 	// 	!uip_is_addr_unspecified(&nbr_list[i].nnode_addr);
@@ -396,6 +481,33 @@ PROCESS_THREAD(node_comm_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 
+
+PROCESS_THREAD(queue_proc, ev, data)
+{
+  static struct etimer et_queue;
+
+  PROCESS_BEGIN();
+
+  etimer_set(&et_queue, 10 * QUE_START_INTERVAL);
+  while(1){
+
+    PRINTF("In Queue Process Yield\n");
+    PROCESS_YIELD();
+    if(etimer_expired(&et_queue) && !is_queue_empty())
+    {
+      PRINTF("Queue Process is Not Empty\n");
+      queue_deq();
+    }
+
+    etimer_set(&et_queue, 20 * CLOCK_SECOND);
+  }
+
+  // printf("queue process\n");
+
+  PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
 
 void nbr_construction(const uip_ipaddr_t *ipaddr) {
 

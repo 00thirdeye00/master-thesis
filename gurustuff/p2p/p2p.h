@@ -49,14 +49,15 @@
 // #endif
 
 
-#define NODES_MAX 			4 // M is the max number of neighbor nodes a node can have
+#define NODES_MAX_NBRS 		10 // M is the max number of neighbor nodes a node can have
+#define NODES_MAX_COMM		4 // num of nodes to comm at at time from the ref paper
 // can comm at a time
 #define NODES_MAX_DL_UL		2 // max uploading nodes = 2 and max downloading nodes = 2
 
-#define NUM_OF_NEIGHBORS	NODES_MAX // num of nodes to comm at at time from the ref paper
-#define NEIGHBORS_LIST		NODES_MAX // num of neighbors in the list
-#define NODES_UPLOAD		(NODES_MAX / 2) // in the leecher mode
-#define NODES_DOWNLOAD		(NODES_MAX / 2) // in the leecher mode
+// #define NUM_OF_NEIGHBORS	NODES_MAX // num of nodes to comm at at time from the ref paper
+#define NEIGHBORS_LIST		NODES_MAX_NBRS // num of neighbors in the list
+#define NODES_UPLOAD		(NODES_MAX_COMM / 2) // in the leecher mode
+#define NODES_DOWNLOAD		(NODES_MAX_COMM / 2) // in the leecher mode
 
 
 #define TOTAL_DATA_S		(sizeof(seq_idd))	// 4kb of data
@@ -76,10 +77,11 @@
 
 #define NUM_OF_NODES		16 	// no. of nodes in network
 
-#define PROCESS_WAIT_TIME_DEFAULT			5	// set 30 minutes timer for process
+#define PROCESS_WAIT_TIME_DEFAULT			2	// set 30 minutes timer for process
 #define PROCESS_WAIT_TIME_NO_CHUNKS 		60	// wait 30 minutes if the nbr has no chunks
 #define PROCESS_WAIT_TIME_NBR_RANK_LOW 		(6 * PROCESS_WAIT_TIME_NO_CHUNKS) // if all nbr's rank less/equal to my_rank
 #define PROCESS_WAIT_TIME_PARTIAL_CHUNKS 	PROCESS_WAIT_TIME_DEFAULT	// wait 15 minutes if the nbr has some chunks
+#define PROCESS_WAIT_TIME_SEEDER			200 // set 200 minutes timer for process when its seeder			
 
 typedef enum{
 	RANK_0 = 0,
@@ -155,13 +157,9 @@ typedef enum {
 	WAIT_START,
 } wait_state_t;
 
-// struct process_post_comm {
-// 	ctrl_msg_t process_post;
-// };
 
 #pragma pack(push, 1)
 
-// struct for each nbr node
 typedef struct {
 	uip_ipaddr_t nnode_addr;			// neighbor address
 	comm_states_t nnode_state;			// neighbor node state
@@ -235,8 +233,7 @@ typedef struct {
 
 /* p2p_socket defined in p2pnode.c */
 extern struct simple_udp_connection p2p_socket;
-/* main process timer */
-extern uint32_t process_timer;
+
 /*--------------------------------------------*/
 
 extern uint8_t my_rank;			// my rank
@@ -245,9 +242,7 @@ extern uint8_t node_download_nbr; // to keep track of neighbors this node downlo
 
 extern bool chunk_cnt[DATA_TOTAL_CHUNKS]; // total number of chunks this node contains
 extern bool missing_chunk_req[DATA_TOTAL_CHUNKS]; // number of chunks requested
-// nbr_list, consider whether it should be static, meaning it is only available for p2p.c code.
-// Not external code if external modules should access the data structure it should be via functions.
-// That would give a cleaner structure.
+
 extern nnode_state_t nbr_list[NEIGHBORS_LIST]; // total number of neighbors for this node
 
 
@@ -316,6 +311,16 @@ uint8_t missing_random_chunk(void);
 void nnode_init(int node_i);
 
 /**
+ * brief: function to reset to initial setting of neighbor node
+ *
+ * params: neighbor number
+ *
+ * return: void
+ *
+ */
+// void nnode_reset_init(uint8_t node_i);
+
+/**
  * brief: function to reset neighbor nodes
  *
  * params: void
@@ -323,7 +328,19 @@ void nnode_init(int node_i);
  * return: void
  *
  */
-void nnode_reset(void);
+void nnode_reset_all(void);
+
+
+/**
+ * brief: function to reset neighbor node
+ *
+ * params: nbr_idx
+ *
+ * return: void
+ *
+ */
+void nnode_reset_lowrank(uint8_t nbr_idx);
+
 
 /**
  * brief: check node index in the receive callback
@@ -468,34 +485,8 @@ void nbr_list_print(void);
  *
  */
 system_mode_t system_mode_pp(system_mode_t sys_mode);
-// extern void nbr_construction(const uip_ipaddr_t *ipaddr);
 
 
-/*------------------------------------------------------------------*/
-
-
-// static state_machine_download sm_download[] = {
-// 	{IDLE_STATE,					NONE_CTRL_MSG,  		node_handshake},
-// 	{HANDSHAKING_STATE,				NONE_CTRL_MSG,			NULL},
-// 	{HANDSHAKED_STATE,				ACKHANDSHAKE_CTRL_MSG,	node_interest},
-// 	{INTEREST_INFORMING_STATE,		NONE_CTRL_MSG, 			NULL}, // state=handshaked, interest=false
-// 	{INTEREST_INFORMED_STATE,		UNCHOKE_CTRL_MSG,		node_request},
-// 	{DOWNLOADING_STATE,				NONE_CTRL_MSG,			node_received},
-// 	// {UPLOADING_STATE,				NULL,					NULL},
-// 	// {LAST_COMM_STATE,				NULL,					NULL}
-// };
-
-
-// state_machine_upload sm_upload[] = {
-// 	{NONE_CTRL_MSG,			NULL},
-// 	{HANDSHAKE_CTRL_MSG,	node_ack_handshake},
-// 	{INTEREST_CTRL_MSG,		node_choke_unchoke},
-// 	{REQUEST_CTRL_MSG,		node_upload},
-// 	// {NULL,					NULL},
-// 	// {NULL,					NULL},
-// 	// {NULL,					NULL},
-// 	// {NULL,					NULL}
-// }
 
 
 /*------------------------------------------------------------------*/

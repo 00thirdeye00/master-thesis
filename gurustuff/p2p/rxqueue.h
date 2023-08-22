@@ -34,8 +34,9 @@
 #include "p2p.h"
 
 
-#define QUEUE_SIZE	10
+#define QUEUE_SIZE	20	// queue size
 
+/* events to handle upload process */
 enum {
 	HANDSHAKE_EVENT,
 	INTEREST_EVENT,
@@ -43,30 +44,80 @@ enum {
 };
 
 
+/* structure for missing packets queue */
 typedef struct rx_mpckts_s {
-	struct rx_mpckts_s *next;
-	struct rx_mpckts_s *previous;
-	uip_ipaddr_t send_addr;
-	uint16_t datalen;
-	uint8_t *data;
+	struct rx_mpckts_s *next;		// next queue item
+	struct rx_mpckts_s *previous;	// previous queue item
+	uip_ipaddr_t send_addr;			// sender address
+	uint16_t datalen;				// data length
+	uint8_t *data;					// data
 } rx_mpckts_t;
 
-// rx_mpckts_t *rx_q;
 
-
+/*------------------------------------------------------------------*/
+/**
+ * brief: to check if the queue is empty or not
+ *
+ * params: void
+ *
+ * return: boolean
+ *
+ *
+ */
 bool is_queue_empty(void);
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: reset queue
+ *
+ * params: void
+ *
+ * return: void
+ *
+ *
+ */
 
 void queue_reset(void);
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: enque an element in the queue
+ *
+ * params: sender address, data length, data
+ *
+ * return: void
+ *
+ *
+ */
+
 void queue_enq(const uip_ipaddr_t *sender_addr, uint16_t dlen, const uint8_t *data);
+
+
+/*------------------------------------------------------------------*/
+/**
+ * brief: dequeue an element from the queue
+ *
+ * params: void
+ *
+ * return: 0 or 1
+ *
+ *
+ */
 
 uint8_t queue_deq(void);
 
+/*------------------------------------------------------------------*/
+/**
+ * brief: to handle upload process based on incomming events
+ *
+ * params: process event, process data
+ *
+ * return: void
+ *
+ *
+ */
 
 extern void upload_event_handler(process_event_t ev, const process_post_data_t *post_data);
-
-
-
 
 
 

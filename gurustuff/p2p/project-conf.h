@@ -81,7 +81,7 @@
 
 #define ORCHESTRA_CONF_EBSF_PERIOD          397
 #define ORCHESTRA_CONF_UNICAST_PERIOD       17
-#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 23
+#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD 31 // changed from 23
 
 
 
@@ -89,6 +89,9 @@
 // #define ROLL_TM_CONF_IMIN_1         64
 // #define MPL_CONF_DATA_MESSAGE_IMIN  64
 // #define MPL_CONF_CONTROL_MESSAGE_IMIN  64
+
+/* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
+#define TSCH_CONF_AUTOSTART 0   // testing
 
 // #define UIP_MCAST6_ROUTE_CONF_ROUTES 1
 #define UIP_CONF_TCP 0
@@ -106,7 +109,7 @@
 #define QUEUEBUF_CONF_NUM 128
 
 // size of buffer size
-#define UIP_CONF_BUFFER_SIZE 128
+#define UIP_CONF_BUFFER_SIZE 1280 // changed from 160
 
 /* Code/RAM footprint savings so that things will fit on our device */
 #ifndef NETSTACK_MAX_ROUTE_ENTRIES
@@ -114,11 +117,12 @@
 #endif
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS 32
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 64 // test with 64 nbrs // 32
 #endif
 
 
-#define HEAPMEM_CONF_ARENA_SIZE 4096    //2048
+#define HEAPMEM_CONF_ARENA_SIZE 1000000   //1000000    //2048
+#define HEAPMEM_CONF_MAX_ZONES  2
 
 
 #endif /* PROJECT_CONF_H_ */
