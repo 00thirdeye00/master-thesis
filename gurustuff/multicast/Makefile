@@ -1,10 +1,10 @@
 #/**
-#* \addtogroup p2p
+#* \addtogroup multicast
 # * @{
 # */
 #/**
 # * \file
-# *					This file implements 'Peer to Peer' (p2p)
+# *					This file implements multicast
 # *
 # * \author
 # *					Guru Mehar Rachaputi
